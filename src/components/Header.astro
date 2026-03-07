@@ -31,147 +31,148 @@ const isActive = (path: string) => {
 </a>
 
 <header id="main-header" class="sticky top-0 z-40 w-full transition-colors duration-300">
-  <div class="app-layout header-scrolled-filter">
-    <div
-      id="top-nav-wrap"
-      class:list={[
-        "py-3 sm:py-5",
-        "relative w-full",
-        "flex items-center justify-between",
-        "transition-all duration-300",
-      ]}
-    >
-      <!-- Logo -->
-      <a
-        href="/"
-        class="group relative z-20 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl"
+  <div class="header-scrolled-filter w-full">
+    <div class="app-layout">
+      <div
+        id="top-nav-wrap"
+        class:list={[
+          "py-3 sm:py-5",
+          "relative w-full",
+          "flex items-center justify-between",
+          "transition-all duration-300",
+        ]}
       >
-        <!-- <span class="nav-logo-text">{SITE.title}</span> -->
-        <Logo class="w-37.5 dark:invert" />
-      </a>
-
-      <!-- Nav area -->
-      <nav id="nav-menu" class="flex items-center sm:gap-1">
-        <!-- Mobile hamburger (animated lines) -->
-        <button
-          id="menu-btn"
-          class="hamburger-btn sm:hidden"
-          aria-label="Open Menu"
-          aria-expanded="false"
-          aria-controls="mobile-menu"
+        <!-- Logo -->
+        <a
+          href="/"
+          class="group relative z-20 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl"
         >
-          <div class="hamburger-box">
-            <span class="hamburger-line hamburger-line--1"></span>
-            <span class="hamburger-line hamburger-line--2"></span>
-            <span class="hamburger-line hamburger-line--3"></span>
-          </div>
-        </button>
+          <!-- <span class="nav-logo-text">{SITE.title}</span> -->
+          <Logo class="w-37.5 dark:invert" />
+        </a>
 
-        <!-- Desktop links (always visible on sm+) -->
-        <ul class="hidden sm:flex sm:flex-row sm:items-center sm:gap-1">
-          <li>
-            <a
-              href="/posts"
-              class:list={["nav-link", { "nav-active": isActive("/posts") }]}
-              >Posts</a
-            >
-          </li>
-          <li>
-            <a
-              href="/tags"
-              class:list={["nav-link", { "nav-active": isActive("/tags") }]}
-              >Tags</a
-            >
-          </li>
-          <li>
-            <a
-              href="/about"
-              class:list={["nav-link", { "nav-active": isActive("/about") }]}
-              >About</a
-            >
-          </li>
-          <li class="flex items-center">
-            <a
-              href="/search"
-              class:list={["nav-link", { "nav-active": isActive("/search") }]}
-              title="Ir a búsqueda">Search</a
-            >
-          </li>
-          {
-            SITE.showArchives && (
-              <li>
-                <LinkButton
-                  href="/archives"
-                  class:list={[
-                    "nav-link",
-                    { "nav-active": isActive("/archives") },
-                  ]}
-                  title="Archives"
-                  aria-label="archives"
-                >
-                  <IconArchive class="hidden sm:inline-block" />
-                  <span class="sm:sr-only">Archives</span>
-                </LinkButton>
-              </li>
-            )
-          }
-          {
-            SITE.showGalleries && (
-              <li>
-                <LinkButton
-                  href="/galleries"
-                  class:list={[
-                    "nav-link",
-                    { "nav-active": isActive("/galleries") },
-                  ]}
-                  title="Galerías"
-                  aria-label="galleries"
-                >
-                  <IconGallery class="hidden sm:inline-block" />
-                  <span class="sm:sr-only">Galerías</span>
-                </LinkButton>
-              </li>
-            )
-          }
+        <!-- Nav area -->
+        <nav id="nav-menu" class="flex items-center sm:gap-1">
+          <!-- Mobile hamburger (animated lines) -->
+          <button
+            id="menu-btn"
+            class="hamburger-btn sm:hidden"
+            aria-label="Open Menu"
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+          >
+            <div class="hamburger-box">
+              <span class="hamburger-line hamburger-line--1"></span>
+              <span class="hamburger-line hamburger-line--2"></span>
+              <span class="hamburger-line hamburger-line--3"></span>
+            </div>
+          </button>
 
-          <!-- Separator -->
-          <li class="flex items-center px-1" aria-hidden="true">
-            <div class="h-4 w-px bg-border/30"></div>
-          </li>
+          <!-- Desktop links (always visible on sm+) -->
+          <ul class="hidden sm:flex sm:flex-row sm:items-center sm:gap-1">
+            <li>
+              <a
+                href="/posts"
+                class:list={["nav-link", { "nav-active": isActive("/posts") }]}
+                >Posts</a
+              >
+            </li>
+            <li>
+              <a
+                href="/tags"
+                class:list={["nav-link", { "nav-active": isActive("/tags") }]}
+                >Tags</a
+              >
+            </li>
+            <li>
+              <a
+                href="/about"
+                class:list={["nav-link", { "nav-active": isActive("/about") }]}
+                >About</a
+              >
+            </li>
+            <li class="flex items-center">
+              <a
+                href="/search"
+                class:list={["nav-link", { "nav-active": isActive("/search") }]}
+                title="Ir a búsqueda">Search</a
+              >
+            </li>
+            {
+              SITE.showArchives && (
+                <li>
+                  <LinkButton
+                    href="/archives"
+                    class:list={[
+                      "nav-link",
+                      { "nav-active": isActive("/archives") },
+                    ]}
+                    title="Archives"
+                    aria-label="archives"
+                  >
+                    <IconArchive class="hidden sm:inline-block" />
+                    <span class="sm:sr-only">Archives</span>
+                  </LinkButton>
+                </li>
+              )
+            }
+            {
+              SITE.showGalleries && (
+                <li>
+                  <LinkButton
+                    href="/galleries"
+                    class:list={[
+                      "nav-link",
+                      { "nav-active": isActive("/galleries") },
+                    ]}
+                    title="Galerías"
+                    aria-label="galleries"
+                  >
+                    <IconGallery class="hidden sm:inline-block" />
+                    <span class="sm:sr-only">Galerías</span>
+                  </LinkButton>
+                </li>
+              )
+            }
 
-          <li class="flex items-center">
-            <button
-              data-search-trigger
-              class="nav-search-btn"
-              title="Buscar (⌘K)"
-              aria-label="Abrir búsqueda"
-              aria-keyshortcuts="Meta+K"
-            >
-              <IconSearch class="size-4.5" />
-              <kbd class="nav-kbd">⌘K</kbd>
-            </button>
-          </li>
-          {
-            SITE.lightAndDarkMode && (
-              <li class="flex items-center">
-                <button
-                  id="theme-btn"
-                  class="nav-icon-btn relative"
-                  title="Toggles light & dark"
-                  aria-label="auto"
-                  aria-live="polite"
-                >
-                  <IconMoon class="absolute top-1/2 left-1/2 -translate-1/2 scale-100 rotate-0 transition-all duration-300 dark:scale-0 dark:-rotate-90" />
-                  <IconSunHigh class="absolute top-1/2 left-1/2 -translate-1/2 scale-0 rotate-90 transition-all duration-300 dark:scale-100 dark:rotate-0" />
-                </button>
-              </li>
-            )
-          }
-        </ul>
-      </nav>
+            <!-- Separator -->
+            <li class="flex items-center px-1" aria-hidden="true">
+              <div class="h-4 w-px bg-border/30"></div>
+            </li>
+
+            <li class="flex items-center">
+              <button
+                data-search-trigger
+                class="nav-search-btn"
+                title="Buscar (⌘K)"
+                aria-label="Abrir búsqueda"
+                aria-keyshortcuts="Meta+K"
+              >
+                <IconSearch class="size-4.5" />
+                <kbd class="nav-kbd">⌘K</kbd>
+              </button>
+            </li>
+            {
+              SITE.lightAndDarkMode && (
+                <li class="flex items-center">
+                  <button
+                    id="theme-btn"
+                    class="nav-icon-btn relative"
+                    title="Toggles light & dark"
+                    aria-label="auto"
+                    aria-live="polite"
+                  >
+                    <IconMoon class="absolute top-1/2 left-1/2 -translate-1/2 scale-100 rotate-0 transition-all duration-300 dark:scale-0 dark:-rotate-90" />
+                    <IconSunHigh class="absolute top-1/2 left-1/2 -translate-1/2 scale-0 rotate-90 transition-all duration-300 dark:scale-100 dark:rotate-0" />
+                  </button>
+                </li>
+              )
+            }
+          </ul>
+        </nav>
+      </div>
     </div>
   </div>
-
   <!-- ===================== MOBILE DROPDOWN MENU (Floating Sheet) ===================== -->
   <div id="mobile-menu" class="mobile-menu sm:hidden" aria-hidden="true">
     <!-- Overlay/Backdrop -->
