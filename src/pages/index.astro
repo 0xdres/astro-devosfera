@@ -13,11 +13,17 @@ import { SITE } from "@/config";
 import { SOCIALS } from "@/constants";
 import IntroAudio from "@/components/IntroAudio.astro";
 
-const posts = await getCollection("blog");
+const [blogPosts, galleryPosts] = await Promise.all([
+  getCollection("blog"),
+  SITE.showGalleriesInIndex
+    ? getCollection("galleries")
+    : Promise.resolve([]),
+]);
+const posts = [...blogPosts, ...galleryPosts];
 
 const sortedPosts = getSortedPosts(posts);
-const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
-const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
+const featuredPosts = sortedPosts.filter(({ data }) => "featured" in data && data.featured);
+const recentPosts = sortedPosts.filter(({ data }) => !("featured" in data && data.featured));
 ---
 
 <Layout>

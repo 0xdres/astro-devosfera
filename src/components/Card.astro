@@ -1,17 +1,19 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@/utils/slugify";
-import { getPath } from "@/utils/getPath";
+import { getEntryPath } from "@/utils/contentEntry";
 import Datetime from "./Datetime.astro";
+import IconGallery from "@/assets/icons/IconGallery.svg";
 
 type Props = {
   variant?: "h2" | "h3";
   featured?: boolean;
-} & CollectionEntry<"blog">;
+} & (CollectionEntry<"blog"> | CollectionEntry<"galleries">);
 
-const { variant: Heading = "h2", featured = false, id, data, filePath } = Astro.props;
+const { variant: Heading = "h2", featured = false, id, data, filePath, collection } = Astro.props;
 
 const { title, description, ...props } = data;
+const href = getEntryPath({ collection, id, filePath });
 ---
 
 <li
@@ -40,18 +42,23 @@ const { title, description, ...props } = data;
 
   <div class="relative z-5">
     <a
-      href={getPath(id, filePath)}
+      href={href}
       class="text-lg font-semibold text-foreground transition-colors duration-200 group-hover/card:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
       style={{ viewTransitionName: slugifyStr(String(title).replaceAll(".", "-")) }}
     >
-      <Heading>
+      <Heading class="flex items-center gap-2">
+        {collection === "galleries" && (
+          <span title="Galería" class="inline-flex items-center justify-center p-1 rounded-md bg-accent/10 text-accent/80 ring-1 ring-accent/20">
+            <IconGallery class="size-4" />
+          </span>
+        )}
         {title}
       </Heading>
       <!-- Expand clickable area to whole card on top of everything, minus the description -->
       <span class="absolute -inset-4 sm:-inset-5 z-10" aria-hidden="true"></span>
     </a>
     
-    <Datetime pubDatetime={props.pubDatetime as string | Date} modDatetime={props.modDatetime as string | Date | null | undefined} class="relative z-20 mt-1.5 pointer-events-none" />
+    <Datetime pubDatetime={props.pubDatetime as string | Date} modDatetime={"modDatetime" in props ? props.modDatetime as string | Date | null | undefined : null} class="relative z-20 mt-1.5 pointer-events-none" />
     
     <p class="relative z-20 mt-2 line-clamp-2 text-sm leading-relaxed opacity-65 pointer-events-auto select-text">
       {description}

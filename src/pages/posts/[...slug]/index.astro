@@ -21,7 +21,7 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 
 const posts = await getCollection("blog");
-const sortedPosts = getSortedPosts(posts);
+const sortedPosts = getSortedPosts(posts) as CollectionEntry<"blog">[];
 ---
 
 <PostDetails post={post} posts={sortedPosts} />

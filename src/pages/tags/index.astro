@@ -9,7 +9,13 @@ import getUniqueTags from "@/utils/getUniqueTags";
 import getPostsByTag from "@/utils/getPostsByTag";
 import { SITE } from "@/config";
 
-const posts = await getCollection("blog");
+const [blogPosts, galleryPosts] = await Promise.all([
+  getCollection("blog"),
+  SITE.showGalleriesInIndex
+    ? getCollection("galleries")
+    : Promise.resolve([]),
+]);
+const posts = [...blogPosts, ...galleryPosts];
 
 const tags = getUniqueTags(posts);
 const tagsWithCount = tags.map(({ tag, tagName }) => ({

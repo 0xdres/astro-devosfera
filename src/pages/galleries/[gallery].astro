@@ -5,8 +5,10 @@ import { Image } from "astro:assets";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import Breadcrumb from "@/components/Breadcrumb.astro";
+import BackButton from "@/components/BackButton.astro";
 import Datetime from "@/components/Datetime.astro";
+import IconGallery from "@/assets/icons/IconGallery.svg";
+import { slugifyStr } from "@/utils/slugify";
 import { SITE } from "@/config";
 
 export async function getStaticPaths() {
@@ -65,32 +67,57 @@ const hasCoverInFolder = coverImage
 
 <Layout title={`${title} | Galerías | ${SITE.title}`} description={description}>
   <Header />
-  <Breadcrumb />
-  <main id="main-content" class="app-layout pb-16">
+  <BackButton />
+  <main
+    id="main-content"
+    class:list={["relative app-layout pb-16", { "mt-8": !SITE.showBackButton }]}
+  >
     <!-- Header de la galería -->
-    <header class="gallery-detail-header">
-      <div class="mb-1">
-        <Datetime pubDatetime={pubDatetime} class="text-sm" />
-      </div>
-      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
-      {
-        description && (
-          <p class="mt-3 max-w-2xl text-foreground/70">{description}</p>
-        )
-      }
-      {
-        tags.length > 0 && (
-          <div class="mt-3 flex flex-wrap gap-2">
-            {tags.map(tag => (
-              <span class="hero-badge">#{tag}</span>
-            ))}
+    <header class="mb-14 border-b border-border/10 pb-10 sm:pb-14 pt-8">
+      <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+        <div class="max-w-3xl">
+          <div class="mb-5 inline-flex items-center gap-2 text-accent">
+            <IconGallery class="size-5" />
+            <span class="font-cartograph text-xs font-bold tracking-[0.2em] uppercase opacity-90">
+              Colección // {images.length} {images.length === 1 ? "foto" : "fotos"}
+            </span>
           </div>
-        )
-      }
-      <p class="mt-4 text-sm text-foreground/50">
-        {images.length}
-        {images.length === 1 ? "imagen" : "imágenes"}
-      </p>
+          
+          <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-5xl xl:text-6xl text-foreground" style={{ viewTransitionName: slugifyStr(String(title).replaceAll(".", "-")) }}>
+            {title}
+          </h1>
+          
+          {description && (
+            <p class="mt-6 text-lg sm:text-xl leading-relaxed text-foreground/60">{description}</p>
+          )}
+        </div>
+
+        <div class="flex flex-col gap-4 md:items-end w-full md:w-auto shrink-0 md:pb-2">
+          <div class="inline-flex items-center gap-2 text-foreground/40 font-cartograph text-sm">
+            <svg class="size-4 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <Datetime pubDatetime={pubDatetime} class="[&>svg]:hidden mb-0" />
+          </div>
+          
+          {tags.length > 0 && (
+            <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm md:justify-end mt-2 md:mt-0">
+              {tags.map(tag => (
+                <a
+                  href={`/tags/${slugifyStr(tag)}/`}
+                  class="group relative inline-flex items-center text-foreground/50 transition-colors duration-300 hover:text-accent font-cartograph"
+                >
+                  <span class="mr-1 text-accent/40 transition-colors duration-300 group-hover:text-accent">#</span>
+                  {tag}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </header>
 
     <!-- Cubierta grande (si está definida en frontmatter y no está en la carpeta) -->
@@ -152,78 +179,30 @@ const hasCoverInFolder = coverImage
 </Layout>
 
 <!-- Lightbox dialog -->
-<dialog
-  id="lightbox"
-  class="lightbox"
-  aria-label="Visor de imagen"
-  aria-modal="true"
->
-  <button
-    class="lightbox-close"
-    id="lightbox-close"
-    aria-label="Cerrar"
-    type="button"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <line x1="18" y1="6" x2="6" y2="18"></line>
-      <line x1="6" y1="6" x2="18" y2="18"></line>
-    </svg>
-  </button>
-  <button
-    class="lightbox-nav lightbox-prev"
-    id="lightbox-prev"
-    aria-label="Anterior"
-    type="button"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <polyline points="15 18 9 12 15 6"></polyline>
-    </svg>
-  </button>
-  <div class="lightbox-content">
-    <img id="lightbox-img" src="" alt="" class="lightbox-image" />
-    <p id="lightbox-caption" class="lightbox-caption"></p>
-    <span id="lightbox-counter" class="lightbox-counter"></span>
+<dialog id="lightbox" class="lightbox" aria-label="Visor de imagen" aria-modal="true">
+  <div class="lightbox-layout">
+    <div class="lightbox-topbar">
+      <span id="lightbox-counter" class="lightbox-counter font-cartograph"></span>
+      <button class="lightbox-btn" id="lightbox-close" aria-label="Cerrar" title="Cerrar (Esc)" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="lightbox-main">
+      <button class="lightbox-btn lightbox-nav" id="lightbox-prev" aria-label="Anterior" title="Anterior (Flecha Izq)" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      
+      <div class="lightbox-figure">
+        <img id="lightbox-img" src="" alt="" class="lightbox-image" />
+        <p id="lightbox-caption" class="lightbox-caption text-foreground/80"></p>
+      </div>
+
+      <button class="lightbox-btn lightbox-nav" id="lightbox-next" aria-label="Siguiente" title="Siguiente (Flecha Der)" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    </div>
   </div>
-  <button
-    class="lightbox-nav lightbox-next"
-    id="lightbox-next"
-    aria-label="Siguiente"
-    type="button"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-  </button>
 </dialog>
 
 <script>
@@ -265,6 +244,10 @@ const hasCoverInFolder = coverImage
       lightboxImg.alt = img.alt;
       lightboxCaption.textContent = img.alt;
       lightboxCounter.textContent = `${current + 1} / ${items.length}`;
+      
+      if (prevBtn) prevBtn.style.visibility = current === 0 ? "hidden" : "visible";
+      if (nextBtn) nextBtn.style.visibility = current === items.length - 1 ? "hidden" : "visible";
+
       lb.showModal();
       document.body.style.overflow = "hidden";
     }
@@ -283,7 +266,11 @@ const hasCoverInFolder = coverImage
     nextBtn?.addEventListener("click", () => open(current + 1));
 
     lightbox.addEventListener("click", e => {
-      if (e.target === lb) close();
+      const target = e.target as HTMLElement;
+      // Cerrar si se hace click fuera de la imagen, los botones y el texto
+      if (!target.closest("img, button, .lightbox-caption, .lightbox-counter")) {
+        close();
+      }
     });
 
     document.addEventListener("keydown", e => {
@@ -300,13 +287,6 @@ const hasCoverInFolder = coverImage
 </script>
 
 <style>
-  /* ── Gallery detail header ── */
-  .gallery-detail-header {
-    padding-block: 2.5rem 2rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
-    margin-bottom: 2rem;
-  }
-
   /* ── Image grid ── */
   .gallery-grid {
     display: grid;
@@ -394,22 +374,26 @@ const hasCoverInFolder = coverImage
   .lightbox {
     position: fixed;
     inset: 0;
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 100vw;
+    max-height: 100dvh;
     width: 100%;
     height: 100%;
     margin: 0;
     padding: 0;
-    background: rgba(0, 0, 0, 0.92);
+    background: var(--background);
     border: none;
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
     z-index: 100;
+    color: var(--foreground);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
   }
 
+  .lightbox[open] {
+    opacity: 1;
+  }
+
+  /* Polyfill prevent close animation flash */
   .lightbox::backdrop {
     background: transparent;
   }
@@ -418,15 +402,46 @@ const hasCoverInFolder = coverImage
     display: none;
   }
 
-  .lightbox-content {
+  .lightbox-layout {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lightbox-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .lightbox-counter {
+    font-size: 0.875rem;
+    letter-spacing: 0.1em;
+    color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  }
+
+  .lightbox-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem 1.5rem;
+    min-height: 0; /* Important for flex image container */
+    gap: 1.5rem;
+  }
+
+  .lightbox-figure {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-width: 0;
-    padding-block: 3.5rem;
-    gap: 0.75rem;
+    height: 100%;
+    gap: 1.25rem;
   }
 
   .lightbox-image {
@@ -435,78 +450,72 @@ const hasCoverInFolder = coverImage
     width: auto;
     height: auto;
     object-fit: contain;
-    border-radius: 0.5rem;
-    box-shadow: 0 8px 48px rgba(0, 0, 0, 0.6);
+    border-radius: 6px;
+    /* Performance hint for large images */
+    will-change: transform;
+    transform: translateZ(0); 
   }
 
   .lightbox-caption {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+    color: color-mix(in srgb, var(--foreground) 80%, transparent);
     text-align: center;
-    max-width: 60ch;
+    max-width: 50ch;
     line-height: 1.5;
+    margin: 0;
+    font-weight: 300;
   }
 
-  .lightbox-counter {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  .lightbox-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
+  .lightbox-btn {
+    background: color-mix(in srgb, var(--foreground) 3%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 15%, transparent);
+    color: color-mix(in srgb, var(--foreground) 70%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.2s;
-    z-index: 10;
+    transition: all 0.3s ease;
+    padding: 0.75rem;
+    border-radius: 50%;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--background) 50%, transparent);
   }
 
-  .lightbox-close:hover {
-    background: rgba(255, 255, 255, 0.2);
+  .lightbox-btn:hover {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    color: var(--accent);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 8px 24px -4px color-mix(in srgb, var(--accent) 25%, transparent);
   }
 
   .lightbox-nav {
     flex-shrink: 0;
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition:
-      background 0.2s,
-      opacity 0.2s;
-    margin-inline: 0.5rem;
   }
 
-  .lightbox-nav:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
+    .lightbox-main {
+      padding: 0 0 1rem 0;
+      gap: 0;
+      position: relative;
+    }
     .lightbox-nav {
       position: absolute;
-      bottom: 1rem;
-      margin-inline: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 1rem 0.5rem;
     }
-    .lightbox-prev {
-      left: 1rem;
+    .lightbox-nav:hover {
+      transform: translateY(-50%) scale(1.1);
     }
-    .lightbox-next {
-      right: 1rem;
+    #lightbox-prev {
+      left: 0;
+    }
+    #lightbox-next {
+      right: 0;
+    }
+    .lightbox-image {
+      max-height: calc(100dvh - 8rem);
     }
   }
 </style>

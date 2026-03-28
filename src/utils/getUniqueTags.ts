@@ -1,23 +1,22 @@
-import type { CollectionEntry } from "astro:content";
+import type { ContentEntry } from "./contentEntry";
 import { slugifyStr } from "./slugify";
 import postFilter from "./postFilter";
 
-interface Tag {
-  tag: string;
-  tagName: string;
-}
+const getUniqueTags = (posts: ContentEntry[]) => {
+  const tagMap = new Map<string, string>();
 
-const getUniqueTags = (posts: CollectionEntry<"blog">[]) => {
-  const tags: Tag[] = posts
-    .filter(postFilter)
-    .flatMap(post => post.data.tags)
-    .map(tag => ({ tag: slugifyStr(tag), tagName: tag }))
-    .filter(
-      (value, index, self) =>
-        self.findIndex(tag => tag.tag === value.tag) === index
-    )
+  for (const post of posts) {
+    if (!postFilter(post)) continue;
+
+    for (const tagName of post.data.tags) {
+      const tag = slugifyStr(tagName);
+      if (!tagMap.has(tag)) tagMap.set(tag, tagName);
+    }
+  }
+
+  return Array.from(tagMap.entries())
+    .map(([tag, tagName]) => ({ tag, tagName }))
     .sort((tagA, tagB) => tagA.tag.localeCompare(tagB.tag));
-  return tags;
 };
 
 export default getUniqueTags;

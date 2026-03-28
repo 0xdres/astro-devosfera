@@ -8,12 +8,20 @@ import Breadcrumb from "@/components/Breadcrumb.astro";
 import Card from "@/components/Card.astro";
 import Pagination from "@/components/Pagination.astro";
 import "@pagefind/default-ui/css/ui.css";
+import type { ContentEntry } from "@/utils/contentEntry";
 import getSortedPosts from "@/utils/getSortedPosts";
 import { SITE } from "@/config";
 
 export const getStaticPaths = (async ({ paginate }) => {
-  const posts = await getCollection("blog", ({ data }) => !data.draft);
-  return paginate(getSortedPosts(posts), { pageSize: SITE.postPerPage });
+  const [blogPosts, galleryPosts] = await Promise.all([
+    getCollection("blog", ({ data }) => !data.draft),
+    SITE.showGalleriesInIndex
+      ? getCollection("galleries", ({ data }) => !data.draft)
+      : Promise.resolve([]),
+  ]);
+  return paginate(getSortedPosts([...blogPosts, ...galleryPosts]), {
+    pageSize: SITE.postPerPage,
+  });
 }) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
@@ -84,7 +92,7 @@ const totalPosts = page.total;
           </div>
         ) : (
           <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {page.data.map((data: any) => <Card {...data} />)}
+            {page.data.map((data: ContentEntry) => <Card {...data} />)}
           </ul>
         )
       }
@@ -132,7 +140,7 @@ const totalPosts = page.total;
       if (signal.aborted) return;
       if (container.childElementCount > 0) return;
 
-      // @ts-expect-error
+      // @ts-expect-error PagefindUI no exporta tipos ESM compatibles en este import dinámico
       const { PagefindUI } = await import("@pagefind/default-ui");
 
       // Navigation may have occurred while the module was loading (first load, uncached)

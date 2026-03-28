@@ -7,6 +7,7 @@ import Footer from "@/components/Footer.astro";
 import Breadcrumb from "@/components/Breadcrumb.astro";
 import GalleryCard from "@/components/GalleryCard.astro";
 import { SITE } from "@/config";
+import { getGallerySlug } from "@/utils/contentEntry";
 
 if (!SITE.showGalleries) {
   return Astro.redirect("/404");
@@ -17,11 +18,6 @@ const allImages = import.meta.glob<{ default: ImageMetadata }>(
   "/src/data/galleries/**/*.{jpg,jpeg,png,webp,avif,gif,JPG,JPEG,PNG,WEBP}",
   { eager: true }
 );
-
-// Helper: extrae el slug del id de la colección (p.ej. "mi-viaje/index.md" → "mi-viaje")
-function getSlug(id: string) {
-  return id.replace(/\/index\.(md|mdx)$/, "").replace(/\.(md|mdx)$/, "");
-}
 
 // Obtener imágenes de una galería específica
 function getGalleryImages(slug: string): ImageMetadata[] {
@@ -48,7 +44,7 @@ const galleries = rawGalleries
       new Date(a.data.pubDatetime).getTime()
   )
   .map(gallery => {
-    const slug = getSlug(gallery.id);
+    const slug = getGallerySlug(gallery.id);
     const folderImages = getGalleryImages(slug);
     return {
       gallery,
