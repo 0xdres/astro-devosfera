@@ -1,0 +1,238 @@
+---
+interface Props {
+  src: string;
+  label?: string;
+  duration?: number;
+  isStream?: boolean;
+  class?: string;
+}
+
+const {
+  src,
+  label = "INTRO",
+  duration = 30,
+  isStream: streamOverride,
+  class: className = "",
+} = Astro.props;
+
+const isStream = streamOverride ?? /^https?:\/\//i.test(src);
+---
+
+<div
+  id="intro-audio-compact"
+  class:list={["intro-audio-compact", className]}
+  data-src={src}
+  data-label={label}
+  data-duration={String(duration)}
+  data-stream={isStream ? "true" : "false"}
+  role="region"
+  aria-label="Reproductor de audio compacto"
+>
+  <button
+    id="intro-audio-compact-btn"
+    class="intro-audio-compact-btn"
+    type="button"
+    aria-label="Reproducir audio"
+  >
+    <svg
+      id="intro-audio-compact-play"
+      class="intro-audio-compact-icon"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M3 2.5a.5.5 0 0 1 .765-.424l10 5.5a.5.5 0 0 1 0 .848l-10 5.5A.5.5 0 0 1 3 13.5v-11z"></path>
+    </svg>
+    <svg
+      id="intro-audio-compact-pause"
+      class="intro-audio-compact-icon hidden"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"></path>
+    </svg>
+  </button>
+
+  <span class="intro-audio-compact-label">{label}</span>
+  <span id="intro-audio-compact-meta" class="intro-audio-compact-meta"
+    >{isStream ? "LIVE" : "0:00"}</span
+  >
+</div>
+
+<style>
+  .intro-audio-compact {
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    background: color-mix(in srgb, var(--background) 88%, transparent);
+    padding: 0.26rem 0.55rem 0.26rem 0.35rem;
+    font-family: var(--font-cartograph, monospace);
+    font-size: 0.65rem;
+    color: var(--foreground);
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+      opacity 0.22s ease,
+      transform 0.22s ease,
+      border-color 0.22s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 22px -16px color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+
+  .intro-audio-compact.is-visible {
+    display: inline-flex;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .intro-audio-compact.is-playing {
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+
+  .intro-audio-compact-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.2s ease;
+  }
+
+  .intro-audio-compact-btn:hover {
+    transform: scale(1.05);
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+
+  .intro-audio-compact-btn:focus-visible {
+    outline: 2px dashed var(--accent);
+    outline-offset: 2px;
+  }
+
+  .intro-audio-compact-icon {
+    width: 0.58rem;
+    height: 0.58rem;
+  }
+
+  .intro-audio-compact-label {
+    opacity: 0.75;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .intro-audio-compact-meta {
+    color: var(--accent);
+    font-size: 0.62rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 460px) {
+    .intro-audio-compact-label {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import {
+    getIntroAudioStore,
+    emitIntroAudioState,
+    INTRO_AUDIO_STATE_EVENT,
+    type IntroAudioState,
+  } from "@/utils/introAudioStore";
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const fmt = (secs: number) => {
+    const s = Math.max(0, Math.floor(secs));
+    return `${Math.floor(s / 60)}:${pad(s % 60)}`;
+  };
+
+  function initIntroAudioCompact() {
+    const wrap = document.getElementById("intro-audio-compact") as HTMLElement | null;
+    const btn = document.getElementById("intro-audio-compact-btn") as HTMLButtonElement | null;
+    const iconPlay = document.getElementById("intro-audio-compact-play") as SVGElement | null;
+    const iconPause = document.getElementById("intro-audio-compact-pause") as SVGElement | null;
+    const meta = document.getElementById("intro-audio-compact-meta") as HTMLElement | null;
+
+    if (!wrap || !btn || !meta) return;
+    if (wrap.dataset.introAudioCompactInitialized === "true") return;
+    wrap.dataset.introAudioCompactInitialized = "true";
+
+    const src = wrap.dataset.src ?? "";
+    const label = wrap.dataset.label ?? "INTRO";
+    const durationHint = Number(wrap.dataset.duration ?? "0");
+    const isStream = wrap.dataset.stream === "true";
+
+    const store = getIntroAudioStore({ src, label, isStream, durationHint });
+
+    const playLabel = isStream ? "Reproducir radio" : "Reproducir audio";
+    const pauseLabel = isStream ? "Pausar radio" : "Pausar audio";
+
+    const setPlaying = (playing: boolean) => {
+      wrap.classList.toggle("is-playing", playing);
+      iconPlay?.classList.toggle("hidden", playing);
+      iconPause?.classList.toggle("hidden", !playing);
+      btn.setAttribute("aria-label", playing ? pauseLabel : playLabel);
+    };
+
+    const updateVisibility = (state: IntroAudioState) => {
+      const isHome = window.location.pathname === "/" || window.location.pathname === "/index.html";
+      wrap.classList.toggle("is-visible", !isHome && (state.playing || state.hasStarted));
+    };
+
+    const render = (state: IntroAudioState) => {
+      if (state.src !== src) return;
+
+      setPlaying(state.playing);
+      updateVisibility(state);
+      meta.textContent = state.isStream ? "LIVE" : fmt(state.currentTime);
+    };
+
+    btn.addEventListener("click", () => {
+      if (store.audio.paused) {
+        void store.audio.play().catch(() => {
+          /* reproduccion bloqueada por el navegador */
+        });
+      } else {
+        store.audio.pause();
+      }
+    });
+
+    const controller = new AbortController();
+
+    window.addEventListener(
+      INTRO_AUDIO_STATE_EVENT,
+      (event: Event) => {
+        const customEvent = event as CustomEvent<IntroAudioState>;
+        render(customEvent.detail);
+      },
+      { signal: controller.signal }
+    );
+
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        controller.abort();
+      },
+      { once: true }
+    );
+
+    emitIntroAudioState(store);
+  }
+
+  initIntroAudioCompact();
+  document.addEventListener("astro:page-load", initIntroAudioCompact);
+</script>

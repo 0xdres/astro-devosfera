@@ -14,6 +14,7 @@ const { variant: Heading = "h2", featured = false, id, data, filePath, collectio
 
 const { title, description, pubDatetime } = data;
 const modDatetime = "modDatetime" in data ? data.modDatetime : null;
+const timezone = "timezone" in data ? data.timezone : undefined;
 const href = getEntryPath({ collection, id, filePath });
 const isGallery = collection === "galleries";
 const headingId = `${collection}-${slugifyStr(String(id))}-title`;
@@ -63,12 +64,7 @@ const viewTransitionName = slugifyStr(String(title).replaceAll(".", "-"));
       <span class="absolute -inset-4 sm:-inset-5 z-10" aria-hidden="true"></span>
     </a>
     
-    <Datetime
-      pubDatetime={pubDatetime}
-      modDatetime={modDatetime}
-      showLabel={true}
-      class="relative z-20 mt-1.5 pointer-events-none"
-    />
+    <Datetime pubDatetime={pubDatetime} modDatetime={modDatetime} timezone={timezone} class="relative z-20 mt-1.5 pointer-events-none" />
     
     <p
       id={descriptionId}

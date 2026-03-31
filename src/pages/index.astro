@@ -73,7 +73,6 @@ const recentPosts = sortedPosts.filter(({ data }) => !("featured" in data && dat
           </a>
         </h1>
 
-        {/* ── Audio de marca ── */}
         {
           SITE.introAudio.enabled && (
             <div class="mt-3">
@@ -81,6 +80,7 @@ const recentPosts = sortedPosts.filter(({ data }) => !("featured" in data && dat
                 src={SITE.introAudio.src}
                 label={SITE.introAudio.label}
                 duration={SITE.introAudio.duration}
+                isStream={SITE.introAudio.isStream}
               />
             </div>
           )

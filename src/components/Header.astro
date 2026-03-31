@@ -7,6 +7,7 @@ import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
 import Logo from "@/assets/logo/devosfera.svg";
 import LinkButton from "./LinkButton.astro";
 import MobileMenu from "./MobileMenu.astro";
+import IntroAudioCompact from "./IntroAudioCompact.astro";
 import { SITE } from "@/config";
 
 const { pathname } = Astro.url;
@@ -39,21 +40,36 @@ const isActive = (path: string) => {
         class:list={[
           "py-3 sm:py-5",
           "relative w-full",
-          "flex items-center justify-between",
+          "flex items-center justify-between gap-2 sm:gap-4",
           "transition-all duration-300",
         ]}
       >
         <!-- Logo -->
         <a
           href="/"
-          class="group relative z-20 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl"
+          class="group relative z-20 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl shrink-0"
         >
           <!-- <span class="nav-logo-text">{SITE.title}</span> -->
           <Logo class="w-37.5 dark:invert" />
         </a>
 
+        <!-- Center Audio Player -->
+        {
+          SITE.introAudio.enabled && (
+            <div class="flex-1 flex justify-center min-w-0">
+              <IntroAudioCompact
+                src={SITE.introAudio.src}
+                label={SITE.introAudio.label}
+                duration={SITE.introAudio.duration}
+                isStream={SITE.introAudio.isStream}
+                class="nav-intro-audio-compact"
+              />
+            </div>
+          )
+        }
+
         <!-- Nav area -->
-        <nav id="nav-menu" class="flex items-center sm:gap-1">
+        <nav id="nav-menu" class="flex items-center sm:gap-1 shrink-0">
           <!-- Mobile hamburger (animated lines) -->
           <button
             id="menu-btn"
@@ -210,6 +226,10 @@ const isActive = (path: string) => {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+  }
+
+  :global(.nav-intro-audio-compact) {
+    max-width: 100%;
   }
 
   /* ─── Logo SVG hover effects ─── */

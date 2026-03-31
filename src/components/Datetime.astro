@@ -12,7 +12,6 @@ dayjs.extend(timezone);
 type Props = {
   class?: string;
   size?: "sm" | "lg";
-  showLabel?: boolean;
   pubDatetime: string | Date;
   timezone?: string;
   modDatetime?: string | Date | null;
@@ -22,7 +21,6 @@ const {
   pubDatetime,
   modDatetime,
   size = "sm",
-  showLabel = false,
   class: className = "",
   timezone: postTimezone,
 } = Astro.props;
@@ -52,12 +50,9 @@ const srDate = new Intl.DateTimeFormat(locale, {
 }).format(datetime.toDate());
 
 const updatedText = isSpanish ? "Actualizado:" : "Updated:";
-const publishedLabelText = isSpanish ? "Publicado:" : "Published:";
 const publishedText = isSpanish ? "Fecha de publicacion" : "Published date";
 const updatedSrText = isSpanish ? "Fecha de actualizacion" : "Updated date";
 const srLabel = isModified ? updatedSrText : publishedText;
-const labelText = isModified ? updatedText : publishedLabelText;
-const showVisibleLabel = showLabel || isModified;
 ---
 
 <div class:list={["flex items-center gap-x-2 text-foreground/80", className]}>
@@ -70,12 +65,12 @@ const showVisibleLabel = showLabel || isModified;
   />
   <span class="sr-only">{srLabel}: </span>
   {
-    showVisibleLabel && (
+    isModified && (
       <span
         aria-hidden="true"
         class:list={["text-sm", { "sm:text-base": size === "lg" }]}
       >
-        {labelText}
+        {updatedText}
       </span>
     )
   }

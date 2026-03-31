@@ -8,15 +8,30 @@ interface Props {
   src: string;
   label?: string;
   duration?: number;
+  isStream?: boolean;
+  class?: string;
 }
 
-const { src, label = "INTRO.MP3", duration = 30 } = Astro.props;
+const {
+  src,
+  label = "INTRO.MP3",
+  duration = 30,
+  isStream: streamOverride,
+  class: className = "",
+} = Astro.props;
+const isStream = streamOverride ?? /^https?:\/\//i.test(src);
+const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).padStart(2, "0")}`;
 ---
 
 <div
   id="intro-audio-player"
-  class="intro-audio-wrap"
-  aria-label="Reproductor de audio intro"
+  class:list={["intro-audio-wrap", className, { "is-stream": isStream }]}
+  data-src={src}
+  data-label={label}
+  data-duration={String(duration)}
+  data-stream={isStream ? "true" : "false"}
+  role="region"
+  aria-label={isStream ? "Reproductor de radio en vivo" : "Reproductor de audio intro"}
 >
   <!-- Indicador de tipo terminal -->
   <span class="intro-audio-prefix" aria-hidden="true">$</span>
@@ -68,35 +83,41 @@ const { src, label = "INTRO.MP3", duration = 30 } = Astro.props;
   </div>
 
   <!-- Barra de progreso -->
-  <div
-    class="intro-progress-track"
-    id="intro-progress-track"
-    role="progressbar"
-    aria-valuenow={0}
-    aria-valuemin={0}
-    aria-valuemax={duration}
-    aria-label="Progreso del audio"
-  >
-    <div class="intro-progress-bar" id="intro-progress-bar"></div>
-  </div>
+  {
+    !isStream && (
+      <div
+        class="intro-progress-track"
+        id="intro-progress-track"
+        role="slider"
+        tabindex="0"
+        aria-valuenow={0}
+        aria-valuemin={0}
+        aria-valuemax={duration}
+        aria-label="Control de progreso del audio"
+      >
+        <div class="intro-progress-bar" id="intro-progress-bar"></div>
+      </div>
+    )
+  }
 
   <!-- Tiempo -->
-  <span class="intro-time" id="intro-time" aria-live="off">
-    <span id="intro-current">0:00</span><span class="opacity-30"> /</span><span
-      class="opacity-30"
-    >
-      {Math.floor(duration / 60)}:{String(duration % 60).padStart(2, "0")}</span
-    >
-  </span>
+  {
+    isStream ? (
+      <span class="intro-live-pill" aria-live="off">LIVE</span>
+    ) : (
+      <span class="intro-time" id="intro-time" aria-live="off">
+        <span id="intro-current">0:00</span><span class="opacity-30"> /</span><span
+          id="intro-total"
+          class="opacity-30"
+        >
+          {formattedDuration}</span
+        >
+      </span>
+    )
+  }
 
   <!-- Etiqueta del archivo -->
   <span class="intro-label" aria-label={`Archivo: ${label}`}>{label}</span>
-
-  <!-- Elemento audio nativo (oculto) -->
-  <audio id="intro-audio-el" preload="metadata" aria-hidden="true">
-    <source src={src} type="audio/mpeg" />
-    Tu navegador no soporta el elemento audio.
-  </audio>
 </div>
 
 <style>
@@ -116,11 +137,6 @@ const { src, label = "INTRO.MP3", duration = 30 } = Astro.props;
       background 0.3s;
     max-width: 100%;
     backdrop-filter: blur(4px);
-  }
-
-  .intro-audio-wrap:has(#intro-audio-el:not([data-paused])).is-playing {
-    border-color: color-mix(in oklab, var(--accent) 55%, transparent);
-    background: color-mix(in oklab, var(--accent) 6%, transparent);
   }
 
   /* estado playing aplicado por JS */
@@ -227,6 +243,15 @@ const { src, label = "INTRO.MP3", duration = 30 } = Astro.props;
     flex-shrink: 0;
     cursor: pointer;
     overflow: hidden;
+    user-select: none;
+    touch-action: none;
+    outline: none;
+  }
+
+  .intro-progress-track:focus-visible {
+    outline: 2px dashed var(--accent);
+    outline-offset: 4px;
+    background: color-mix(in oklab, var(--border) 45%, transparent);
   }
 
   @media (max-width: 480px) {
@@ -260,6 +285,19 @@ const { src, label = "INTRO.MP3", duration = 30 } = Astro.props;
     flex-shrink: 0;
   }
 
+  .intro-live-pill {
+    border-radius: 999px;
+    border: 1px solid color-mix(in oklab, var(--accent) 45%, transparent);
+    background: color-mix(in oklab, var(--accent) 14%, transparent);
+    color: var(--accent);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.45rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
   /* ── Etiqueta ── */
   .intro-label {
     font-size: 0.65rem;
@@ -273,13 +311,23 @@ const { src, label = "INTRO.MP3", duration = 30 } = Astro.props;
 </style>
 
 <script>
+  import {
+    getIntroAudioStore,
+    emitIntroAudioState,
+    INTRO_AUDIO_STATE_EVENT,
+    type IntroAudioState,
+  } from "@/utils/introAudioStore";
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const fmt = (secs: number) => {
+    const s = Math.max(0, Math.floor(secs));
+    return `${Math.floor(s / 60)}:${pad(s % 60)}`;
+  };
+
   function initIntroAudio() {
     const wrap = document.getElementById(
       "intro-audio-player"
     ) as HTMLElement | null;
-    const audio = document.getElementById(
-      "intro-audio-el"
-    ) as HTMLAudioElement | null;
     const btn = document.getElementById(
       "intro-audio-btn"
     ) as HTMLButtonElement | null;
@@ -298,67 +346,125 @@ const { src, label = "INTRO.MP3", duration = 30 } = Astro.props;
     const current = document.getElementById(
       "intro-current"
     ) as HTMLElement | null;
+    const totalLabel = document.getElementById(
+      "intro-total"
+    ) as HTMLElement | null;
 
-    if (!wrap || !audio || !btn) return;
+    if (!wrap || !btn) return;
+    if (wrap.dataset.introAudioInitialized === "true") return;
+    wrap.dataset.introAudioInitialized = "true";
 
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const fmt = (secs: number) => {
-      const s = Math.floor(secs);
-      return `${Math.floor(s / 60)}:${pad(s % 60)}`;
-    };
+    const src = wrap.dataset.src ?? "";
+    const label = wrap.dataset.label ?? "INTRO.MP3";
+    const durationHint = Number(wrap.dataset.duration ?? "0");
+    const isStream = wrap.dataset.stream === "true";
+    const store = getIntroAudioStore({ src, label, isStream, durationHint });
+
+    const playLabel = isStream ? "Reproducir radio en vivo" : "Reproducir audio de introducción";
+    const pauseLabel = isStream ? "Pausar radio" : "Pausar audio de introducción";
 
     const setPlaying = (playing: boolean) => {
       wrap.classList.toggle("playing", playing);
       iconPlay?.classList.toggle("hidden", playing);
       iconPause?.classList.toggle("hidden", !playing);
-      btn.setAttribute(
-        "aria-label",
-        playing
-          ? "Pausar audio de introducción"
-          : "Reproducir audio de introducción"
-      );
+      btn.setAttribute("aria-label", playing ? pauseLabel : playLabel);
+    };
+
+    const render = (state: IntroAudioState) => {
+      if (state.src !== src) return;
+
+      setPlaying(state.playing);
+
+      if (state.isStream) {
+        return;
+      }
+
+      const total = state.duration;
+      const now = state.currentTime;
+      const pct = total > 0 ? (now / total) * 100 : 0;
+
+      if (bar) bar.style.width = `${pct}%`;
+
+      const nowStr = fmt(now);
+      if (current && current.textContent !== nowStr) {
+        current.textContent = nowStr;
+      }
+      
+      if (track) {
+        track.setAttribute("aria-valuenow", String(Math.floor(now)));
+        const maxVal = String(Math.max(total, 0));
+        if (track.getAttribute("aria-valuemax") !== maxVal) {
+          track.setAttribute("aria-valuemax", maxVal);
+        }
+      }
+      
+      if (totalLabel) {
+        const totalStr = fmt(total);
+        if (totalLabel.textContent !== totalStr) {
+          totalLabel.textContent = totalStr;
+        }
+      }
     };
 
     btn.addEventListener("click", () => {
-      if (audio.paused) {
-        audio.play().catch(() => {
-          /* autoplay bloqueado, ignorar */
+      if (store.audio.paused) {
+        store.audio.play().catch(() => {
+          /* reproduccion bloqueada por el navegador */
         });
       } else {
-        audio.pause();
+        store.audio.pause();
       }
-    });
-
-    audio.addEventListener("play", () => setPlaying(true));
-    audio.addEventListener("pause", () => setPlaying(false));
-    audio.addEventListener("ended", () => {
-      setPlaying(false);
-      if (bar) bar.style.width = "0%";
-      if (current) current.textContent = "0:00";
-      if (track) track.setAttribute("aria-valuenow", "0");
-      audio.currentTime = 0;
-    });
-
-    audio.addEventListener("timeupdate", () => {
-      const total = audio.duration || 0;
-      const now = audio.currentTime;
-      const pct = total > 0 ? (now / total) * 100 : 0;
-      if (bar) bar.style.width = `${pct}%`;
-      if (current) current.textContent = fmt(now);
-      if (track) track.setAttribute("aria-valuenow", String(Math.floor(now)));
     });
 
     // Clic en la barra de progreso para saltar
     track?.addEventListener("click", (e: MouseEvent) => {
+      if (isStream) return;
       const rect = track.getBoundingClientRect();
       const ratio = (e.clientX - rect.left) / rect.width;
-      const total = audio.duration || 0;
+      const total = store.audio.duration || durationHint;
       if (total > 0) {
-        audio.currentTime = ratio * total;
+        store.audio.currentTime = ratio * total;
       }
     });
+
+    // Teclado en la barra de progreso para saltar
+    track?.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (isStream) return;
+      const total = store.audio.duration || durationHint;
+      if (total <= 0) return;
+
+      if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+        e.preventDefault();
+        store.audio.currentTime = Math.min(store.audio.currentTime + 5, total);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+        e.preventDefault();
+        store.audio.currentTime = Math.max(store.audio.currentTime - 5, 0);
+      }
+    });
+
+    const controller = new AbortController();
+
+    window.addEventListener(
+      INTRO_AUDIO_STATE_EVENT,
+      (event: Event) => {
+        const customEvent = event as CustomEvent<IntroAudioState>;
+        render(customEvent.detail);
+      },
+      { signal: controller.signal }
+    );
+
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        controller.abort();
+      },
+      { once: true }
+    );
+
+    emitIntroAudioState(store);
   }
 
-  // Compatible con View Transitions de Astro
+  // Inicializa en carga completa y también en navegación con View Transitions.
+  initIntroAudio();
   document.addEventListener("astro:page-load", initIntroAudio);
 </script>
