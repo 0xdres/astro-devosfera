@@ -23,12 +23,12 @@ const showEditPost =
       target="_blank"
       rel="noopener noreferrer"
       class:list={[
-        "flex justify-baseline gap-1.5 opacity-80 hover:text-accent",
+        "group flex items-center gap-2 text-sm text-foreground/60 transition-colors duration-300 hover:text-accent",
         className,
       ]}
     >
-      <IconEdit class="inline-block" />
-      <span>{SITE.editPost.text}</span>
+      <IconEdit class="size-4.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110" />
+      <span class="font-cartograph tracking-wide">{SITE.editPost.text}</span>
     </a>
   )
 }

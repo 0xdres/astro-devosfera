@@ -1,6 +1,5 @@
 ---
 import dayjs from "dayjs";
-import "dayjs/locale/es";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import IconCalendar from "@/assets/icons/IconCalendar.svg";
@@ -28,7 +27,6 @@ const {
 /* ========== Formatted Datetime ========== */
 const locale = SITE.lang || "en";
 const localeCode = locale.toLowerCase().split("-")[0] || "en";
-const isSpanish = localeCode === "es";
 const resolvedTimezone = postTimezone || SITE.timezone;
 
 const publishedDatetime = dayjs(pubDatetime).tz(resolvedTimezone);
@@ -49,9 +47,9 @@ const srDate = new Intl.DateTimeFormat(locale, {
   timeZone: resolvedTimezone,
 }).format(datetime.toDate());
 
-const updatedText = isSpanish ? "Actualizado:" : "Updated:";
-const publishedText = isSpanish ? "Fecha de publicacion" : "Published date";
-const updatedSrText = isSpanish ? "Fecha de actualizacion" : "Updated date";
+const updatedText = "Updated:";
+const publishedText = "Published date";
+const updatedSrText = "Updated date";
 const srLabel = isModified ? updatedSrText : publishedText;
 ---
 

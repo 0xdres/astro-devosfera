@@ -1,4 +1,9 @@
 ---
+/**
+ * SearchModal — A floating, interactive modal for site-wide searching.
+ * Utilizes Pagefind for fast, static indexing and searching capabilities.
+ * Includes visual elements like cursors glows, sparkles, and keyboard navigation.
+ */
 import "@pagefind/default-ui/css/ui.css";
 ---
 
@@ -8,7 +13,7 @@ import "@pagefind/default-ui/css/ui.css";
   class="search-modal-overlay"
   role="dialog"
   aria-modal="true"
-  aria-label="Buscar en el sitio"
+  aria-label="Search the site"
 >
   <div class="search-modal-backdrop" data-search-close></div>
   <div class="search-modal-container" data-modal-card>
@@ -48,19 +53,19 @@ import "@pagefind/default-ui/css/ui.css";
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </span>
-        <span class="search-title-text">Buscar</span>
+        <span class="search-title-text">Search</span>
       </div>
       <div class="search-modal-shortcuts">
         <kbd class="kbd-key">⌘</kbd>
         <kbd class="kbd-key">K</kbd>
         <span class="shortcuts-sep">·</span>
         <kbd class="kbd-key">esc</kbd>
-        <span class="shortcuts-label">cerrar</span>
+        <span class="shortcuts-label">close</span>
       </div>
       <button
         class="search-modal-close"
         data-search-close
-        aria-label="Cerrar búsqueda"
+        aria-label="Close search"
       >
         <svg
           class="size-4"
@@ -97,7 +102,7 @@ import "@pagefind/default-ui/css/ui.css";
           </svg>
         </div>
         <p class="empty-text">
-          Escribe para buscar artículos, tutoriales e ideas...
+          Type to search for articles, tutorials, and ideas...
         </p>
       </div>
     </div>
@@ -105,10 +110,10 @@ import "@pagefind/default-ui/css/ui.css";
     <!-- Footer -->
     <div class="search-modal-footer">
       <div class="footer-hint">
-        <span class="footer-icon">↵</span> abrir
+        <span class="footer-icon">↵</span> open
       </div>
       <div class="footer-hint">
-        <span class="footer-icon">↑↓</span> navegar
+        <span class="footer-icon">↑↓</span> navigate
       </div>
       <div class="footer-powered">
         powered by <strong>pagefind</strong>

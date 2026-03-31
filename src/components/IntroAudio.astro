@@ -1,8 +1,8 @@
 ---
 /**
- * IntroAudio — Reproductor de audio de marca/intro del blog.
- * Activable desde SITE.introAudio.enabled en config.ts.
- * Estética terminal/cyberpunk coherente con el resto de la UI.
+ * IntroAudio — Blog intro/brand audio player.
+ * Toggable from SITE.introAudio.enabled in config.ts.
+ * Terminal/cyberpunk aesthetic coherent with the rest of the UI.
  */
 interface Props {
   src: string;
@@ -31,20 +31,20 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
   data-duration={String(duration)}
   data-stream={isStream ? "true" : "false"}
   role="region"
-  aria-label={isStream ? "Reproductor de radio en vivo" : "Reproductor de audio intro"}
+  aria-label={isStream ? "Live radio player" : "Intro audio player"}
 >
-  <!-- Indicador de tipo terminal -->
+  <!-- Terminal-like prefix indicator -->
   <span class="intro-audio-prefix" aria-hidden="true">$</span>
   <span class="intro-audio-cmd" aria-hidden="true">play</span>
 
-  <!-- Botón play/pause -->
+  <!-- Play/pause button -->
   <button
     id="intro-audio-btn"
     class="intro-audio-btn"
-    aria-label="Reproducir audio de introducción"
+    aria-label="Play intro audio"
     type="button"
   >
-    <!-- Ícono play -->
+    <!-- Play icon -->
     <svg
       id="intro-icon-play"
       class="intro-icon"
@@ -56,7 +56,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
         d="M3 2.5a.5.5 0 0 1 .765-.424l10 5.5a.5.5 0 0 1 0 .848l-10 5.5A.5.5 0 0 1 3 13.5v-11z"
       ></path>
     </svg>
-    <!-- Ícono pause -->
+    <!-- Pause icon -->
     <svg
       id="intro-icon-pause"
       class="intro-icon hidden"
@@ -70,7 +70,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     </svg>
   </button>
 
-  <!-- Barras de onda (animadas durante reproducción) -->
+  <!-- Waveform bars (animated during playback) -->
   <div class="intro-waveform" id="intro-waveform" aria-hidden="true">
     {
       Array.from({ length: 8 }).map((_, i) => (
@@ -82,7 +82,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     }
   </div>
 
-  <!-- Barra de progreso -->
+  <!-- Progress bar -->
   {
     !isStream && (
       <div
@@ -93,14 +93,14 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
         aria-valuenow={0}
         aria-valuemin={0}
         aria-valuemax={duration}
-        aria-label="Control de progreso del audio"
+        aria-label="Audio progress control"
       >
         <div class="intro-progress-bar" id="intro-progress-bar"></div>
       </div>
     )
   }
 
-  <!-- Tiempo -->
+  <!-- Time -->
   {
     isStream ? (
       <span class="intro-live-pill" aria-live="off">LIVE</span>
@@ -116,8 +116,8 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     )
   }
 
-  <!-- Etiqueta del archivo -->
-  <span class="intro-label" aria-label={`Archivo: ${label}`}>{label}</span>
+  <!-- File label -->
+  <span class="intro-label" aria-label={`File: ${label}`}>{label}</span>
 </div>
 
 <style>
@@ -139,7 +139,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     backdrop-filter: blur(4px);
   }
 
-  /* estado playing aplicado por JS */
+  /* playing state applied by JS */
   .intro-audio-wrap.playing {
     border-color: color-mix(in oklab, var(--accent) 55%, transparent);
     background: color-mix(in oklab, var(--accent) 6%, transparent);
@@ -159,7 +159,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     letter-spacing: 0.03em;
   }
 
-  /* ── Botón play/pause ── */
+  /* ── Play/pause button ── */
   .intro-audio-btn {
     display: inline-flex;
     align-items: center;
@@ -199,7 +199,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     display: none !important;
   }
 
-  /* ── Barras de onda ── */
+  /* ── Waveform bars ── */
   .intro-waveform {
     display: flex;
     align-items: center;
@@ -217,7 +217,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     transition: opacity 0.3s;
   }
 
-  /* animación activa */
+  /* active animation */
   .playing .intro-wave-bar {
     opacity: 0.8;
     animation: wave-bounce 0.6s ease-in-out infinite alternate;
@@ -233,7 +233,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     }
   }
 
-  /* ── Barra de progreso ── */
+  /* ── Progress bar ── */
   .intro-progress-track {
     position: relative;
     height: 3px;
@@ -275,7 +275,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     transition: width 0.25s linear;
   }
 
-  /* ── Tiempo ── */
+  /* ── Time ── */
   .intro-time {
     font-variant-numeric: tabular-nums;
     font-size: 0.68rem;
@@ -298,7 +298,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     white-space: nowrap;
   }
 
-  /* ── Etiqueta ── */
+  /* ── Label ── */
   .intro-label {
     font-size: 0.65rem;
     letter-spacing: 0.08em;
@@ -360,8 +360,8 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     const isStream = wrap.dataset.stream === "true";
     const store = getIntroAudioStore({ src, label, isStream, durationHint });
 
-    const playLabel = isStream ? "Reproducir radio en vivo" : "Reproducir audio de introducción";
-    const pauseLabel = isStream ? "Pausar radio" : "Pausar audio de introducción";
+    const playLabel = isStream ? "Play live radio" : "Play intro audio";
+    const pauseLabel = isStream ? "Pause radio" : "Pause intro audio";
 
     const setPlaying = (playing: boolean) => {
       wrap.classList.toggle("playing", playing);
@@ -409,14 +409,14 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     btn.addEventListener("click", () => {
       if (store.audio.paused) {
         store.audio.play().catch(() => {
-          /* reproduccion bloqueada por el navegador */
+          /* playback blocked by browser */
         });
       } else {
         store.audio.pause();
       }
     });
 
-    // Clic en la barra de progreso para saltar
+    // Click on progress bar to skip
     track?.addEventListener("click", (e: MouseEvent) => {
       if (isStream) return;
       const rect = track.getBoundingClientRect();
@@ -427,7 +427,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
       }
     });
 
-    // Teclado en la barra de progreso para saltar
+    // Keyboard on progress bar to skip
     track?.addEventListener("keydown", (e: KeyboardEvent) => {
       if (isStream) return;
       const total = store.audio.duration || durationHint;
@@ -464,7 +464,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
     emitIntroAudioState(store);
   }
 
-  // Inicializa en carga completa y también en navegación con View Transitions.
+  // Initialize on full load and also on navigation with View Transitions.
   initIntroAudio();
   document.addEventListener("astro:page-load", initIntroAudio);
 </script>

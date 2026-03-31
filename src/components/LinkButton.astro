@@ -1,4 +1,16 @@
 ---
+/**
+ * LinkButton — A reusable and accessible link component.
+ * 
+ * By default, it renders as an `<a>` tag. However, if the `disabled` prop is passed,
+ * it safely degrades to a `<span>` to prevent clicking while keeping the visual structure.
+ * 
+ * Common use cases across the project:
+ * - Pagination controls (`src/components/Pagination.astro`) where Prev/Next can be disabled.
+ * - Icon links in the Header (`src/components/Header.astro`) like Archives or Galleries.
+ * - Social media and share links (`Socials.astro`, `ShareLinks.astro`, `Footer.astro`).
+ * - "View all" or "Go back" call-to-actions (`index.astro`, `404.astro`).
+ */
 import type { HTMLAttributes } from "astro/types";
 
 type Props = { disabled?: boolean } & HTMLAttributes<"a">;
@@ -9,7 +21,9 @@ const Button = disabled ? "span" : "a";
 ---
 
 <Button
-  aria-disabled={disabled}
+  aria-disabled={disabled ? "true" : undefined}
+  tabindex={disabled ? "-1" : "0"}
+  role={disabled ? "link" : undefined}
   class:list={[
     "group inline-flex items-center gap-1",
     { "hover:text-accent": !disabled },

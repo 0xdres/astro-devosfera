@@ -169,7 +169,7 @@ const nextPost =
           <EditPost
             {hideEditPost}
             {post}
-            class="hidden rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 opacity-70 backdrop-blur-sm transition-all duration-200 hover:border-accent/30 hover:opacity-100 sm:flex [&>svg]:size-3.5"
+            class="flex rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 opacity-70 backdrop-blur-sm transition-all duration-200 hover:border-accent/30 hover:opacity-100 [&>svg]:size-3.5"
           />
         </div>
 
@@ -199,8 +199,6 @@ const nextPost =
         <div class="absolute inset-0 bg-linear-to-l from-transparent via-accent/40 to-accent/40 blur-[2px]"></div>
       </div>
     </div>
-
-    <EditPost class="mt-4 sm:hidden" {hideEditPost} {post} />
 
     <!-- Tags & Share row -->
     <div

@@ -20,9 +20,10 @@ const coverSrc = coverImage ?? fallbackImage;
   href={`/galleries/${slug}`}
   class:list={[
     "card-glow group/card relative flex flex-col overflow-hidden rounded-2xl",
-    "border border-border/25",
+    "border border-border/25 backdrop-blur-sm",
+    "bg-linear-to-br from-accent/5 via-muted/10 to-transparent",
     "transition-all duration-300 ease-out",
-    "hover:border-accent/30 hover:bg-accent/5",
+    "hover:border-accent/30 hover:from-accent/10 hover:via-muted/20 hover:to-transparent",
     "hover:-translate-y-0.5",
     "hover:shadow-lg hover:shadow-accent/10",
   ]}
@@ -72,7 +73,7 @@ const coverSrc = coverImage ?? fallbackImage;
     {
       imageCount !== undefined && imageCount > 0 && (
         <span class="absolute end-2 bottom-2 rounded-full bg-background/80 px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
-          {imageCount} {imageCount === 1 ? "foto" : "fotos"}
+          {imageCount} {imageCount === 1 ? "photo" : "photos"}
         </span>
       )
     }

@@ -19,43 +19,41 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Inicio";
 
 <nav
   class:list={["app-layout mt-6 mb-2", { "overflow-hidden": withBackButton }]}
-  aria-label={withBackButton ? "Navegacion contextual" : "breadcrumb"}
+  aria-label={withBackButton ? "Contextual navigation" : "breadcrumb"}
 >
-  <ol
-    class:list={[
-      "breadcrumb-bar font-cartograph text-sm",
-      {
-        "has-back inline-flex min-w-0 list-none items-center gap-1.5 rounded-full border border-border/20 bg-muted/5 px-3 py-1.5 backdrop-blur-sm":
-          withBackButton,
-      },
-    ]}
-  >
+  <div class:list={["flex items-center gap-3", { "justify-between": withBackButton }]}>
     {withBackButton && (
-      <li class="breadcrumb-item is-back">
-        <a
-          id="back-button"
-          href="/"
-          class="back-btn group inline-flex items-center justify-center gap-1 rounded-md px-1.5 py-0.5 text-foreground/60 transition-all duration-200 hover:bg-muted/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          aria-label={`Volver a la pagina anterior. Contexto actual: ${currentPageLabel}`}
-        >
-          <IconChevronLeft class="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5" />
-          <span aria-hidden="true">cd ..</span>
-          <span class="visually-hidden">Volver</span>
-        </a>
-      </li>
+      <a
+        id="back-button"
+        href="/"
+        class="breadcrumb-bar back-btn group flex-shrink-0 !gap-2 text-foreground/60 transition-colors duration-200 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background font-cartograph text-sm"
+        aria-label={`Go back to the previous page. Current context: ${currentPageLabel}`}
+      >
+        <IconChevronLeft class="size-4 opacity-70 transition-transform duration-200 group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5" />
+        <span aria-hidden="true" class="tracking-wide">cd ..</span>
+        <span class="visually-hidden">Go back</span>
+      </a>
     )}
 
-    <li class:list={["breadcrumb-item", { "is-root": withBackButton }]}> 
-      <a
-        href="/"
-        class:list={["breadcrumb-home", { "breadcrumb-link-soft": withBackButton }]}
-        aria-label="Inicio"
-        title="Inicio"
-      >
-        <span aria-hidden="true">~</span>
-        <span class="visually-hidden">Inicio</span>
-      </a>
-    </li>
+    <ol
+      class:list={[
+        "breadcrumb-bar font-cartograph text-sm",
+        {
+          "has-back": withBackButton,
+        },
+      ]}
+    >
+      <li class:list={["breadcrumb-item", { "is-root": withBackButton }]}> 
+        <a
+          href="/"
+          class:list={["breadcrumb-home", { "breadcrumb-link-soft": withBackButton }]}
+          aria-label="Home"
+          title="Home"
+        >
+          <span aria-hidden="true">~</span>
+          <span class="visually-hidden">Home</span>
+        </a>
+      </li>
     {
       breadcrumbs.map(item => (
         <li class:list={["breadcrumb-item", { "is-current": !item.href }]}>
@@ -71,7 +69,8 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Inicio";
         </li>
       ))
     }
-  </ol>
+    </ol>
+  </div>
 </nav>
 
 <style>
@@ -195,7 +194,7 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Inicio";
   }
 
   .breadcrumb-current {
-    max-width: min(34ch, 56vw);
+    max-width: min(34ch, 64vw);
     overflow: hidden;
     text-overflow: ellipsis;
     color: color-mix(in srgb, var(--accent) 92%, var(--foreground));

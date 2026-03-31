@@ -1,57 +1,23 @@
-async function loadGoogleFont(
-  font: string,
-  text: string,
-  weight: number
-): Promise<ArrayBuffer> {
-  const API = `https://fonts.googleapis.com/css2?family=${font}:wght@${weight}&text=${encodeURIComponent(text)}`;
-
-  const css = await (
-    await fetch(API, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; de-at) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1",
-      },
-    })
-  ).text();
-
-  const resource = css.match(
-    /src: url\((.+?)\) format\('(opentype|truetype)'\)/
-  );
-
-  if (!resource) throw new Error("Failed to download dynamic font");
-
-  const res = await fetch(resource[1]);
-
-  if (!res.ok) {
-    throw new Error("Failed to download dynamic font. Status: " + res.status);
-  }
-
-  return res.arrayBuffer();
-}
+import fs from "fs";
+import path from "path";
 
 async function loadGoogleFonts(
-  text: string
 ): Promise<
   Array<{ name: string; data: ArrayBuffer; weight: number; style: string }>
 > {
-  const fontsConfig = [
-    { name: "Noto Sans", font: "Noto+Sans", weight: 400, style: "normal" },
-    {
-      name: "Noto Sans",
-      font: "Noto+Sans",
-      weight: 700,
-      style: "normal",
-    },
+  // Aseguramos que busque desde la raíz del proyecto
+  const fontPath = path.resolve("./src/assets/fonts/wotfard.ttf");
+  const fontData = fs.readFileSync(fontPath);
+
+  // Mapeamos distintos pesos al mismo archivo TTF para que satori 
+  // pueda renderizar correctamente independientemente del fontWeight 
+  // usado en los templates.
+  return [
+    { name: "Wotfard", data: fontData.buffer, weight: 400, style: "normal" },
+    { name: "Wotfard", data: fontData.buffer, weight: 600, style: "normal" },
+    { name: "Wotfard", data: fontData.buffer, weight: 700, style: "normal" },
+    { name: "Wotfard", data: fontData.buffer, weight: 900, style: "normal" },
   ];
-
-  const fonts = await Promise.all(
-    fontsConfig.map(async ({ name, font, weight, style }) => {
-      const data = await loadGoogleFont(font, text, weight);
-      return { name, data, weight, style };
-    })
-  );
-
-  return fonts;
 }
 
 export default loadGoogleFonts;

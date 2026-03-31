@@ -1,4 +1,9 @@
 ---
+/**
+ * IntroAudioCompact — A minimized version of the intro/brand audio player.
+ * It is meant to be displayed in the header or persistent navigation areas 
+ * once the user navigates away from the home page.
+ */
 interface Props {
   src: string;
   label?: string;
@@ -26,13 +31,13 @@ const isStream = streamOverride ?? /^https?:\/\//i.test(src);
   data-duration={String(duration)}
   data-stream={isStream ? "true" : "false"}
   role="region"
-  aria-label="Reproductor de audio compacto"
+  aria-label="Compact audio player"
 >
   <button
     id="intro-audio-compact-btn"
     class="intro-audio-compact-btn"
     type="button"
-    aria-label="Reproducir audio"
+    aria-label="Play audio"
   >
     <svg
       id="intro-audio-compact-play"
@@ -178,8 +183,8 @@ const isStream = streamOverride ?? /^https?:\/\//i.test(src);
 
     const store = getIntroAudioStore({ src, label, isStream, durationHint });
 
-    const playLabel = isStream ? "Reproducir radio" : "Reproducir audio";
-    const pauseLabel = isStream ? "Pausar radio" : "Pausar audio";
+    const playLabel = isStream ? "Play radio" : "Play audio";
+    const pauseLabel = isStream ? "Pause radio" : "Pause audio";
 
     const setPlaying = (playing: boolean) => {
       wrap.classList.toggle("is-playing", playing);
@@ -204,7 +209,7 @@ const isStream = streamOverride ?? /^https?:\/\//i.test(src);
     btn.addEventListener("click", () => {
       if (store.audio.paused) {
         void store.audio.play().catch(() => {
-          /* reproduccion bloqueada por el navegador */
+          /* playback blocked by browser */
         });
       } else {
         store.audio.pause();

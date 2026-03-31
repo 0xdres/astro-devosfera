@@ -1,4 +1,8 @@
 ---
+/**
+ * ShareLinks — Renders social media share buttons for the current page (e.g. inside a post).
+ * Retrieves the available platforms from the SHARE_LINKS constant in `constants.ts`.
+ */
 import { SHARE_LINKS } from "@/constants";
 import LinkButton from "./LinkButton.astro";
 
@@ -9,7 +13,7 @@ const URL = Astro.url;
   SHARE_LINKS.length > 0 && (
     <div class="flex shrink-0 flex-col items-center gap-2 sm:items-end">
       <span class="font-cartograph text-[10px] tracking-wider text-foreground/40 uppercase select-none">
-        Compartir
+        Share
       </span>
       <div class="flex items-center gap-1">
         {SHARE_LINKS.map(social => (

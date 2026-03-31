@@ -25,12 +25,40 @@ const viewTransitionName = slugifyStr(String(title).replaceAll(".", "-"));
 <li
   class:list={[
     "card-glow group/card relative my-3 rounded-2xl p-4 sm:p-5",
-    "border border-border/25",
+    "border backdrop-blur-sm",
     "transition-[border-color,background-color,box-shadow,transform] duration-300 ease-out motion-reduce:transform-none motion-reduce:transition-none",
-    "hover:border-accent/40 hover:bg-accent/5 focus-within:border-accent/40 focus-within:bg-accent/5",
     "hover:-translate-y-0.5 focus-within:-translate-y-0.5",
-    "hover:shadow-lg hover:shadow-accent/10 focus-within:shadow-lg focus-within:shadow-accent/10",
-    featured && "border-accent/40 bg-accent/5 shadow-[0_0_20px_-5px_rgba(var(--accent),0.15)]",
+    "hover:shadow-lg focus-within:shadow-lg",
+
+    // Default posts styling
+    !isGallery && !featured && [
+      "border-border/25 bg-muted/10",
+      "hover:border-accent/40 hover:bg-accent/5 focus-within:border-accent/40 focus-within:bg-accent/5",
+      "hover:shadow-accent/10 focus-within:shadow-accent/10",
+    ],
+
+    // Featured generic posts styling
+    !isGallery && featured && [
+      "border-amber-500/30 bg-amber-500/5",
+      "hover:border-amber-500/50 hover:bg-amber-500/10 focus-within:border-amber-500/50 focus-within:bg-amber-500/10",
+      "hover:shadow-amber-500/10 focus-within:shadow-amber-500/10",
+      "shadow-[0_0_20px_-5px_rgba(245,158,11,0.15)]",
+    ],
+
+    // Gallery variant styling
+    isGallery && !featured && [
+      "border-purple-500/20 bg-purple-500/5",
+      "hover:border-purple-500/40 hover:bg-purple-500/10 focus-within:border-purple-500/40 focus-within:bg-purple-500/10",
+      "hover:shadow-purple-500/10 focus-within:shadow-purple-500/10",
+    ],
+
+    // Featured gallery styling
+    isGallery && featured && [
+      "border-purple-500/40 bg-purple-500/10",
+      "hover:border-purple-500/60 hover:bg-purple-500/15 focus-within:border-purple-500/60 focus-within:bg-purple-500/15",
+      "hover:shadow-purple-500/20 focus-within:shadow-purple-500/20",
+      "shadow-[0_0_20px_-5px_rgba(168,85,247,0.15)]",
+    ],
   ]}
 >
   <!-- Cursor-following glow -->
@@ -43,7 +71,14 @@ const viewTransitionName = slugifyStr(String(title).replaceAll(".", "-"));
   <div class="relative z-5">
     <a
       href={href}
-      class="text-lg font-semibold text-foreground transition-colors duration-200 group-hover/card:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
+      class:list={[
+        "text-lg font-semibold text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm",
+        isGallery 
+          ? "group-hover/card:text-purple-400 focus-visible:ring-purple-500" 
+          : featured 
+            ? "group-hover/card:text-amber-500 focus-visible:ring-amber-500"
+            : "group-hover/card:text-accent focus-visible:ring-accent"
+      ]}
       aria-labelledby={headingId}
       aria-describedby={descriptionId}
       style={{ viewTransitionName }}
@@ -52,12 +87,12 @@ const viewTransitionName = slugifyStr(String(title).replaceAll(".", "-"));
         {isGallery && (
           <span
             aria-hidden="true"
-            class="inline-flex items-center justify-center rounded-md bg-accent/10 p-1 text-accent/80 ring-1 ring-accent/20"
+            class="inline-flex items-center justify-center rounded-md bg-purple-500/10 p-1 text-purple-400/80 ring-1 ring-purple-500/20"
           >
             <IconGallery class="size-4" />
           </span>
         )}
-        {isGallery && <span class="sr-only">Galeria:</span>}
+        {isGallery && <span class="sr-only">Gallery:</span>}
         {title}
       </Heading>
       <!-- Expand clickable area to whole card on top of everything, minus the description -->

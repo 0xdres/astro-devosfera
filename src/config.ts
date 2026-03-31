@@ -20,7 +20,7 @@ export const SITE = {
   },
   backdropEffects: {
     cursorGlow: false, // cursor tracking with soft halo
-    grain: false, // background visual noise layer
+    grain: true, // background visual noise layer
   },
   editPost: {
     enabled: true,
@@ -29,7 +29,7 @@ export const SITE = {
   },
   dynamicOgImage: true,
   dir: "ltr", // "rtl" | "auto"
-  lang: "es", // html lang code. Set this empty and default will be "en"
+  lang: "en", // html lang code. Set this empty and default will be "en"
   timezone: "America/Guatemala", // Default global timezone (IANA format) https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   introAudio: {
     enabled: true, // show/hide intro player in home and compact player while navigating
