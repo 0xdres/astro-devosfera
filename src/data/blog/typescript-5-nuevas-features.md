@@ -1,6 +1,6 @@
 ---
-title: "TypeScript 5.x: las features que cambian cómo escribes código"
-description: Repaso práctico de las novedades más impactantes de TypeScript 5.x — decoradores, const type parameters, variadic tuple types y más.
+title: "TypeScript 5.x: features that change how you write code"
+description: Practical review of the most impactful new features in TypeScript 5.x — decorators, const type parameters, variadic tuple types and more.
 pubDatetime: 2026-02-15T10:00:00Z
 tags:
   - typescript
@@ -9,20 +9,20 @@ tags:
 draft: false
 ---
 
-TypeScript sigue evolucionando a un ritmo acelerado. Las versiones 5.x trajeron cambios que van más allá de mejoras de rendimiento: redefinen patrones que llevamos años usando.
+TypeScript continues to evolve at a rapid pace. The 5.x versions brought changes that go beyond performance improvements: they redefine patterns we have been using for years.
 
 ## Table of contents
 
-## Decoradores estándar (TC39 Stage 3)
+## Standard decorators (TC39 Stage 3)
 
-Por fin. Después de años con la versión experimental, TypeScript 5.0 adoptó los **decoradores estándar** de TC39. La sintaxis es similar pero la semántica cambió bastante.
+Finally. After years with the experimental version, TypeScript 5.0 adopted the **standard decorators** from TC39. The syntax is similar but the semantics changed quite a bit.
 
 ```typescript file=decorators.ts
-// Decorador de clase — antes (experimental)
+// Class decorator — before (experimental)
 @sealed
 class OldClass { ... }
 
-// Decorador estándar — TS 5.x // [!code highlight]
+// Standard decorator — TS 5.x // [!code highlight]
 function logged<T extends new (...args: unknown[]) => unknown>(
   target: T,
   _ctx: ClassDecoratorContext,
@@ -30,7 +30,7 @@ function logged<T extends new (...args: unknown[]) => unknown>(
   return class extends target {
     constructor(...args: unknown[]) {
       super(...args);
-      console.log(`[LOG] Instancia de ${target.name} creada`);
+      console.log(`[LOG] Instance of ${target.name} created`);
     }
   };
 }
@@ -41,7 +41,7 @@ class UserService {
 }
 ```
 
-### Decoradores de método y accesor
+### Method and accessor decorators
 
 ```typescript file=method-decorator.ts
 function measure(_target: unknown, ctx: ClassMethodDecoratorContext) {
@@ -55,7 +55,7 @@ function measure(_target: unknown, ctx: ClassMethodDecoratorContext) {
       this,
       args // [!code ++]
     ); // [!code ++]
-    console.log(`${name} tardó ${performance.now() - start}ms`);
+    console.log(`${name} took ${performance.now() - start}ms`);
     return result;
   };
 }
@@ -70,26 +70,26 @@ class ReportService {
 
 ## `const` Type Parameters
 
-Antes necesitabas `as const` en cada llamada para inferir tuplas literales. Ahora puedes declararlo en el genérico:
+Before you needed `as const` on every call to infer literal tuples. Now you can declare it in the generic:
 
 ```typescript file=const-type-params.ts
-// Antes: inferido como string[]
+// Before: inferred as string[]
 function head<T>(arr: T[]) {
   return arr[0];
 }
-head(["a", "b"]); // tipo: string
+head(["a", "b"]); // type: string
 
-// Ahora: inferido como el literal exacto // [!code highlight]
+// Now: inferred as the exact literal // [!code highlight]
 function head<const T extends readonly unknown[]>(arr: T) {
   return arr[0];
 }
-head(["a", "b"] as const); // tipo: "a"
-head(["a", "b"]); // tipo: "a"  ← funciona sin as const // [!code ++]
+head(["a", "b"] as const); // type: "a"
+head(["a", "b"]); // type: "a"  ← works without as const // [!code ++]
 ```
 
-## `satisfies` operator (consolidado)
+## `satisfies` operator (consolidated)
 
-Introducido en 4.9 pero ya es parte del flujo diario. Permite validar que un valor satisface un tipo sin "ensancharlo":
+Introduced in 4.9 but already part of the daily workflow. It allows validating that a value satisfies a type without "widening" it:
 
 ```typescript file=satisfies.ts
 type Palette = {
@@ -104,14 +104,14 @@ const palette = {
   blue: [0, 0, 255],
 } satisfies Palette; // [!code highlight]
 
-// Ahora TypeScript sabe que red es una tupla, no string
-palette.red.at(0); // ✓ — antes daba error
+// Now TypeScript knows that red is a tuple, not string
+palette.red.at(0); // ✓ — before it threw an error
 ```
 
-## Mejoras en inferencia de `infer`
+## Improvements in `infer` inference
 
 ```typescript file=infer-extends.ts
-// Extraer el tipo de retorno filtrado por constraint
+// Extract the return type filtered by constraint
 type ReturnIfString<T> = T extends () => infer R extends string
   ? R
   : never;
@@ -120,9 +120,9 @@ type A = ReturnIfString<() => "hello">; // "hello"
 type B = ReturnIfString<() => number>;  // never
 ```
 
-## Rendimiento: modo `--incremental` y `--composite`
+## Performance: `--incremental` and `--composite` mode
 
-TS 5.x optimizó las builds incrementales. En proyectos grandes la mejora puede ser de hasta **3×**:
+TS 5.x optimized incremental builds. In large projects the improvement can be up to **3×**:
 
 ```json file=tsconfig.json
 {
@@ -135,14 +135,14 @@ TS 5.x optimizó las builds incrementales. En proyectos grandes la mejora puede 
 }
 ```
 
-> **Consejo:** combina `composite` con referencias de proyecto (`references`) para monorepos. Cada paquete compilará sólo lo que cambió.
+> **Tip:** combine `composite` with project references (`references`) for monorepos. Each package will compile only what changed.
 
-## Resumen rápido
+## Quick summary
 
-| Feature                    | Versión                  | Impacto                                  |
+| Feature                    | Version                  | Impact                                   |
 | -------------------------- | ------------------------ | ---------------------------------------- |
-| Decoradores estándar       | 5.0                      | Alto — reemplaza experimental            |
-| `const` type params        | 5.0                      | Medio — menos `as const`                 |
-| `satisfies`                | 4.9 / consolidado en 5.x | Alto — tipado más expresivo              |
-| `infer ... extends`        | 5.x                      | Medio — tipos condicionales más precisos |
-| Build incremental mejorado | 5.x                      | Alto en monorepos                        |
+| Standard decorators        | 5.0                      | High — replaces experimental             |
+| `const` type params        | 5.0                      | Medium — less `as const`                 |
+| `satisfies`                | 4.9 / consolidated in 5.x| High — more expressive typing            |
+| `infer ... extends`        | 5.x                      | Medium — more precise conditional types  |
+| Improved incremental build | 5.x                      | High in monorepos                        |

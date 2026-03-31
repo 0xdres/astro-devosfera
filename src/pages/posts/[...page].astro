@@ -43,14 +43,14 @@ const totalPosts = page.total;
           <span class="glow-text">Posts</span>
         </h1>
         <p class="mt-3 max-w-lg text-foreground/70 italic">
-          Todos los artículos que he publicado.
+          All the articles I have published.
         </p>
         <div class="mt-4 flex flex-wrap items-center gap-2">
           <span class="hero-badge">{totalPosts} posts</span>
           {
             page.lastPage > 1 && (
               <span class="hero-badge">
-                Página {page.currentPage}/{page.lastPage}
+                Page {page.currentPage}/{page.lastPage}
               </span>
             )
           }
@@ -85,9 +85,9 @@ const totalPosts = page.total;
                 <line x1="9" y1="15" x2="15" y2="15"></line>
               </svg>
             </div>
-            <h3 class="empty-title">Aún no hay posts</h3>
+            <h3 class="empty-title">No posts yet</h3>
             <p class="empty-desc">
-              Vuelve más tarde para leer nuestros próximos artículos.
+              Come back later to read our upcoming articles.
             </p>
           </div>
         ) : (
@@ -140,7 +140,7 @@ const totalPosts = page.total;
       if (signal.aborted) return;
       if (container.childElementCount > 0) return;
 
-      // @ts-expect-error PagefindUI no exporta tipos ESM compatibles en este import dinámico
+      // @ts-expect-error PagefindUI does not export ESM compatible types in this dynamic import
       const { PagefindUI } = await import("@pagefind/default-ui");
 
       // Navigation may have occurred while the module was loading (first load, uncached)
@@ -149,7 +149,7 @@ const totalPosts = page.total;
       if (import.meta.env.DEV) {
         container.innerHTML = `
           <div class="bg-muted/75 rounded p-4 text-sm mb-4 border border-border">
-            <p><strong>Dev Mode:</strong> La búsqueda intentará usar el índice construido más reciente. Si no ves resultados, ejecuta <code>pnpm run build</code> primero.</p>
+            <p><strong>Dev Mode:</strong> The search will attempt to use the latest built index. If you don't see results, run <code>pnpm run build</code> first.</p>
           </div>
         `;
         // Removed the early return to allow pagefind to attempt loading the local index

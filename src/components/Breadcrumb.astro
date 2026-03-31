@@ -14,7 +14,7 @@ const breadcrumbs = buildBreadcrumbItems(Astro.url.pathname, {
   compactNumericPagination: true,
 });
 
-const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Inicio";
+const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
 ---
 
 <nav

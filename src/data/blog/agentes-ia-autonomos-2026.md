@@ -1,46 +1,46 @@
 ---
-title: "Agentes IA Autónomos: la nueva forma de construir software en 2026"
-description: Los agentes de inteligencia artificial ya no son ciencia ficción. Analizamos su arquitectura, casos de uso reales y cómo integrarlos en tu flujo de trabajo de desarrollo.
+title: "Autonomous AI Agents: the new way to build software in 2026"
+description: AI agents are no longer science fiction. We analyze their architecture, real use cases, and how to integrate them into your development workflow.
 pubDatetime: 2026-02-18T10:00:00Z
 tags:
-  - ia
-  - agentes
+  - ai
+  - agents
   - llm
   - python
 featured: true
 draft: false
 ---
 
-Durante años, los asistentes de IA actuaron como oráculos: tú preguntabas, ellos respondían. En 2026 el paradigma cambió. Ahora los **agentes autónomos** pueden planificar, ejecutar herramientas, evaluar resultados y corregir su propio rumbo sin intervención humana constante.
+For years, AI assistants acted as oracles: you asked, they answered. In 2026 the paradigm changed. Now **autonomous agents** can plan, execute tools, evaluate results, and correct their own course without constant human intervention.
 
 <figure>
   <img
     src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1200&q=80"
-    alt="Diagrama abstracto de redes neuronales interconectadas"
+    alt="Abstract diagram of interconnected neural networks"
   />
   <figcaption class="text-center">
-    Los agentes IA encadenan razonamiento y acción en bucles autónomos.
+    AI agents chain reasoning and action in autonomous loops.
   </figcaption>
 </figure>
 
 ## Table of contents
 
-## ¿Qué es un agente IA?
+## What is an AI agent?
 
-Un agente es un sistema que percibe su entorno, razona sobre él y toma acciones para alcanzar un objetivo. Lo que cambió en los últimos años es que los LLMs (Large Language Models) ahora actúan como el "cerebro" del agente, mientras que herramientas externas —buscadores, intérpretes de código, APIs— son sus "manos".
+An agent is a system that perceives its environment, reasons about it, and takes actions to achieve a goal. What changed in recent years is that LLMs (Large Language Models) now act as the agent's "brain", while external tools —search engines, code interpreters, APIs— are its "hands".
 
-El ciclo básico de un agente se puede resumir así:
+The basic cycle of an agent can be summarized like this:
 
-1. **Percepción** — el agente recibe contexto (prompt + historia + resultado de herramientas)
-2. **Razonamiento** — el LLM decide qué acción tomar
-3. **Acción** — se invoca una herramienta o se genera una respuesta final
-4. **Evaluación** — el resultado se incorpora al contexto y el ciclo se repite
+1. **Perception** — the agent receives context (prompt + history + tool results)
+2. **Reasoning** — the LLM decides what action to take
+3. **Action** — a tool is invoked or a final answer is generated
+4. **Evaluation** — the result is incorporated into the context and the cycle repeats
 
-## Arquitecturas principales
+## Main architectures
 
 ### ReAct (Reasoning + Acting)
 
-El patrón más extendido. El modelo alterna pasos de _Thought_ y _Action_ hasta llegar a una respuesta final.
+The most widespread pattern. The model alternates _Thought_ and _Action_ steps until reaching a final answer.
 
 ```python file=agent_react.py
 from langchain.agents import create_react_agent
@@ -55,12 +55,12 @@ tools = [search_tool, code_interpreter, file_reader] # [!code highlight]
 agent = create_react_agent(llm, tools, prompt)
 executor = AgentExecutor(agent=agent, tools=tools, verbose=True) # [!code highlight]
 
-result = executor.invoke({"input": "¿Cuál es el precio actual del BTC en USD?"})
+result = executor.invoke({"input": "What is the current price of BTC in USD?"})
 ```
 
 ### Plan-and-Execute
 
-Separa la planificación de la ejecución. Más robusto para tareas complejas con muchos pasos.
+Separates planning from execution. More robust for complex tasks with many steps.
 
 ```python file=agent_plan_execute.py
 from langchain_experimental.plan_and_execute import (
@@ -75,27 +75,27 @@ executor = load_agent_executor(llm, tools)  # [!code ++]
 agent = PlanAndExecute(planner=planner, executor=executor)
 ```
 
-### Multi-agente (Crew/Graph)
+### Multi-agent (Crew/Graph)
 
-Varios agentes especializados colaboran: uno investiga, otro redacta, otro revisa. Frameworks como **CrewAI** o **LangGraph** facilitan esta coordinación.
+Several specialized agents collaborate: one researches, another writes, another reviews. Frameworks like **CrewAI** or **LangGraph** facilitate this coordination.
 
 ```python file=crew_example.py
 from crewai import Agent, Task, Crew
 
 researcher = Agent(
-    role="Investigador técnico",
-    goal="Recopilar información precisa sobre un tema",
+    role="Technical Researcher",
+    goal="Gather accurate information on a topic",
     llm=llm,
     tools=[web_search, arxiv_search],
 )
 writer = Agent(
-    role="Redactor técnico",
-    goal="Transformar investigación en artículo claro",
+    role="Technical Writer",
+    goal="Transform research into a clear article",
     llm=llm,
 )
 
 task = Task(
-    description="Escribe un resumen sobre WebAssembly en 2026",
+    description="Write a summary about WebAssembly in 2026",
     agent=writer,
 )
 
@@ -103,26 +103,26 @@ crew = Crew(agents=[researcher, writer], tasks=[task])
 crew.kickoff()
 ```
 
-## Casos de uso reales
+## Real use cases
 
-| Caso de uso              | Agente involucrado                   | Ahorro estimado                   |
-| ------------------------ | ------------------------------------ | --------------------------------- |
-| Code review automatizado | Agente de análisis estático + LLM    | 60 % del tiempo de review         |
-| Generación de tests      | Plan-and-Execute sobre codebase      | 40 % de cobertura sin esfuerzo    |
-| Respuesta a incidentes   | Monitor + Razonador + Actuador       | Reducción MTTR en 70 %            |
-| Documentación viva       | Agente que lee commits y genera docs | Documentación siempre actualizada |
+| Use case                 | Agent involved                       | Estimated savings                  |
+| ------------------------ | ------------------------------------ | ---------------------------------- |
+| Automated code review    | Static analysis agent + LLM          | 60% of review time                 |
+| Test generation          | Plan-and-Execute over codebase       | 40% effortless coverage            |
+| Incident response        | Monitor + Reasoner + Actuator        | MTTR reduction by 70%              |
+| Living documentation     | Agent that reads commits & makes docs| Non-stop updated documentation     |
 
-## Consideraciones de seguridad
+## Security considerations
 
-> **Regla de oro:** un agente jamás debe tener más permisos de los estrictamente necesarios para completar su tarea.
+> **Golden rule:** an agent should never have more permissions than strictly necessary to complete its task.
 
-Los principales riesgos son:
+The main risks are:
 
-- **Prompt injection**: un input malicioso convence al agente de ejecutar acciones no autorizadas.
-- **Tool misuse**: el agente invoca una herramienta destructiva (por ejemplo, `DELETE` en una base de datos) por un razonamiento erróneo.
-- **Loops infinitos**: sin un límite de iteraciones, el agente puede consumir tokens y dinero indefinidamente.
+- **Prompt injection**: a malicious input convinces the agent to execute unauthorized actions.
+- **Tool misuse**: the agent invokes a destructive tool (e.g., `DELETE` on a database) due to flawed reasoning.
+- **Infinite loops**: without an iteration limit, the agent can consume tokens and money indefinitely.
 
-Mitiga estos riesgos con:
+Mitigate these risks with:
 
 ```python file=safe_executor.py
 executor = AgentExecutor(
@@ -134,8 +134,8 @@ executor = AgentExecutor(
 )
 ```
 
-## El futuro es agentic
+## The future is agentic
 
-La transición de "IAP" (IA de propósito general) a "IAA" (IA agentic) está redefiniendo qué significa ser desarrollador. No se trata de que los agentes reemplacen a los programadores, sino de que los programadores que sepan orquestar agentes reemplazarán a los que no.
+The transition from "AGI" (General Purpose AI) to "Agentic AI" is redefining what it means to be a developer. It's not about agents replacing programmers, but about programmers who know how to orchestrate agents replacing those who do not.
 
-El próximo paso es la **memoria persistente**: agentes que recuerdan conversaciones y proyectos pasados, acumulan contexto y mejoran con el tiempo, como un colega que aprende de cada sprint.
+The next step is **persistent memory**: agents that remember past conversations and projects, accumulate context, and improve over time, like a colleague who learns from every sprint.

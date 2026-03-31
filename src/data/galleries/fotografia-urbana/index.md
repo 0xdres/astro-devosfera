@@ -1,12 +1,12 @@
 ---
-title: Fotografía Urbana — Ciudad en Capas
-description: Una colección de disparos callejeros que capturan la arquitectura, la luz y el ritmo de la ciudad moderna.
+title: Urban Photography — Layered City
+description: A collection of street shots capturing the architecture, light, and rhythm of the modern city.
 pubDatetime: 2026-02-10T09:00:00Z
 tags:
-  - fotografía
-  - urbano
-  - ciudad
+  - photography
+  - urban
+  - city
 draft: false
 ---
 
-Galería de fotografía urbana. Las imágenes serán añadidas próximamente.
+Urban photography gallery. Images will be added soon.

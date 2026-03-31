@@ -1,6 +1,6 @@
 ---
-title: "React 19: useActionState, useOptimistic y el fin de los estados de carga manuales"
-description: React 19 rediseñó cómo manejamos formularios, mutaciones y estados de transición. Guía práctica de las nuevas APIs con ejemplos reales.
+title: "React 19: useActionState, useOptimistic, and the end of manual loading states"
+description: React 19 redesigned how we handle forms, mutations, and transition states. Practical guide to the new APIs with real examples.
 pubDatetime: 2026-01-28T10:00:00Z
 tags:
   - react
@@ -10,16 +10,16 @@ tags:
 draft: false
 ---
 
-React 19 es la actualización más importante desde la introducción de Hooks. No trae nuevos conceptos radicales — trae la solución definitiva a un problema que resolvimos mil veces de formas distintas: **el manejo de formularios y mutaciones**.
+React 19 is the most important update since the introduction of Hooks. It doesn't bring radical new concepts — it brings the definitive solution to a problem we solved a thousand times in different ways: **handling forms and mutations**.
 
 ## Table of contents
 
-## El problema que React 19 resuelve
+## The problem React 19 solves
 
-Antes de React 19, un formulario con feedback de carga, manejo de errores y actualización optimista requería esto:
+Before React 19, a form with loading feedback, error handling, and optimistic updating required this:
 
 ```tsx file=before.tsx
-// Antes: 35+ líneas para algo "básico"
+// Before: 35+ lines for something "basic"
 function ProfileForm() {
   const [isPending, setIsPending] = useState(false); // [!code --]
   const [error, setError] = useState<string | null>(null); // [!code --]
@@ -37,7 +37,7 @@ function ProfileForm() {
       setSuccess(true); // [!code --]
     } catch (err) {
       // [!code --]
-      setError("Error al guardar"); // [!code --]
+      setError("Error saving"); // [!code --]
     } finally {
       // [!code --]
       setIsPending(false); // [!code --]
@@ -47,7 +47,7 @@ function ProfileForm() {
 }
 ```
 
-## `useActionState`: formularios sin useState manual
+## `useActionState`: forms without manual useState
 
 ```tsx file=profile-form.tsx
 import { useActionState } from "react"; // [!code ++]
@@ -60,7 +60,7 @@ async function updateProfileAction(prevState: State, formData: FormData) {
     });
     return { success: true, error: null };
   } catch {
-    return { success: false, error: "Error al guardar el perfil" };
+    return { success: false, error: "Error saving profile" };
   }
 }
 
@@ -73,23 +73,23 @@ function ProfileForm() {
 
   return (
     <form action={action}>
-      <input name="name" placeholder="Nombre" />
-      <textarea name="bio" placeholder="Biografía" />
+      <input name="name" placeholder="Name" />
+      <textarea name="bio" placeholder="Biography" />
 
       {state.error && <p className="error">{state.error}</p>}
-      {state.success && <p className="success">¡Guardado!</p>}
+      {state.success && <p className="success">Saved!</p>}
 
       <button type="submit" disabled={isPending}>
-        {isPending ? "Guardando..." : "Guardar"}
+        {isPending ? "Saving..." : "Save"}
       </button>
     </form>
   );
 }
 ```
 
-## `useOptimistic`: UI instantánea con rollback automático
+## `useOptimistic`: instant UI with automatic rollback
 
-El patrón optimistic update (actualizar la UI antes de que el servidor confirme) era tedioso. Ahora:
+The optimistic update pattern (updating the UI before the server confirms) was tedious. Now:
 
 ```tsx file=todo-list.tsx
 import { useOptimistic, useActionState } from "react";
@@ -104,10 +104,10 @@ function TodoList({ initialTodos }: { initialTodos: Todo[] }) {
   async function addTodoAction(_: State, formData: FormData) {
     const title = formData.get("title") as string;
 
-    // Actualización inmediata en la UI
+    // Immediate UI update
     addOptimisticTodo({ id: crypto.randomUUID(), title, done: false }); // [!code highlight]
 
-    // Mutación real (el hook revierte si falla)
+    // Real mutation (the hook reverts if it fails)
     await createTodo(title);
     return { error: null };
   }
@@ -130,14 +130,14 @@ function TodoList({ initialTodos }: { initialTodos: Todo[] }) {
       </ul>
       <form action={action}>
         <input name="title" required />
-        <button disabled={isPending}>Añadir</button>
+        <button disabled={isPending}>Add</button>
       </form>
     </>
   );
 }
 ```
 
-## `use()`: consumir Promises y contexto condicionalmente
+## `use()`: consuming Promises and context conditionally
 
 ```tsx file=user-profile.tsx
 import { use, Suspense } from "react";
@@ -148,26 +148,26 @@ async function fetchUser(id: string): Promise<User> {
 }
 
 function UserProfile({ userPromise }: { userPromise: Promise<User> }) {
-  const user = use(userPromise); // [!code highlight] — puede usarse dentro de condicionales
+  const user = use(userPromise); // [!code highlight] — can be used inside conditionals
 
   return <h1>{user.name}</h1>;
 }
 
-// El Suspense boundary cachea y resuelve la promesa
+// The Suspense boundary caches and resolves the promise
 function App() {
-  const userPromise = fetchUser("123"); // creada fuera del componente
+  const userPromise = fetchUser("123"); // created outside the component
 
   return (
-    <Suspense fallback={<p>Cargando usuario…</p>}>
+    <Suspense fallback={<p>Loading user…</p>}>
       <UserProfile userPromise={userPromise} />
     </Suspense>
   );
 }
 ```
 
-## Server Actions en la práctica
+## Server Actions in practice
 
-React 19 formaliza las **Server Actions** (funciones marcadas con `"use server"` que se ejecutan en el servidor):
+React 19 formalizes **Server Actions** (functions marked with `"use server"` that run on the server):
 
 ```tsx file=actions.ts
 "use server";
@@ -177,7 +177,7 @@ import { db } from "@/lib/db";
 
 export async function deletePost(id: string) {
   await db.post.delete({ where: { id } });
-  revalidatePath("/posts"); // invalida cache del servidor // [!code highlight]
+  revalidatePath("/posts"); // invalidates server cache // [!code highlight]
 }
 ```
 
@@ -189,19 +189,19 @@ export function PostCard({ post }: { post: Post }) {
     <article>
       <h2>{post.title}</h2>
       <form action={deletePost.bind(null, post.id)}>
-        <button type="submit">Eliminar</button>
+        <button type="submit">Delete</button>
       </form>
     </article>
   );
 }
 ```
 
-## Resumen de nuevas APIs
+## Summary of new APIs
 
-| API              | Reemplaza                                   | Cuándo usar                               |
+| API              | Replaces                                    | When to use                               |
 | ---------------- | ------------------------------------------- | ----------------------------------------- |
-| `useActionState` | `useState` + `useReducer` para formularios  | Toda mutación con feedback de UI          |
-| `useOptimistic`  | Lógica manual de rollback                   | Updates que mejoran perceived performance |
-| `use(promise)`   | `useEffect` + `useState` para data fetching | Componentes que leen promesas en render   |
-| `use(context)`   | `useContext`                                | Cuando necesitas leerlo condicionalmente  |
-| `ref` como prop  | `forwardRef`                                | Siempre — elimina el wrapper innecesario  |
+| `useActionState` | `useState` + `useReducer` for forms         | Any mutation with UI feedback             |
+| `useOptimistic`  | Manual rollback logic                       | Updates that improve perceived performance|
+| `use(promise)`   | `useEffect` + `useState` for data fetching  | Components reading promises in render     |
+| `use(context)`   | `useContext`                                | When you need to read it conditionally    |
+| `ref` as prop    | `forwardRef`                                | Always — removes the unnecessary wrapper  |

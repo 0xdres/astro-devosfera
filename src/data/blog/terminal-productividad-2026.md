@@ -1,26 +1,26 @@
 ---
-title: "Terminal productivity: las herramientas que transformaron mi flujo de trabajo"
-description: Un recorrido por las herramientas de línea de comandos modernas que reemplazan a los clásicos Unix — más rápidas, más inteligentes y con mejor DX.
+title: "Terminal productivity: the tools that transformed my workflow"
+description: A tour of modern command-line tools that replace Unix classics — faster, smarter, and with better DX.
 pubDatetime: 2026-01-18T10:00:00Z
 tags:
   - terminal
-  - productividad
+  - productivity
   - linux
   - cli
-  - herramientas
+  - tools
 draft: false
 ---
 
-El ecosistema CLI vivió una revolución silenciosa. Herramientas escritas en Rust y Go reemplazaron binarios Unix con décadas de antigüedad, añadiendo colores, syntax highlighting, fuzzy search y Git-awareness casi sin sacrificar velocidad. Estas son las que uso a diario.
+The CLI ecosystem experienced a silent revolution. Tools written in Rust and Go replaced decades-old Unix binaries, adding colors, syntax highlighting, fuzzy search, and Git-awareness with almost no sacrifice in speed. These are the ones I use daily.
 
 ## Table of contents
 
 ## Shell: Zsh + Starship
 
-[Starship](https://starship.rs) es sin duda el prompt que más mejora la experiencia con el menor esfuerzo. Funciona con cualquier shell, es increíblemente rápido (escrito en Rust) y muestra contexto relevante: branch de Git, versión de Node/Python/Rust, estado del último comando.
+[Starship](https://starship.rs) is undoubtedly the prompt that most improves the experience with the least effort. It works with any shell, is incredibly fast (written in Rust) and shows relevant context: Git branch, Node/Python/Rust version, last command status.
 
 ```toml file=~/.config/starship.toml
-# Estilo minimalista pero informativo
+# Minimalist but informative style
 format = """
 $directory\
 $git_branch\
@@ -48,121 +48,121 @@ min_time = 2_000
 format = "took [$duration](bold yellow)"
 ```
 
-## Reemplazos de herramientas clásicas
+## Classic tool replacements
 
-### `ls` → `eza` (antes `exa`)
+### `ls` → `eza` (formerly `exa`)
 
 ```bash
-eza --tree --level=2 --icons --git    # árbol con iconos y estado Git
-eza -la --sort=modified               # lista larga, ordenada por fecha
+eza --tree --level=2 --icons --git    # tree with icons and Git status
+eza -la --sort=modified               # long list, sorted by date
 ```
 
 ### `find` → `fd`
 
 ```bash
-# find: verboso y poco ergonómico
+# find: verbose and poor ergonomics
 find . -name "*.ts" -not -path "*/node_modules/*"    # [!code --]
 
-# fd: intuitivo, respeta .gitignore por defecto
-fd -e ts                    # todos los .ts del proyecto    # [!code ++]
-fd -e ts --exec bat {}      # abrir cada resultado con bat  # [!code ++]
+# fd: intuitive, respects .gitignore by default
+fd -e ts                    # all .ts in the project          # [!code ++]
+fd -e ts --exec bat {}      # open each result with bat       # [!code ++]
 ```
 
 ### `grep` → `ripgrep` (`rg`)
 
 ```bash
-# grep clásico
+# classic grep
 grep -r "useEffect" src/ --include="*.tsx"      # [!code --]
 
-# rg: 5-10× más rápido, respeta .gitignore
+# rg: 5-10× faster, respects .gitignore
 rg "useEffect" --type ts                         # [!code ++]
 rg "TODO|FIXME|HACK" --type ts --stats           # [!code ++]
-rg "deprecated" -l                               # solo nombres de archivo # [!code ++]
+rg "deprecated" -l                               # filenames only # [!code ++]
 ```
 
 ### `cat` → `bat`
 
-`bat` es `cat` con syntax highlighting, número de líneas, paginado y Git diff integrado:
+`bat` is `cat` with syntax highlighting, line numbers, paging, and built-in Git diff:
 
 ```bash
-bat src/components/Header.astro     # con colores y líneas
-bat --diff archivo.ts               # muestra cambios Git inline
+bat src/components/Header.astro     # with colors and lines
+bat --diff file.ts                  # shows inline Git changes
 ```
 
 ### `cd` → `zoxide`
 
-Aprende a qué directorios vas con frecuencia y permite saltar a ellos con pocas letras:
+It learns which directories you visit frequently and lets you jump to them with a few letters:
 
 ```bash
-z astro      # salta a ~/proyectos/mi-blog-astro si es el que más visitas
-z blog src   # coincidencia múltiple
-zi           # modo interactivo con fzf
+z astro      # jumps to ~/projects/my-astro-blog if it's the most visited
+z blog src   # multiple match
+zi           # interactive mode with fzf
 ```
 
-## Multiplexor: `tmux` con configuración moderna
+## Multiplexer: `tmux` with modern config
 
 ```bash file=~/.tmux.conf
-# Prefijo más cómodo
+# More comfortable prefix
 set -g prefix C-a
 unbind C-b
 
-# Dividir paneles con teclas intuitivas
+# Split panes with intuitive keys
 bind | split-window -h -c "#{pane_current_path}"  # [!code highlight]
 bind - split-window -v -c "#{pane_current_path}"  # [!code highlight]
 
-# Navegación con Alt+flecha (sin prefijo)
+# Navigation with Alt+arrow (no prefix)
 bind -n M-Left  select-pane -L
 bind -n M-Right select-pane -R
 bind -n M-Up    select-pane -U
 bind -n M-Down  select-pane -D
 
-# Mouse activado
+# Mouse enabled
 set -g mouse on
 
-# Colores 256
+# 256 colors
 set -g default-terminal "tmux-256color"
 ```
 
-## Fuzzy finder: `fzf` — el multiplicador de todo
+## Fuzzy finder: `fzf` — the multiplier of everything
 
-`fzf` convierte cualquier lista en un buscador interactivo. Solo añade `| fzf` a cualquier comando.
+`fzf` turns any list into an interactive finder. Just add `| fzf` to any command.
 
 ```bash
-# Buscar en historial de comandos
-CTRL+R con fzf integrado
+# Search in command history
+CTRL+R with integrated fzf
 
-# Checkout de branch con preview
+# Checkout branch with preview
 git branch | fzf --preview 'git log --oneline {}' | xargs git checkout
 
-# Matar procesos
+# Kill processes
 ps aux | fzf --multi | awk '{print $2}' | xargs kill
 
-# Buscar y abrir archivo
+# Find and open file
 fd -e ts | fzf --preview 'bat --color=always {}' | xargs nvim
 ```
 
-## Git moderno: `lazygit`
+## Modern Git: `lazygit`
 
-Una TUI (Terminal UI) de Git que hace obvio lo que está pasando en tu repositorio:
+A Git TUI (Terminal UI) that makes it obvious what's happening in your repository:
 
 ```bash
-lazygit   # abre la interfaz
+lazygit   # opens the interface
 ```
 
-Características destacadas:
+Standout features:
 
-- Ver diffs por archivo y por línea
-- Stage selectivo (líneas individuales, no solo archivos)
-- Resolver conflictos visualmente
-- Rebase interactivo con drag & drop
+- View diffs by file and by line
+- Selective stage (individual lines, not just files)
+- Resolve conflicts visually
+- Interactive rebase with drag & drop
 
-## Mi `.zshrc` básico optimizado
+## My optimized basic `.zshrc`
 
 ```bash file=~/.zshrc
-# Carga rápida con lazy loading
+# Fast load with lazy loading
 export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 
-# Aliases modernos
+# Modern aliases
 alias ls='eza --icons'
 alias ll='eza -la --icons --git'
 alias tree='eza --tree --icons'
@@ -171,7 +171,7 @@ alias find='fd'
 alias grep='rg'
 alias lg='lazygit'
 
-# fzf integración
+# fzf integration
 source <(fzf --zsh)
 
 # zoxide
@@ -181,4 +181,4 @@ eval "$(zoxide init zsh)"
 eval "$(starship init zsh)"
 ```
 
-> La mejor inversión de tiempo en productividad de terminal no es aprender nuevas herramientas — es dominar las que ya tienes. Pero cuando una herramienta moderna hace lo mismo 5× más rápido con mejor DX, el cambio se paga solo en la primera semana.
+> The best time investment in terminal productivity is not learning new tools — it's mastering the ones you already have. But when a modern tool does the same thing 5× faster with better DX, the switch pays for itself in the first week.

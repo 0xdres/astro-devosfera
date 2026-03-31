@@ -1,85 +1,85 @@
 ---
-title: "Vibe Coding: programar con IA al ritmo del pensamiento"
-description: El vibe coding no es pereza ni trampa — es una nueva habilidad que combina intuición, dirección y criterio técnico para construir software con IA como copiloto activo.
+title: "Vibe Coding: programming with AI at the speed of thought"
+description: Vibe coding is not laziness or cheating — it's a new skill that combines intuition, direction, and technical judgment to build software with AI as an active copilot.
 pubDatetime: 2026-02-08T10:00:00Z
 tags:
-  - ia
-  - productividad
-  - reflexion
+  - ai
+  - productivity
+  - reflection
   - dev
 draft: false
 ---
 
-El término lo acuñó Andrej Karpathy a principios de 2025: _"Vibe coding is when you fully give in to the vibes, embrace exponentials, and forget that the code even exists."_ Dos años después ya es parte del vocabulario de la industria, aunque sigue siendo mal entendido.
+The term was coined by Andrej Karpathy in early 2025: _"Vibe coding is when you fully give in to the vibes, embrace exponentials, and forget that the code even exists."_ Two years later it is already part of the industry's vocabulary, although it is still misunderstood.
 
 <figure>
   <img
     src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&q=80"
-    alt="Desarrollador frente a múltiples pantallas con código"
+    alt="Developer in front of multiple screens with code"
   />
   <figcaption class="text-center">
-    El desarrollo asistido por IA cambió la relación entre el programador y el código.
+    AI-assisted development changed the relationship between the programmer and the code.
   </figcaption>
 </figure>
 
-## No es "dejar que la IA programe por ti"
+## It's not "letting AI code for you"
 
-El malentendido más común: vibe coding = no saber lo que haces. La realidad es la contraria. Para que la IA produzca código útil necesitas:
+The most common misunderstanding: vibe coding = not knowing what you are doing. The reality is the opposite. For AI to produce useful code you need:
 
-- **Saber exactamente qué quieres** — la precisión del prompt es proporcional a la experiencia del desarrollador.
-- **Evaluar el output** — distinguir código idiomático de código que "funciona pero es una bomba de tiempo".
-- **Dirigir la iteración** — saber cuándo redirigir, cuándo rechazar, cuándo aceptar.
+- **To know exactly what you want** — prompt precision is proportional to the developer's experience.
+- **To evaluate the output** — distinguish idiomatic code from code that "works but is a ticking time bomb".
+- **To direct the iteration** — know when to redirect, when to reject, when to accept.
 
-El vibe coding es diseño de alto nivel ejecutado a alta velocidad. No elimina la necesidad de juicio técnico; la **amplifica**.
+Vibe coding is high-level design executed at high speed. It doesn't eliminate the need for technical judgment; it **amplifies** it.
 
-## El flujo en la práctica
+## The flow in practice
 
-Un ciclo típico de vibe coding hoy en día se parece a esto:
+A typical vibe coding cycle today looks like this:
 
-1. **Intención clara** — defines el _qué_ y el _por qué_ con precisión.
-2. **Draft rápido de la IA** — obtienes un 70-80 % del código funcional.
-3. **Review y guía** — corriges el rumbo, clarificas invariantes, añades contexto.
-4. **Refinamiento iterativo** — varias rondas cortas hasta que el resultado es sólido.
-5. **Tests y revisión final** — nunca saltas este paso; la IA introduce deuda técnica si no la supervisas.
-
----
-
-> Lo más valioso no es la velocidad bruta, sino que la IA te libera del _scroll cognitivo_ — esa capa de boilerplate y sintaxis que te separa del problema real.
+1. **Clear intention** — you define the _what_ and the _why_ accurately.
+2. **Quick AI draft** — you get 70-80% of functional code.
+3. **Review and guide** — you correct the course, clarify invariants, add context.
+4. **Iterative refinement** — several short rounds until the result is solid.
+5. **Tests and final review** — you never skip this step; AI introduces technical debt if you don't supervise it.
 
 ---
 
-## Qué herramientas definen el ecosistema en 2026
+> The most valuable thing is not the raw speed, but that AI frees you from the _cognitive scroll_ — that layer of boilerplate and syntax that separates you from the real problem.
 
-| Herramienta          | Propósito                         | Punto fuerte                  |
+---
+
+## What tools define the ecosystem in 2026
+
+| Tool                 | Purpose                           | Strong point                  |
 | -------------------- | --------------------------------- | ----------------------------- |
-| **GitHub Copilot**   | Autocompletado + agente en editor | Integración nativa VS Code    |
-| **Cursor**           | Editor IA-first                   | Contexto de codebase completo |
-| **Windsurf**         | Agente de edición autónomo        | Flujos multi-archivo          |
-| **Claude (API)**     | Razonamiento complejo             | Ventana de contexto enorme    |
-| **Gemini 2.0 Flash** | Velocidad y costo                 | Iteraciones rápidas           |
+| **GitHub Copilot**   | Autocomplete + agent in editor    | Native VS Code integration    |
+| **Cursor**           | AI-first editor                   | Full codebase context         |
+| **Windsurf**         | Autonomous editing agent          | Multi-file flows              |
+| **Claude (API)**     | Complex reasoning                 | Huge context window           |
+| **Gemini 2.0 Flash** | Speed and cost                    | Fast iterations               |
 
-## Las habilidades que cobran más valor
+## The skills that gain more value
 
-El vibe coding no depreca todas las habilidades técnicas, pero sí redistribuye su valor:
+Vibe coding does not deprecate all technical skills, but it redistributes their value:
 
-**Cobran más valor:**
+**Gain more value:**
 
-- Arquitectura y diseño de sistemas
-- Criterio sobre qué código es mantenible a largo plazo
-- Habilidad para escribir prompts precisos y contextuales
-- Revisión de código y detección de patrones problemáticos
-- Conocimiento de las reglas del dominio (negocio, seguridad, UX)
+- Architecture and system design
+- Judgment on what code is maintainable in the long term
+- Ability to write precise and contextual prompts
+- Code review and problematic pattern detection
+- Knowledge of domain rules (business, security, UX)
 
-**Pierden relevancia relativa:**
+**Lose relative relevance:**
 
-- Memorizar sintaxis
-- Escribir boilerplate manualmente
-- Conocer de memoria la API de cada biblioteca
+- Memorizing syntax
+- Writing boilerplate manually
+- Knowing the API of every library by heart
 
-## Un cambio cultural, no sólo técnico
+## A cultural change, not just a technical one
 
-Hay desarrolladores que se resisten al vibe coding por una razón emocional legítima: el control. Escribir cada línea da la sensación de entender completamente el sistema. Pero esa sensación siempre fue parcialmente ilusoria en proyectos grandes.
+Some developers resist vibe coding for a legitimate emotional reason: control. Writing every line gives the feeling of completely understanding the system. But that feeling was always partially illusory in large projects.
 
-La pregunta no es _¿debo usar IA?_ sino _¿cómo construyo confianza en un sistema que no escribí completamente yo mismo?_ La respuesta es la misma de siempre: **tests, revisiones y criterio**. Sólo que ahora aplicados a un volumen mayor de producción.
+The question is not _should I use AI?_ but _how do I build trust in a system I didn't completely write myself?_ The answer is the same as always: **tests, reviews, and judgment**. Only now applied to a larger volume of production.
 
-El desarrollador del futuro no es el que más código produce ni el que menos usa IA. Es el que construye **sistemas que funcionan**, usando las mejores herramientas disponibles con el mayor criterio posible.
+The developer of the future is not the one who produces the most code or the one who uses AI the least. It is the one who builds **systems that work**, using the best available tools with the best possible judgment.

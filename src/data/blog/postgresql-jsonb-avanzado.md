@@ -1,169 +1,169 @@
 ---
-title: "PostgreSQL y JSONB: el poder de una base relacional con flexibilidad documental"
-description: PostgreSQL no es un sustituto de MongoDB — es algo mejor. Aprende a usar JSONB, índices GIN, funciones de extracción y operadores de consulta para el mejor de ambos mundos.
+title: "PostgreSQL and JSONB: the power of a relational database with document flexibility"
+description: PostgreSQL is not a replacement for MongoDB — it's something better. Learn to use JSONB, GIN indexes, extraction functions, and query operators for the best of both worlds.
 pubDatetime: 2026-01-22T10:00:00Z
 tags:
   - postgresql
-  - bases-de-datos
+  - databases
   - backend
   - sql
 draft: false
 ---
 
-La pregunta "¿SQL o NoSQL?" perdió relevancia cuando PostgreSQL adquirió soporte robusto para documentos JSON. Con `JSONB` tienes esquema estricto donde lo necesitas y flexibilidad documental donde lo necesitas, en la misma base de datos.
+The question "SQL or NoSQL?" lost relevance when PostgreSQL acquired robust support for JSON documents. With `JSONB` you have strict schema where you need it and document flexibility where you need it, in the same database.
 
 ## Table of contents
 
-## `JSON` vs `JSONB`: usa siempre JSONB
+## `JSON` vs `JSONB`: always use JSONB
 
 ```sql
--- JSON: almacena el texto literal tal cual
--- JSONB: almacena en formato binario procesado
+-- JSON: stores literal text as is
+-- JSONB: stores in processed binary format
 
--- Ventajas de JSONB:
--- ✓ Soporta índices GIN (consultas ultrarrápidas)
--- ✓ Elimina espacios redundantes y claves duplicadas
--- ✓ Operadores de contención: @>, <@
--- ✗ Ligeramente más lento en escritura (parseo)
--- ✗ No preserva el orden de claves ni espacios
+-- Advantages of JSONB:
+-- ✓ Supports GIN indexes (ultra-fast queries)
+-- ✓ Removes redundant whitespace and duplicate keys
+-- ✓ Containment operators: @>, <@
+-- ✗ Slightly slower on write (parsing)
+-- ✗ Does not preserve key order or spaces
 
-CREATE TABLE eventos (
+CREATE TABLE events (
   id         BIGSERIAL PRIMARY KEY,
-  tipo       TEXT NOT NULL,
+  type       TEXT NOT NULL,
   timestamp  TIMESTAMPTZ DEFAULT NOW(),
   payload    JSONB NOT NULL,             -- [!code highlight]
   metadata   JSONB DEFAULT '{}'::JSONB
 );
 ```
 
-## Inserción y consultas básicas
+## Basic insertion and queries
 
 ```sql
--- Insertar un evento con payload flexible
-INSERT INTO eventos (tipo, payload) VALUES
-  ('usuario.registro', '{"nombre": "Ana García", "plan": "pro", "pais": "MX"}'),
-  ('pago.completado',  '{"monto": 99.99, "moneda": "USD", "metodo": "card"}'),
-  ('error.api',        '{"codigo": 429, "endpoint": "/api/v2/items", "ip": "10.0.0.1"}');
+-- Insert an event with flexible payload
+INSERT INTO events (type, payload) VALUES
+  ('user.register', '{"name": "Ana Garcia", "plan": "pro", "country": "MX"}'),
+  ('payment.completed', '{"amount": 99.99, "currency": "USD", "method": "card"}'),
+  ('error.api',        '{"code": 429, "endpoint": "/api/v2/items", "ip": "10.0.0.1"}');
 
--- Extracción de campo: operador ->>
-SELECT payload->>'nombre' AS nombre
-FROM eventos
-WHERE tipo = 'usuario.registro';
+-- Field extraction: ->> operator
+SELECT payload->>'name' AS name
+FROM events
+WHERE type = 'user.register';
 
--- Extracción anidada
-SELECT payload->'direccion'->>'ciudad' AS ciudad
-FROM eventos
-WHERE tipo = 'usuario.registro';
+-- Nested extraction
+SELECT payload->'address'->>'city' AS city
+FROM events
+WHERE type = 'user.register';
 
--- Filtrar por valor dentro del JSON
-SELECT * FROM eventos
-WHERE tipo = 'pago.completado'
-  AND (payload->>'monto')::NUMERIC > 50;
+-- Filter by value inside JSON
+SELECT * FROM events
+WHERE type = 'payment.completed'
+  AND (payload->>'amount')::NUMERIC > 50;
 ```
 
-## Índices GIN: consultas en JSON a velocidad SQL
+## GIN indexes: queries on JSON at SQL speed
 
 ```sql
--- Índice GIN sobre toda la columna JSONB
-CREATE INDEX idx_eventos_payload ON eventos USING GIN (payload);  -- [!code highlight]
+-- GIN index over the entire JSONB column
+CREATE INDEX idx_events_payload ON events USING GIN (payload);  -- [!code highlight]
 
--- Índice sobre una clave específica (más eficiente)
-CREATE INDEX idx_eventos_tipo_pago ON eventos
-  USING GIN ((payload->'metodo'));
+-- Index on a specific key (more efficient)
+CREATE INDEX idx_events_payment_type ON events
+  USING GIN ((payload->'method'));
 
--- Ahora estas consultas usan el índice:
-SELECT * FROM eventos
-WHERE payload @> '{"plan": "pro"}';      -- contiene este objeto
+-- Now these queries use the index:
+SELECT * FROM events
+WHERE payload @> '{"plan": "pro"}';      -- contains this object
 
-SELECT * FROM eventos
-WHERE payload ? 'codigo';                -- tiene esta clave
+SELECT * FROM events
+WHERE payload ? 'code';                -- has this key
 ```
 
-## Operadores de contención
+## Containment operators
 
 ```sql
--- @>  "contiene"
-SELECT * FROM eventos
-WHERE payload @> '{"moneda": "USD", "metodo": "card"}';
+-- @>  "contains"
+SELECT * FROM events
+WHERE payload @> '{"currency": "USD", "method": "card"}';
 
--- <@  "está contenido en"
+-- <@  "is contained in"
 SELECT '{"a": 1}'::JSONB <@ '{"a": 1, "b": 2}'::JSONB;  -- true
 
--- ?   "tiene la clave"
-SELECT * FROM eventos WHERE payload ? 'codigo';
+-- ?   "has the key"
+SELECT * FROM events WHERE payload ? 'code';
 
--- ?|  "tiene alguna de las claves"
-SELECT * FROM eventos WHERE payload ?| ARRAY['nombre', 'email'];
+-- ?|  "has any of the keys"
+SELECT * FROM events WHERE payload ?| ARRAY['name', 'email'];
 
--- ?&  "tiene todas las claves"
-SELECT * FROM eventos WHERE payload ?& ARRAY['monto', 'moneda'];
+-- ?&  "has all the keys"
+SELECT * FROM events WHERE payload ?& ARRAY['amount', 'currency'];
 ```
 
-## `jsonb_set` y actualización parcial
+## `jsonb_set` and partial update
 
-Una ventaja enorme sobre documentos puros: actualizas un campo sin reescribir el documento completo.
+A huge advantage over pure documents: you update a field without rewriting the entire document.
 
 ```sql
--- Actualizar un campo dentro del JSONB
-UPDATE eventos
+-- Update a field inside JSONB
+UPDATE events
 SET payload = jsonb_set(payload, '{plan}', '"enterprise"')  -- [!code highlight]
-WHERE tipo = 'usuario.registro'
-  AND payload->>'nombre' = 'Ana García';
+WHERE type = 'user.register'
+  AND payload->>'name' = 'Ana Garcia';
 
--- Eliminar una clave
-UPDATE eventos
+-- Remove a key
+UPDATE events
 SET payload = payload - 'ip'
-WHERE tipo = 'error.api';
+WHERE type = 'error.api';
 
--- Añadir una entrada a un array dentro del JSONB
-UPDATE eventos
-SET payload = jsonb_insert(payload, '{tags, -1}', '"urgente"')
-WHERE tipo = 'error.api';
+-- Add an entry to an array inside JSONB
+UPDATE events
+SET payload = jsonb_insert(payload, '{tags, -1}', '"urgent"')
+WHERE type = 'error.api';
 ```
 
-## Función de agregación: `jsonb_agg` y `jsonb_object_agg`
+## Aggregation function: `jsonb_agg` and `jsonb_object_agg`
 
 ```sql
--- Agrupar pagos por moneda como array JSON
+-- Group payments by currency as JSON array
 SELECT
-  payload->>'moneda' AS moneda,
-  COUNT(*)           AS total_pagos,
-  jsonb_agg(payload) AS detalle          -- [!code highlight]
-FROM eventos
-WHERE tipo = 'pago.completado'
-GROUP BY moneda;
+  payload->>'currency' AS currency,
+  COUNT(*)           AS total_payments,
+  jsonb_agg(payload) AS detail          -- [!code highlight]
+FROM events
+WHERE type = 'payment.completed'
+GROUP BY currency;
 
--- Construir un objeto desde filas
-SELECT jsonb_object_agg(tipo, COUNT(*))  -- [!code highlight]
-FROM eventos
+-- Build an object from rows
+SELECT jsonb_object_agg(type, COUNT(*))  -- [!code highlight]
+FROM events
 GROUP BY 1;
 ```
 
-## Esquema híbrido: lo mejor de ambos mundos
+## Hybrid schema: the best of both worlds
 
 ```sql
-CREATE TABLE productos (
+CREATE TABLE products (
   id          BIGSERIAL PRIMARY KEY,
   sku         TEXT UNIQUE NOT NULL,
-  nombre      TEXT NOT NULL,
-  precio      NUMERIC(10,2) NOT NULL,
-  categoria   TEXT NOT NULL,
-  -- Campos estructurados ↑ para JOIN, índices B-tree, constraints
-  atributos   JSONB DEFAULT '{}',
-  -- Atributos flexibles ↓ según categoría del producto
-  CHECK (precio > 0)
+  name        TEXT NOT NULL,
+  price       NUMERIC(10,2) NOT NULL,
+  category    TEXT NOT NULL,
+  -- Structured fields ↑ for JOIN, B-tree indexes, constraints
+  attributes  JSONB DEFAULT '{}',
+  -- Flexible attributes ↓ according to product category
+  CHECK (price > 0)
 );
 
--- Electrónica: { "voltaje": 220, "garantia_meses": 24 }
--- Ropa:        { "tallas": ["S","M","L"], "material": "algodón" }
--- Libros:      { "isbn": "...", "paginas": 320 }
+-- Electronics: { "voltage": 220, "warranty_months": 24 }
+-- Clothing:    { "sizes": ["S","M","L"], "material": "cotton" }
+-- Books:       { "isbn": "...", "pages": 320 }
 
--- Consulta que aprovecha ambas columnas
-SELECT nombre, atributos->>'garantia_meses' AS garantia
-FROM productos
-WHERE categoria = 'electronica'
-  AND (atributos->>'garantia_meses')::INT >= 12
-  AND precio < 500;
+-- Query that takes advantage of both columns
+SELECT name, attributes->>'warranty_months' AS warranty
+FROM products
+WHERE category = 'electronics'
+  AND (attributes->>'warranty_months')::INT >= 12
+  AND price < 500;
 ```
 
-> JSONB no reemplaza columnas tipadas para campos críticos. La regla: si vas a hacer JOIN, `WHERE`, o `ORDER BY` frecuente sobre un campo — ponlo como columna. Si es metadata variable o rara vez consultada — ponlo en JSONB.
+> JSONB does not replace typed columns for critical fields. The rule: if you are going to do a frequent JOIN, `WHERE`, or `ORDER BY` on a field — make it a column. If it's variable metadata or rarely queried — put it in JSONB.

@@ -1,57 +1,57 @@
 ---
-title: "Rust para desarrolladores JavaScript: el salto que vale la pena"
-description: Si vienes del mundo JS/TS y te da respeto Rust, esta guía es para ti. Mapeamos conceptos familiares al ecosistema de Rust con ejemplos directos.
+title: "Rust for JavaScript developers: the leap worth taking"
+description: If you come from the JS/TS world and Rust intimidates you, this guide is for you. We map familiar concepts to the Rust ecosystem with direct examples.
 pubDatetime: 2026-02-12T10:00:00Z
 tags:
   - rust
   - javascript
-  - sistemas
+  - systems
   - webassembly
 draft: false
 ---
 
-Rust apareció en los radares de los desarrolladores web hace años, pero la adopción fue lenta. En 2026 el panorama cambió: Rust impulsa herramientas críticas del ecosistema JS (Biome, Oxc, Rolldown, el compilador de SWC) y WebAssembly lo hace indispensable en el frontend. Es hora de aprenderlo.
+Rust appeared on web developers' radars years ago, but adoption was slow. In 2026 the landscape changed: Rust powers critical tools in the JS ecosystem (Biome, Oxc, Rolldown, the SWC compiler) and WebAssembly makes it indispensable on the frontend. It's time to learn it.
 
 ## Table of contents
 
-## El mayor cambio de mentalidad: ownership
+## The biggest mindset shift: ownership
 
-En JavaScript el garbage collector gestiona la memoria. En Rust la responsabilidad pasa al compilador a través del sistema de **ownership**.
+In JavaScript the garbage collector manages memory. In Rust the responsibility passes to the compiler through the **ownership** system.
 
 ```rust file=ownership.rs
-// En JS: esto funciona
+// In JS: this works
 // let a = [1, 2, 3];
-// let b = a; // a sigue siendo válido
+// let b = a; // a is still valid
 
-// En Rust:
+// In Rust:
 fn main() {
     let a = vec![1, 2, 3];
-    let b = a;          // a se "mueve" a b // [!code highlight]
-    println!("{:?}", a); // ✗ ERROR: a fue movido
+    let b = a;          // a is "moved" to b // [!code highlight]
+    println!("{:?}", a); // ✗ ERROR: a was moved
     println!("{:?}", b); // ✓
 }
 ```
 
-La solución: **borrowing** (préstamo) con referencias.
+The solution: **borrowing** with references.
 
 ```rust file=borrowing.rs
 fn main() {
     let a = vec![1, 2, 3];
-    let b = &a;          // préstamo inmutable // [!code ++]
-    println!("{:?}", a); // ✓ a sigue siendo válido
+    let b = &a;          // immutable borrow // [!code ++]
+    println!("{:?}", a); // ✓ a is still valid
     println!("{:?}", b); // ✓
 }
 
-fn imprimir(v: &Vec<i32>) { // recibe referencia, no ownership // [!code highlight]
+fn print_vec(v: &Vec<i32>) { // receives reference, not ownership // [!code highlight]
     for n in v {
         print!("{} ", n);
     }
 }
 ```
 
-## Tipos: de `any` al sistema más seguro del mundo
+## Types: from `any` to the safest system in the world
 
-| JavaScript/TypeScript  | Rust equivalente                 |
+| JavaScript/TypeScript  | Rust equivalent                  |
 | ---------------------- | -------------------------------- |
 | `number`               | `i32`, `u32`, `f64`, …           |
 | `string`               | `String` (heap) / `&str` (slice) |
@@ -61,66 +61,66 @@ fn imprimir(v: &Vec<i32>) { // recibe referencia, no ownership // [!code highlig
 | `{ [key: string]: T }` | `HashMap<String, T>`             |
 
 ```rust file=types.rs
-fn dividir(a: f64, b: f64) -> Option<f64> {
+fn divide(a: f64, b: f64) -> Option<f64> {
     if b == 0.0 {
-        None   // equivalente a null sin el billion-dollar mistake
+        None   // equivalent to null without the billion-dollar mistake
     } else {
         Some(a / b)
     }
 }
 
 fn main() {
-    match dividir(10.0, 0.0) {
-        Some(resultado) => println!("Resultado: {resultado}"),
-        None => println!("División por cero"),
+    match divide(10.0, 0.0) {
+        Some(result) => println!("Result: {result}"),
+        None => println!("Division by zero"),
     }
 }
 ```
 
-## Manejo de errores: `Result` es el `Promise` de Rust
+## Error handling: `Result` is the `Promise` of Rust
 
-En JS manejas errores con `try/catch` o `Promise` chains. En Rust, `Result<T, E>` es la forma idiomática:
+In JS you handle errors with `try/catch` or `Promise` chains. In Rust, `Result<T, E>` is the idiomatic way:
 
 ```rust file=errors.rs
 use std::fs;
 use std::io;
 
-// Antes: sin el operador ?
-fn leer_config_verbose() -> Result<String, io::Error> {
-    let contenido = match fs::read_to_string("config.toml") { // [!code --]
+// Before: without the ? operator
+fn read_config_verbose() -> Result<String, io::Error> {
+    let content = match fs::read_to_string("config.toml") { // [!code --]
         Ok(c) => c,                                            // [!code --]
         Err(e) => return Err(e),                               // [!code --]
     };                                                         // [!code --]
-    Ok(contenido.to_uppercase())
+    Ok(content.to_uppercase())
 }
 
-// Con el operador ? (equivalente al await de JS, pero para errores)
-fn leer_config() -> Result<String, io::Error> {               // [!code ++]
-    let contenido = fs::read_to_string("config.toml")?;       // [!code ++]
-    Ok(contenido.to_uppercase())                               // [!code ++]
+// With the ? operator (equivalent to JS await, but for errors)
+fn read_config() -> Result<String, io::Error> {               // [!code ++]
+    let content = fs::read_to_string("config.toml")?;       // [!code ++]
+    Ok(content.to_uppercase())                               // [!code ++]
 }
 ```
 
-## Closures y funciones de orden superior
+## Closures and higher-order functions
 
-La sintaxis es distinta pero el concepto es idéntico:
+The syntax is different but the concept is identical:
 
 ```rust file=closures.rs
 fn main() {
-    let numeros = vec![1, 2, 3, 4, 5];
+    let numbers = vec![1, 2, 3, 4, 5];
 
-    // map + filter + collect (como Array.map + filter en JS)
-    let pares_dobles: Vec<i32> = numeros
+    // map + filter + collect (like Array.map + filter in JS)
+    let double_evens: Vec<i32> = numbers
         .iter()
         .filter(|&&x| x % 2 == 0)  // [!code highlight]
         .map(|&x| x * 2)            // [!code highlight]
         .collect();
 
-    println!("{:?}", pares_dobles); // [4, 8]
+    println!("{:?}", double_evens); // [4, 8]
 }
 ```
 
-## Rust → WebAssembly: el puente al frontend
+## Rust → WebAssembly: the bridge to the frontend
 
 ```rust file=lib.rs
 use wasm_bindgen::prelude::*;
@@ -136,22 +136,22 @@ pub fn fibonacci(n: u32) -> u32 {
 ```
 
 ```bash
-# Compilar a WASM
+# Compile to WASM
 wasm-pack build --target web
 ```
 
 ```javascript file=main.js
-import init, { fibonacci } from "./pkg/mi_proyecto.js";
+import init, { fibonacci } from "./pkg/my_project.js";
 
 await init();
-console.log(fibonacci(40)); // ~10x más rápido que la versión JS pura
+console.log(fibonacci(40)); // ~10x faster than pure JS version
 ```
 
-## Por dónde empezar
+## Where to start
 
-1. **[The Rust Book](https://doc.rust-lang.org/book/)** — la mejor documentación de cualquier lenguaje.
-2. **Rustlings** — ejercicios interactivos en la terminal.
-3. **[Rust by Example](https://doc.rust-lang.org/rust-by-example/)** — aprender con ejemplos reales.
-4. Construye algo con **`wasm-pack`** y úsalo desde tu proyecto web actual.
+1. **[The Rust Book](https://doc.rust-lang.org/book/)** — the best documentation of any language.
+2. **Rustlings** — interactive exercises in the terminal.
+3. **[Rust by Example](https://doc.rust-lang.org/rust-by-example/)** — learn with real examples.
+4. Build something with **`wasm-pack`** and use it from your current web project.
 
-> La curva de aprendizaje es real, pero el compilador de Rust es el mejor profesor que encontrarás: sus mensajes de error son detallados, precisos y casi siempre incluyen la solución.
+> The learning curve is real, but the Rust compiler is the best teacher you'll find: its error messages are detailed, accurate, and almost always include the solution.

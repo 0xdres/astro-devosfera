@@ -29,7 +29,7 @@ const { entry } = Astro.props;
 const { gallery: slug } = Astro.params;
 const { title, description, pubDatetime, coverImage, tags } = entry.data;
 
-// Cargar todas las imágenes de la galería en build-time con un glob estático
+// Load all gallery images at build-time with a static glob
 const allImages = import.meta.glob<{ default: ImageMetadata }>(
   "/src/data/galleries/**/*.{jpg,jpeg,png,webp,avif,gif,JPG,JPEG,PNG,WEBP}",
   { eager: true }
@@ -40,10 +40,10 @@ type GalleryImage = { src: ImageMetadata; alt: string; filename: string };
 function filenameToAlt(filename: string): string {
   return (
     filename
-      .replace(/\.[^.]+$/, "") // quitar extensión
-      .replace(/^\d+[-_]?/, "") // quitar número inicial
-      .replace(/[-_]/g, " ") // guiones/underscores → espacios
-      .replace(/\b\w/g, c => c.toUpperCase()) // capitalizar
+      .replace(/\.[^.]+$/, "") // remove extension
+      .replace(/^\d+[-_]?/, "") // remove initial number
+      .replace(/[-_]/g, " ") // dashes/underscores → spaces
+      .replace(/\b\w/g, c => c.toUpperCase()) // capitalize
       .trim() || title
   );
 }
@@ -59,27 +59,27 @@ const images: GalleryImage[] = Object.entries(allImages)
     return { src: mod.default, alt: filenameToAlt(filename), filename };
   });
 
-// Si el frontmatter tiene coverImage, incluirla al inicio si no ya está en la lista
+// If the frontmatter has coverImage, include it at the beginning if it is not already in the list
 const hasCoverInFolder = coverImage
   ? images.some(img => img.src.src === coverImage.src)
   : false;
 ---
 
-<Layout title={`${title} | Galerías | ${SITE.title}`} description={description}>
+<Layout title={`${title} | Galleries | ${SITE.title}`} description={description}>
   <Header />
   {SITE.showBackButton && <Breadcrumb withBackButton />}
   <main
     id="main-content"
     class:list={["relative app-layout pb-16", { "mt-8": !SITE.showBackButton }]}
   >
-    <!-- Header de la galería -->
+    <!-- Gallery header -->
     <header class="mb-14 border-b border-border/10 pb-10 sm:pb-14 pt-8">
       <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
         <div class="max-w-3xl">
           <div class="mb-5 inline-flex items-center gap-2 text-accent">
             <IconGallery class="size-5" />
             <span class="font-cartograph text-xs font-bold tracking-[0.2em] uppercase opacity-90">
-              Colección // {images.length} {images.length === 1 ? "foto" : "fotos"}
+              Collection // {images.length} {images.length === 1 ? "photo" : "photos"}
             </span>
           </div>
           
@@ -120,7 +120,7 @@ const hasCoverInFolder = coverImage
       </div>
     </header>
 
-    <!-- Cubierta grande (si está definida en frontmatter y no está en la carpeta) -->
+    <!-- Large cover (if defined in frontmatter and not in the folder) -->
     {
       coverImage && !hasCoverInFolder && (
         <div class="mb-8 overflow-hidden rounded-2xl">
@@ -136,21 +136,21 @@ const hasCoverInFolder = coverImage
       )
     }
 
-    <!-- Grid de imágenes -->
+    <!-- Image grid -->
     {
       images.length > 0 ? (
         <ul
           class="gallery-grid mt-6"
           id="gallery-grid"
           role="list"
-          aria-label={`Imágenes de ${title}`}
+          aria-label={`Images of ${title}`}
         >
           {images.map((img, idx) => (
             <li>
               <button
                 class="gallery-item group"
                 data-index={idx}
-                aria-label={`Ver imagen: ${img.alt}`}
+                aria-label={`View image: ${img.alt}`}
                 type="button"
               >
                 <Image
@@ -170,7 +170,7 @@ const hasCoverInFolder = coverImage
         </ul>
       ) : (
         <p class="mt-12 text-center text-foreground/50 italic">
-          Esta galería todavía no tiene imágenes.
+          This gallery has no images yet.
         </p>
       )
     }
@@ -179,17 +179,17 @@ const hasCoverInFolder = coverImage
 </Layout>
 
 <!-- Lightbox dialog -->
-<dialog id="lightbox" class="lightbox" aria-label="Visor de imagen" aria-modal="true">
+<dialog id="lightbox" class="lightbox" aria-label="Image viewer" aria-modal="true">
   <div class="lightbox-layout">
     <div class="lightbox-topbar">
       <span id="lightbox-counter" class="lightbox-counter font-cartograph"></span>
-      <button class="lightbox-btn" id="lightbox-close" aria-label="Cerrar" title="Cerrar (Esc)" type="button">
+      <button class="lightbox-btn" id="lightbox-close" aria-label="Close" title="Close (Esc)" type="button">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
 
     <div class="lightbox-main">
-      <button class="lightbox-btn lightbox-nav" id="lightbox-prev" aria-label="Anterior" title="Anterior (Flecha Izq)" type="button">
+      <button class="lightbox-btn lightbox-nav" id="lightbox-prev" aria-label="Previous" title="Previous (Left Arrow)" type="button">
         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
       </button>
       
@@ -198,7 +198,7 @@ const hasCoverInFolder = coverImage
         <p id="lightbox-caption" class="lightbox-caption text-foreground/80"></p>
       </div>
 
-      <button class="lightbox-btn lightbox-nav" id="lightbox-next" aria-label="Siguiente" title="Siguiente (Flecha Der)" type="button">
+      <button class="lightbox-btn lightbox-nav" id="lightbox-next" aria-label="Next" title="Next (Right Arrow)" type="button">
         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
       </button>
     </div>
@@ -206,7 +206,7 @@ const hasCoverInFolder = coverImage
 </dialog>
 
 <script>
-  // Construir array de imágenes desde el DOM
+  // Build image array from DOM
   function initGallery() {
     const grid = document.getElementById("gallery-grid");
     const lightbox = document.getElementById(
@@ -214,7 +214,7 @@ const hasCoverInFolder = coverImage
     ) as HTMLDialogElement | null;
     if (!grid || !lightbox) return;
 
-    // A partir de aquí TypeScript no lleva el narrowing a closures; usamos la variable local
+    // From here TypeScript does not carry narrowing to closures; we use the local variable
     const lb = lightbox;
 
     const items = Array.from(
@@ -267,7 +267,7 @@ const hasCoverInFolder = coverImage
 
     lightbox.addEventListener("click", e => {
       const target = e.target as HTMLElement;
-      // Cerrar si se hace click fuera de la imagen, los botones y el texto
+      // Close if click is outside the image, buttons and text
       if (!target.closest("img, button, .lightbox-caption, .lightbox-counter")) {
         close();
       }
@@ -281,7 +281,7 @@ const hasCoverInFolder = coverImage
     });
   }
 
-  // Inicializar en primera carga y en navegaciones SPA (View Transitions)
+  // Initialize on first load and SPA navigations (View Transitions)
   initGallery();
   document.addEventListener("astro:after-swap", initGallery);
 </script>

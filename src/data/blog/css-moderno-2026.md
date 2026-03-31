@@ -1,31 +1,31 @@
 ---
-title: "CSS moderno en 2026: container queries, :has() y anchor positioning"
-description: El CSS de hoy no tiene nada que envidiarle a JavaScript para layouts complejos. Guía práctica de las tres features que más cambiaron el desarrollo de interfaces.
+title: "Modern CSS in 2026: container queries, :has() and anchor positioning"
+description: Today's CSS has nothing to envy JavaScript for complex layouts. Practical guide to the three features that changed interface development the most.
 pubDatetime: 2026-02-03T10:00:00Z
 tags:
   - css
   - frontend
-  - diseño
+  - design
   - web
 draft: false
 ---
 
-Durante años, la respuesta a "¿cómo hago X en CSS?" era "usa JavaScript". En 2026 esa respuesta ya no aplica para la mayoría de los casos. Tres features en particular redibujaron el mapa del diseño en el navegador.
+For years, the answer to "how do I do X in CSS?" was "use JavaScript". In 2026 that answer no longer applies in most cases. Three features in particular redrew the design map in the browser.
 
 ## Table of contents
 
-## Container Queries: responder al contenedor, no a la pantalla
+## Container Queries: respond to the container, not the screen
 
-Las media queries responden al ancho del _viewport_. El problema: un componente puede vivir en una columna estrecha o en una amplia dependiendo del layout padre. Las **container queries** resuelven esto.
+Media queries respond to the _viewport_ width. The problem: a component can live in a narrow column or a wide one depending on the parent layout. **Container queries** solve this.
 
 ```css file=card.css
-/* Declarar el contenedor */
+/* Declare the container */
 .card-wrapper {
   container-type: inline-size; /* [!code highlight] */
   container-name: card;
 }
 
-/* El componente responde a su contenedor */
+/* The component responds to its container */
 @container card (min-width: 400px) {
   /* [!code highlight] */
   .card {
@@ -47,21 +47,21 @@ Las media queries responden al ancho del _viewport_. El problema: un componente 
 ```
 
 ```html file=card.html
-<!-- El mismo componente funciona en cualquier contexto -->
+<!-- The same component works in any context -->
 <aside class="card-wrapper" style="width: 300px">
   <article class="card">...</article>
-  <!-- layout vertical -->
+  <!-- vertical layout -->
 </aside>
 
 <main class="card-wrapper" style="width: 700px">
   <article class="card">...</article>
-  <!-- layout horizontal -->
+  <!-- horizontal layout -->
 </main>
 ```
 
 ### Container query units
 
-Las queries también exponen unidades relativas al contenedor:
+Queries also expose container-relative units:
 
 ```css file=typography.css
 .card__title {
@@ -69,18 +69,18 @@ Las queries también exponen unidades relativas al contenedor:
 }
 ```
 
-## La pseudoclase `:has()` — el selector padre que siempre quisimos
+## The `:has()` pseudoclass — the parent selector we always wanted
 
-`:has()` selecciona un elemento en función de sus **descendientes**. Es el "selector de padre" que el CSS negó durante décadas.
+`:has()` selects an element based on its **descendants**. It's the "parent selector" that CSS denied for decades.
 
 ```css file=styles.css
-/* Formulario con campo requerido vacío */
+/* Form with empty required field */
 form:has(input:required:invalid) .submit-btn {
   opacity: 0.5;
   pointer-events: none;
 }
 
-/* Card que contiene imagen: layout diferente */
+/* Card containing an image: different layout */
 .card:has(img) {
   /* [!code highlight] */
   display: grid;
@@ -91,34 +91,34 @@ form:has(input:required:invalid) .submit-btn {
   padding: 1.5rem;
 }
 
-/* Navbar con menú abierto: deshabilitar scroll en body */
+/* Navbar with open menu: disable scroll on body */
 body:has(.nav-menu[aria-expanded="true"]) {
   /* [!code highlight] */
   overflow: hidden;
 }
 ```
 
-> `:has()` tiene soporte en todos los browsers modernos desde 2023. Puedes usarlo hoy en producción sin polyfills.
+> `:has()` has support in all modern browsers since 2023. You can use it in production today without polyfills.
 
-## Anchor Positioning: tooltips y popovers sin JavaScript
+## Anchor Positioning: tooltips and popovers without JavaScript
 
-Antes de Anchor Positioning, colocar un tooltip relativo a su trigger requería calcular posiciones con JavaScript. Ya no:
+Before Anchor Positioning, placing a tooltip relative to its trigger required calculating positions with JavaScript. Not anymore:
 
 ```css file=tooltip.css
-/* Declarar el ancla */
+/* Declare the anchor */
 .btn-trigger {
-  anchor-name: --mi-boton; /* [!code highlight] */
+  anchor-name: --my-button; /* [!code highlight] */
 }
 
-/* Posicionar el tooltip relativo al ancla */
+/* Position the tooltip relative to the anchor */
 .tooltip {
   position: absolute;
-  position-anchor: --mi-boton; /* [!code highlight] */
+  position-anchor: --my-button; /* [!code highlight] */
   bottom: calc(anchor(top) + 8px); /* [!code highlight] */
   left: anchor(center); /* [!code highlight] */
   transform: translateX(-50%);
 
-  /* Voltear automáticamente si no cabe */
+  /* Flip automatically if it doesn't fit */
   position-try-fallbacks: flip-block; /* [!code ++] */
 }
 ```
@@ -126,22 +126,22 @@ Antes de Anchor Positioning, colocar un tooltip relativo a su trigger requería 
 ```html file=tooltip.html
 <button class="btn-trigger" popovertarget="tip">Hover me</button>
 <div id="tip" class="tooltip" popover>
-  Este tooltip se posiciona solo, sin JS.
+  This tooltip positions itself, without JS.
 </div>
 ```
 
-### `position-try-fallbacks`: lógica de colisión declarativa
+### `position-try-fallbacks`: declarative collision logic
 
 ```css file=tooltip.css
 .tooltip {
   position-try-fallbacks:
     flip-block,
-    /* prueba arriba si no cabe abajo */ flip-inline,
-    /* prueba izquierda si no cabe derecha */ flip-start; /* combina ambos */
+    /* try top if it doesn't fit below */ flip-inline,
+    /* try left if it doesn't fit right */ flip-start; /* combine both */
 }
 ```
 
-## ¿Y el soporte?
+## What about support?
 
 | Feature            | Chrome | Firefox | Safari  |
 | ------------------ | ------ | ------- | ------- |
@@ -149,8 +149,8 @@ Antes de Anchor Positioning, colocar un tooltip relativo a su trigger requería 
 | `:has()`           | 105+ ✓ | 121+ ✓  | 15.4+ ✓ |
 | Anchor Positioning | 125+ ✓ | 131+ ✓  | 18+ ✓   |
 
-En 2026, con la distribución actual de browsers, puedes usar las tres en producción para la mayoría de proyectos. Considera polyfills sólo si tu audiencia incluye browsers muy antiguos.
+In 2026, with the current browser distribution, you can use all three in production for most projects. Consider polyfills only if your audience includes very old browsers.
 
-## El CSS de hoy es declarativo y expresivo
+## Today's CSS is declarative and expressive
 
-La revolución silenciosa del CSS no fue Grid ni Flexbox. Fue el cambio de mentalidad: **el navegador razona sobre las restricciones, tú declaras el resultado deseado**. Container queries, `:has()` y anchor positioning son la culminación de ese paradigma.
+The silent revolution of CSS was not Grid or Flexbox. It was the mindset change: **the browser reasons about constraints, you declare the desired result**. Container queries, `:has()` and anchor positioning are the culmination of that paradigm.

@@ -98,7 +98,7 @@ const configureStore = (store: IntroAudioStore, next: IntroAudioConfig) => {
 
   if (shouldResume) {
     void store.audio.play().catch(() => {
-      /* reproduccion bloqueada por el navegador */
+      /* playback blocked by browser */
     });
   }
 };

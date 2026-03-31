@@ -13,13 +13,13 @@ if (!SITE.showGalleries) {
   return Astro.redirect("/404");
 }
 
-// Cargar todas las imágenes de todas las galerías en build-time
+// Load all images from all galleries at build-time
 const allImages = import.meta.glob<{ default: ImageMetadata }>(
   "/src/data/galleries/**/*.{jpg,jpeg,png,webp,avif,gif,JPG,JPEG,PNG,WEBP}",
   { eager: true }
 );
 
-// Obtener imágenes de una galería específica
+// Get images from a specific gallery
 function getGalleryImages(slug: string): ImageMetadata[] {
   return Object.entries(allImages)
     .filter(
@@ -55,7 +55,7 @@ const galleries = rawGalleries
   });
 ---
 
-<Layout title={`Galerías | ${SITE.title}`}>
+<Layout title={`Galleries | ${SITE.title}`}>
   <Header />
   <Breadcrumb />
   <main id="main-content" class="app-layout pb-12">
@@ -67,25 +67,25 @@ const galleries = rawGalleries
       <div class="aurora-mouse" data-archive-mouse></div>
       <div class="relative z-10">
         <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
-          <span class="glow-text">Galerías</span>
+          <span class="glow-text">Galleries</span>
         </h1>
         <p class="mt-3 max-w-lg text-foreground/70 italic">
-          Colecciones de imágenes para compartir momentos y proyectos.
+          Image collections to share moments and projects.
         </p>
         <div class="mt-4 flex flex-wrap items-center gap-2">
           <span class="hero-badge"
             >{galleries.length}
-            {galleries.length === 1 ? "galería" : "galerías"}</span
+            {galleries.length === 1 ? "gallery" : "galleries"}</span
           >
         </div>
       </div>
     </div>
 
-    <!-- Grid de galerías -->
+    <!-- Gallery grid -->
     {
       galleries.length === 0 ? (
         <p class="mt-12 text-center text-foreground/50 italic">
-          Todavía no hay galerías publicadas.
+          No galleries published yet.
         </p>
       ) : (
         <ul

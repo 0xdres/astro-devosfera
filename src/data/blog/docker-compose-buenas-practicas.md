@@ -1,23 +1,23 @@
 ---
-title: "Docker Compose en 2026: buenas prácticas que sí importan"
-description: Más allá del docker-compose up básico. Configuraciones de producción, secretos, healthchecks, perfiles y multi-stage builds que marcan la diferencia.
+title: "Docker Compose in 2026: best practices that actually matter"
+description: Beyond the basic docker-compose up. Production configs, secrets, healthchecks, profiles, and multi-stage builds that make a difference.
 pubDatetime: 2026-02-05T10:00:00Z
 tags:
   - docker
   - devops
-  - contenedores
+  - containers
   - backend
 draft: false
 ---
 
-`docker-compose up` es el primer comando que aprendes. Lo que viene después — networking, secretos, healthchecks, perfiles para distintos entornos — es lo que separa una configuración funcional de una lista para producción.
+`docker-compose up` is the first command you learn. What comes next — networking, secrets, healthchecks, profiles for different environments — is what separates a functional configuration from a production-ready one.
 
 ## Table of contents
 
-## Estructura base limpia
+## Clean base structure
 
 ```yaml file=compose.yml
-name: mi-app
+name: my-app
 
 services:
   api:
@@ -27,12 +27,12 @@ services:
       target: production # multi-stage target // [!code highlight]
     environment:
       NODE_ENV: production
-    env_file: .env.production # nunca hardcodees credenciales // [!code highlight]
+    env_file: .env.production # never hardcode credentials // [!code highlight]
     ports:
       - "3000:3000"
     depends_on:
       db:
-        condition: service_healthy # espera a que DB esté lista // [!code highlight]
+        condition: service_healthy # wait for DB to be ready // [!code highlight]
     restart: unless-stopped
 
   db:
@@ -58,12 +58,12 @@ secrets:
     file: ./secrets/db_password.txt
 ```
 
-## Multi-stage builds: menos MB, más seguridad
+## Multi-stage builds: fewer MBs, more security
 
-Un Dockerfile de producción nunca debería incluir las herramientas de desarrollo:
+A production Dockerfile should never include development tools:
 
 ```dockerfile file=Dockerfile
-# Stage 1: dependencias y build
+# Stage 1: dependencies and build
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
@@ -71,58 +71,58 @@ RUN npm ci                    # [!code highlight]
 COPY . .
 RUN npm run build
 
-# Stage 2: imagen final mínima
+# Stage 2: minimal final image
 FROM node:22-alpine AS production  # [!code ++]
 WORKDIR /app                       # [!code ++]
                                    # [!code ++]
-# Solo copiamos lo necesario       # [!code ++]
+# Only copy what's necessary       # [!code ++]
 COPY --from=builder /app/dist ./dist  # [!code ++]
 COPY --from=builder /app/node_modules ./node_modules  # [!code ++]
                                    # [!code ++]
-USER node                          # no corras como root // [!code ++]
+USER node                          # do not run as root // [!code ++]
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
 ```
 
-La diferencia en tamaño puede ser de **600 MB → 80 MB**.
+The difference in size can be from **600 MB → 80 MB**.
 
-## Perfiles para distintos entornos
+## Profiles for different environments
 
-Con `profiles` puedes activar servicios según el contexto sin mantener múltiples archivos Compose:
+With `profiles` you can activate services based on context without maintaining multiple Compose files:
 
 ```yaml file=compose.yml
 services:
   api:
-    # sin profile = siempre activo
+    # no profile = always active
     build: .
 
   adminer:
     image: adminer
-    profiles: [dev, debug] # solo en dev // [!code highlight]
+    profiles: [dev, debug] # only in dev // [!code highlight]
     ports:
       - "8080:8080"
 
   prometheus:
     image: prom/prometheus
-    profiles: [monitoring] # solo cuando lo necesites // [!code highlight]
+    profiles: [monitoring] # only when you need it // [!code highlight]
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
 ```
 
 ```bash
-# Solo levantar API + DB
+# Only bring up API + DB
 docker compose up
 
-# Levantar con herramientas de dev
+# Bring up with dev tools
 docker compose --profile dev up
 
-# Todo el stack de monitoreo
+# Entire monitoring stack
 docker compose --profile monitoring up
 ```
 
-## Healthchecks que realmente funcionan
+## Healthchecks that actually work
 
-El `depends_on` básico sólo espera a que el contenedor **arranque**, no a que el servicio esté **listo**. La diferencia importa:
+The basic `depends_on` only waits for the container to **start**, not for the service to be **ready**. The difference matters:
 
 ```yaml file=compose.yml
 services:
@@ -133,18 +133,18 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-      start_period: 10s # tiempo de gracia inicial // [!code highlight]
+      start_period: 10s # initial grace period // [!code highlight]
 
   worker:
     build: .
     depends_on:
       redis:
-        condition: service_healthy # espera el healthcheck verde // [!code highlight]
+        condition: service_healthy # wait for green healthcheck // [!code highlight]
 ```
 
-## Networking: aislamiento por defecto
+## Networking: isolation by default
 
-Cada `compose.yml` crea una red propia. Para comunicar stacks separados:
+Every `compose.yml` creates its own network. To communicate separate stacks:
 
 ```yaml file=compose.yml
 networks:
@@ -152,28 +152,28 @@ networks:
     driver: bridge
   backend:
     driver: bridge
-    internal: true # sin acceso a internet // [!code highlight]
+    internal: true # no internet access // [!code highlight]
 
 services:
   nginx:
-    networks: [frontend, backend] # el único que toca ambas redes
+    networks: [frontend, backend] # the only one touching both networks
 
   api:
-    networks: [backend] # aislado del exterior // [!code highlight]
+    networks: [backend] # isolated from the outside // [!code highlight]
 
   db:
-    networks: [backend] # idem
+    networks: [backend] # ditto
 ```
 
-## Lista de verificación antes de producción
+## Checklist before production
 
-- [ ] Variables sensibles en `secrets` o `.env` fuera del repositorio
-- [ ] Multi-stage build activo
-- [ ] `restart: unless-stopped` en todos los servicios críticos
-- [ ] Healthchecks configurados con `start_period` adecuado
-- [ ] `depends_on` con `condition: service_healthy`
-- [ ] Usuarios no-root en los contenedores (`USER node`, `USER app`)
-- [ ] Volúmenes nombrados para datos persistentes (no bind mounts en prod)
-- [ ] `--max-old-space-size` configurado según la memoria del contenedor
+- [ ] Sensitive variables in `secrets` or `.env` outside the repository
+- [ ] Multi-stage build active
+- [ ] `restart: unless-stopped` on all critical services
+- [ ] Healthchecks configured with proper `start_period`
+- [ ] `depends_on` with `condition: service_healthy`
+- [ ] Non-root users in containers (`USER node`, `USER app`)
+- [ ] Named volumes for persistent data (no bind mounts in prod)
+- [ ] `--max-old-space-size` configured according to container memory
 
-> La diferencia entre un `compose.yml` de tutorial y uno de producción no está en el número de líneas — está en saber qué puede fallar y haberlo contemplado.
+> The difference between a tutorial `compose.yml` and a production one is not in the number of lines — it's in knowing what can fail and having accounted for it.

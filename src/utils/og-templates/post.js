@@ -14,13 +14,13 @@ export default async post => {
           flexDirection: "column",
           alignItems: "flex-start",
           justifyContent: "space-between",
-          backgroundColor: "#0f172a", // Fondo oscuro (Slate 900)
+          backgroundColor: "#0f172a", // Dark background (Slate 900)
           color: "white",
           padding: "80px",
           position: "relative",
         },
         children: [
-          // 1. Elemento Decorativo de Fondo (Se pinta primero = queda al fondo)
+          // 1. Background Decorative Element (Painted first = stays in background)
           {
             type: "div",
             props: {
@@ -38,7 +38,7 @@ export default async post => {
             },
           },
 
-          // 2. Cabecera: Nombre del sitio (Se pinta encima del fondo)
+          // 2. Header: Site name (Painted on top of background)
           {
             type: "div",
             props: {
@@ -65,7 +65,7 @@ export default async post => {
             },
           },
 
-          // 3. Contenido Principal: Título del Post
+          // 3. Main Content: Post Title
           {
             type: "div",
             props: {
@@ -73,7 +73,7 @@ export default async post => {
                 display: "flex",
                 flexDirection: "column",
                 width: "100%",
-                // zIndex eliminado (no es necesario por el orden de los hijos)
+                // zIndex removed (not needed due to child order)
               },
               children: {
                 type: "h1",
@@ -97,7 +97,7 @@ export default async post => {
             },
           },
 
-          // 4. Pie de página: Autor
+          // 4. Footer: Author
           {
             type: "div",
             props: {
@@ -105,10 +105,10 @@ export default async post => {
                 display: "flex",
                 alignItems: "center",
                 width: "100%",
-                // zIndex eliminado
+                // zIndex removed
               },
               children: [
-                // Línea separadora decorativa
+                // Decorative separator line
                 {
                   type: "div",
                   props: {
@@ -128,7 +128,7 @@ export default async post => {
                       color: "#cbd5e1",
                     },
                     children: [
-                      "Escrito por ",
+                      "Written by ",
                       {
                         type: "span",
                         props: {
@@ -154,7 +154,7 @@ export default async post => {
       height: 630,
       embedFont: true,
       fonts: await loadGoogleFonts(
-        post.data.title + post.data.author + SITE.title + "Escritopor" + ".com"
+        post.data.title + post.data.author + SITE.title + "Writtenby" + ".com"
       ),
     }
   );
