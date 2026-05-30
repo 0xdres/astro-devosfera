@@ -14,7 +14,7 @@ import { SITE } from "./src/config";
 
 // https://astro.build/config
 export default defineConfig({
-  site: SITE.website,
+  site:'https:/iralysdev.github.io/',
   integrations: [
     mdx({
       extendMarkdownConfig: true,

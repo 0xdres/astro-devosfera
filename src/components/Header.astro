@@ -4,7 +4,7 @@ import IconSearch from "@/assets/icons/IconSearch.svg";
 import IconArchive from "@/assets/icons/IconArchive.svg";
 import IconGallery from "@/assets/icons/IconGallery.svg";
 import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
-import Logo from "@/assets/logo/devosfera.svg";
+import Logo from "@/assets/logo/devosfera.png";
 import LinkButton from "./LinkButton.astro";
 import MobileMenu from "./MobileMenu.astro";
 import IntroAudioCompact from "./IntroAudioCompact.astro";
@@ -49,8 +49,8 @@ const isActive = (path: string) => {
           href="/"
           class="group relative z-20 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl shrink-0"
         >
-          <!-- <span class="nav-logo-text">{SITE.title}</span> -->
-          <Logo class="w-37.5 dark:invert" />
+         <!--   <span class="nav-logo-text">{SITE.title}</span> -->
+         <Logo class="w-37.5 dark:invert" />
         </a>
 
         <!-- Center Audio Player -->
@@ -91,28 +91,28 @@ const isActive = (path: string) => {
               <a
                 href="/posts"
                 class:list={["nav-link", { "nav-active": isActive("/posts") }]}
-                >Posts</a
+                >Blog</a
               >
             </li>
             <li>
               <a
                 href="/tags"
                 class:list={["nav-link", { "nav-active": isActive("/tags") }]}
-                >Tags</a
+                >Proyectos</a
               >
             </li>
             <li>
               <a
                 href="/about"
                 class:list={["nav-link", { "nav-active": isActive("/about") }]}
-                >About</a
+                >Sobre Mi</a
               >
             </li>
             <li class="flex items-center">
               <a
                 href="/search"
                 class:list={["nav-link", { "nav-active": isActive("/search") }]}
-                title="Go to Search">Search</a
+                title="Go to Search">Buscar</a
               >
             </li>
             {
@@ -124,7 +124,7 @@ const isActive = (path: string) => {
                       "nav-link",
                       { "nav-active": isActive("/archives") },
                     ]}
-                    title="Archives"
+                    title="Archivos"
                     aria-label="archives"
                   >
                     <IconArchive class="hidden sm:inline-block" />
@@ -142,7 +142,7 @@ const isActive = (path: string) => {
                       "nav-link",
                       { "nav-active": isActive("/galleries") },
                     ]}
-                    title="Galleries"
+                    title="Galerías"
                     aria-label="galleries"
                   >
                     <IconGallery class="hidden sm:inline-block" />
