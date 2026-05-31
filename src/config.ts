@@ -1,6 +1,6 @@
 export const SITE = {
   website: "https://devosfera.vercel.app/",
-  author: "Iralys Espinal",
+  author: "Iralys Espinal Rodriguez",
   profile: process.env.PUBLIC_SOCIAL_GITHUB ?? "", // set in .env
   desc: "A space where curiosity becomes code. Exploring web development, software architecture and everything that makes the tech world spin.",
   title: "Laboratorios de Sistemas",
