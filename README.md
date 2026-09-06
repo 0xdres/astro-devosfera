@@ -2,11 +2,16 @@
 
 Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro-paper) theme with a new aesthetic, image galleries, global search modal, and dozens of visual and interactive improvements.
 
-**🌐 Live demo:** [devosfera.vercel.app](https://devosfera.vercel.app)
+**🌐 Clean template live demo:** [devosfera-blog.vercel.app](https://devosfera-blog.vercel.app)
 
 ![Devosfera OG](public/devosfera-og.webp)
 
-> **Note:** This project is primarily my personal blog. If anyone wishes to use it, feel free to delete all entries and edit the settings freely.
+> [!TIP]
+> **🌟 Real-World Showcase:**  
+> Visit **[devosfera.vercel.app](https://devosfera.vercel.app)** to see this template running in production on the creator's personal blog with custom advanced interactive extensions (interactive terminal, daily physics widgets, web audio synthesizers, and quizzes).
+>
+> 📖 To explore the complete architecture and design decisions behind this base template, read the deep-dive article:  
+> **[Introducing Astro Devosfera: Re-engineering the Developer Blog Experience](https://devosfera.vercel.app/posts/introducing-astro-devosfera)** *(also available in [Spanish](https://devosfera.vercel.app/es/posts/introducing-astro-devosfera))*.
 
 > [!IMPORTANT]
 > **Social links and personal URLs are no longer hardcoded.**
