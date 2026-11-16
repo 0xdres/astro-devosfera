@@ -28,16 +28,22 @@ const { page } = Astro.props;
 const totalPosts = page.total;
 
 // Prevent duplicate metadata in pagination
-const metaTitle = page.currentPage > 1
-  ? `Posts (Page ${page.currentPage} of ${page.lastPage}) | ${SITE.title}`
-  : `Posts | ${SITE.title}`;
+const metaTitle =
+  page.currentPage > 1
+    ? `Posts (Page ${page.currentPage} of ${page.lastPage}) | ${SITE.title}`
+    : `Posts | ${SITE.title}`;
 
-const metaDesc = page.currentPage > 1
-  ? `Browse articles, guides, and tutorials on Astro Devosfera (Page ${page.currentPage} of ${page.lastPage}).`
-  : `All the articles I have published.`;
+const metaDesc =
+  page.currentPage > 1
+    ? `Browse articles, guides, and tutorials on Astro Devosfera (Page ${page.currentPage} of ${page.lastPage}).`
+    : `All the articles I have published.`;
 
-const prevURL = page.url.prev ? new URL(page.url.prev, SITE.website).toString() : undefined;
-const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() : undefined;
+const prevURL = page.url.prev
+  ? new URL(page.url.prev, SITE.website).toString()
+  : undefined;
+const nextURL = page.url.next
+  ? new URL(page.url.next, SITE.website).toString()
+  : undefined;
 ---
 
 <Layout title={metaTitle} description={metaDesc} prev={prevURL} next={nextURL}>
@@ -59,13 +65,11 @@ const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() 
         </p>
         <div class="mt-4 flex flex-wrap items-center gap-2">
           <span class="hero-badge">{totalPosts} posts</span>
-          {
-            page.lastPage > 1 && (
-              <span class="hero-badge">
-                Page {page.currentPage}/{page.lastPage}
-              </span>
-            )
-          }
+          {page.lastPage > 1 && (
+            <span class="hero-badge">
+              Page {page.currentPage}/{page.lastPage}
+            </span>
+          )}
         </div>
       </div>
     </div>
@@ -79,42 +83,40 @@ const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() 
 
     <!-- Posts Grid -->
     <div data-default-posts-container class="w-full">
-      {
-        page.data.length === 0 ? (
-          <div class="empty-state">
-            <div class="empty-icon-wrapper">
-              <svg
-                class="size-12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="9" y1="15" x2="15" y2="15"></line>
-              </svg>
-            </div>
-            <h3 class="empty-title">No posts yet</h3>
-            <p class="empty-desc">
-              Come back later to read our upcoming articles.
-            </p>
+      {page.data.length === 0 ? (
+        <div class="empty-state">
+          <div class="empty-icon-wrapper">
+            <svg
+              class="size-12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
           </div>
-        ) : (
-          <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {page.data.map((data: ContentEntry, index) => (
-              <Card
-                {...data}
-                loading={index < 3 ? "eager" : "lazy"}
-                fetchpriority={index < 3 ? "high" : "auto"}
-              />
-            ))}
-          </ul>
-        )
-      }
-      
+          <h3 class="empty-title">No posts yet</h3>
+          <p class="empty-desc">
+            Come back later to read our upcoming articles.
+          </p>
+        </div>
+      ) : (
+        <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {page.data.map((data: ContentEntry, index) => (
+            <Card
+              {...data}
+              loading={index < 3 ? "eager" : "lazy"}
+              fetchpriority={index < 3 ? "high" : "auto"}
+            />
+          ))}
+        </ul>
+      )}
+
       <div data-pagination-wrapper>
         <Pagination {page} />
       </div>
@@ -126,7 +128,7 @@ const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() 
 
 <script>
   let cleanupController: AbortController | null = null;
-  
+
   function initPostsPage() {
     if (cleanupController) cleanupController.abort();
     cleanupController = new AbortController();
@@ -134,19 +136,29 @@ const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() 
 
     // Hero mouse glow
     const hero = document.querySelector("[data-posts-hero]") as HTMLElement;
-    const heroMouse = document.querySelector("[data-posts-mouse]") as HTMLElement;
+    const heroMouse = document.querySelector(
+      "[data-posts-mouse]"
+    ) as HTMLElement;
     if (hero && heroMouse) {
-      hero.addEventListener("mousemove", e => {
-        requestAnimationFrame(() => {
-          const rect = hero.getBoundingClientRect();
-          heroMouse.style.setProperty("--mx", `${e.clientX - rect.left}px`);
-          heroMouse.style.setProperty("--my", `${e.clientY - rect.top}px`);
-          heroMouse.style.opacity = "1";
-        });
-      }, { signal });
-      hero.addEventListener("mouseleave", () => {
-        heroMouse.style.opacity = "0";
-      }, { signal });
+      hero.addEventListener(
+        "mousemove",
+        e => {
+          requestAnimationFrame(() => {
+            const rect = hero.getBoundingClientRect();
+            heroMouse.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+            heroMouse.style.setProperty("--my", `${e.clientY - rect.top}px`);
+            heroMouse.style.opacity = "1";
+          });
+        },
+        { signal }
+      );
+      hero.addEventListener(
+        "mouseleave",
+        () => {
+          heroMouse.style.opacity = "0";
+        },
+        { signal }
+      );
     }
 
     // Initialize Pagefind local search
@@ -180,9 +192,13 @@ const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() 
       });
 
       // Toggle default posts grid visibility when typing
-      const input = container.querySelector(".pagefind-ui__search-input") as HTMLInputElement;
-      const defaultContainer = document.querySelector("[data-default-posts-container]") as HTMLElement;
-      
+      const input = container.querySelector(
+        ".pagefind-ui__search-input"
+      ) as HTMLInputElement;
+      const defaultContainer = document.querySelector(
+        "[data-default-posts-container]"
+      ) as HTMLElement;
+
       if (input && defaultContainer) {
         const toggleVisibility = () => {
           const hasValue = input.value.trim().length > 0;
@@ -194,13 +210,17 @@ const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() 
         };
 
         input.addEventListener("input", toggleVisibility, { signal });
-        
+
         // Handle clear button
         const clearBtn = container.querySelector(".pagefind-ui__search-clear");
         if (clearBtn) {
-          clearBtn.addEventListener("click", () => {
-            requestAnimationFrame(() => toggleVisibility());
-          }, { signal });
+          clearBtn.addEventListener(
+            "click",
+            () => {
+              requestAnimationFrame(() => toggleVisibility());
+            },
+            { signal }
+          );
         }
       }
 
@@ -212,14 +232,16 @@ const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() 
           if (input) {
             input.focus();
             // Scroll to the search box if it's not visible
-            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            input.scrollIntoView({ behavior: "smooth", block: "center" });
           }
         }
       };
-      
-      // Use capture mode to intercept before the global modal listener
-      document.addEventListener("keydown", handleCmdK, { signal, capture: true });
 
+      // Use capture mode to intercept before the global modal listener
+      document.addEventListener("keydown", handleCmdK, {
+        signal,
+        capture: true,
+      });
     });
   }
 
@@ -398,15 +420,19 @@ const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() 
     background: color-mix(in srgb, var(--accent) 8%, transparent);
     color: var(--accent);
     margin-bottom: 1.5rem;
-    box-shadow: 
+    box-shadow:
       0 0 0 1px color-mix(in srgb, var(--accent) 15%, transparent),
       0 10px 30px -10px color-mix(in srgb, var(--accent) 25%, transparent);
     animation: empty-float 4s ease-in-out infinite alternate;
   }
 
   @keyframes empty-float {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-8px); }
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-8px);
+    }
   }
 
   .empty-title {

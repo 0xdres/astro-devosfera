@@ -103,7 +103,8 @@ i {
   background: color-mix(in srgb, var(--foreground) 3%, var(--background));
   padding: 1rem 1rem 1rem 3.5rem;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px -5px color-mix(in srgb, var(--background) 50%, transparent);
+  box-shadow: 0 4px 20px -5px
+    color-mix(in srgb, var(--background) 50%, transparent);
 }
 
 .premium-search input.pagefind-ui__search-input:focus-visible {
@@ -153,11 +154,14 @@ i {
   margin-bottom: 1rem;
 }
 
-.premium-search .pagefind-ui__results .pagefind-ui__result.pagefind-ui__result:hover {
+.premium-search
+  .pagefind-ui__results
+  .pagefind-ui__result.pagefind-ui__result:hover {
   border-color: color-mix(in srgb, var(--accent) 30%, transparent);
   background: color-mix(in srgb, var(--accent) 4%, var(--background));
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--accent) 15%, transparent);
+  box-shadow: 0 10px 30px -10px
+    color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .premium-search .pagefind-ui__result-title a {

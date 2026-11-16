@@ -28,8 +28,12 @@
     }
 
     a {
-      @apply relative font-medium text-foreground no-underline transition-all duration-200 wrap-break-word;
-      background-image: linear-gradient(to right, color-mix(in srgb, var(--accent) 40%, transparent), color-mix(in srgb, var(--accent) 40%, transparent));
+      @apply relative font-medium wrap-break-word text-foreground no-underline transition-all duration-200;
+      background-image: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--accent) 40%, transparent),
+        color-mix(in srgb, var(--accent) 40%, transparent)
+      );
       background-position: 0 100%;
       background-size: 100% 1px;
       background-repeat: no-repeat;
@@ -84,7 +88,7 @@
     }
 
     code {
-      @apply rounded-md bg-muted/15 px-1.5 py-0.5 wrap-break-word font-firacode text-sm text-foreground shadow-sm shadow-black/5 before:content-none after:content-none;
+      @apply rounded-md bg-muted/15 px-1.5 py-0.5 font-firacode text-sm wrap-break-word text-foreground shadow-sm shadow-black/5 before:content-none after:content-none;
     }
 
     .astro-code code {
@@ -92,7 +96,7 @@
     }
 
     blockquote {
-      @apply rounded-r-xl border-s-[3px] border-accent/80 bg-accent/5 py-4 pr-5 pl-6 font-sriracha text-[1.05rem] text-foreground/90 opacity-90 shadow-sm shadow-accent/5 wrap-break-word;
+      @apply rounded-r-xl border-s-[3px] border-accent/80 bg-accent/5 py-4 pr-5 pl-6 font-sriracha text-[1.05rem] wrap-break-word text-foreground/90 opacity-90 shadow-sm shadow-accent/5;
     }
 
     /* ===== Table of Contents (clean card, no glassmorphism) ===== */

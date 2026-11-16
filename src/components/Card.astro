@@ -4,6 +4,7 @@ import type { ImageMetadata } from "astro";
 import { Image } from "astro:assets";
 import { slugifyStr } from "@/utils/slugify";
 import { getEntryPath, getGallerySlug } from "@/utils/contentEntry";
+import { getFirstGalleryImage } from "@/utils/gallery";
 import { getReadingTime } from "@/utils/readingTime";
 import Datetime from "./Datetime.astro";
 import IconGallery from "@/assets/icons/IconGallery.svg";
@@ -31,14 +32,15 @@ const {
 
 const { title, description, pubDatetime } = data;
 const modDatetime = "modDatetime" in data ? data.modDatetime : null;
-const timezone = "timezone" in data ? data.timezone : undefined;
 const tags = "tags" in data ? data.tags : [];
-const href = getEntryPath({ collection, id, filePath });
+const locale = Astro.currentLocale || "en";
+const prefix = locale === "es" ? "/es" : "";
+const href = prefix + getEntryPath({ collection, id, filePath });
 const isGallery = collection === "galleries";
 const headingId = `${collection}-${slugifyStr(String(id))}-title`;
 const descriptionId = `${collection}-${slugifyStr(String(id))}-description`;
 const viewTransitionName = slugifyStr(String(title).replaceAll(".", "-"));
-const readingTime = body ? getReadingTime(body) : null;
+const readingTime = body ? getReadingTime(body, locale) : null;
 
 // Resolve cover image source
 let coverSrc: string | ImageMetadata | undefined;
@@ -49,16 +51,9 @@ if (SITE.showCoverImages) {
     if (coverImage) {
       coverSrc = coverImage;
     } else {
-      // Load all gallery images at build-time (same pattern as galleries/index.astro)
-      const allGalleryImages = import.meta.glob<{ default: ImageMetadata }>(
-        "/src/data/galleries/**/*.{jpg,jpeg,png,webp,avif,gif,JPG,JPEG,PNG,WEBP}",
-        { eager: true }
-      );
       const gallerySlug = getGallerySlug(id);
-      const firstImage = Object.entries(allGalleryImages)
-        .filter(([path]) => path.startsWith(`/src/data/galleries/${gallerySlug}/`))
-        .sort(([a], [b]) => a.localeCompare(b))
-        .at(0)?.[1]?.default;
+      const galleryLang = id.startsWith("es/") ? "es" : "en";
+      const firstImage = getFirstGalleryImage(gallerySlug, galleryLang);
       if (firstImage) {
         coverSrc = firstImage;
       }
@@ -87,50 +82,65 @@ if (SITE.showCoverImages) {
     coverSrc ? "overflow-hidden" : "",
     "border backdrop-blur-sm",
     "transition-[border-color,background-color,box-shadow,transform] duration-300 ease-out motion-reduce:transform-none motion-reduce:transition-none",
-    "hover:-translate-y-0.5 focus-within:-translate-y-0.5",
-    "hover:shadow-lg focus-within:shadow-lg",
+    "focus-within:-translate-y-0.5 hover:-translate-y-0.5",
+    "focus-within:shadow-lg hover:shadow-lg",
 
     // Default posts styling
-    !isGallery && !featured && [
-      "border-border/25 bg-muted/10",
-      "hover:border-accent/40 hover:bg-accent/5 focus-within:border-accent/40 focus-within:bg-accent/5",
-      "hover:shadow-accent/10 focus-within:shadow-accent/10",
-    ],
+    !isGallery &&
+      !featured && [
+        "border-border/25 bg-muted/10",
+        "focus-within:border-accent/40 focus-within:bg-accent/5 hover:border-accent/40 hover:bg-accent/5",
+        "focus-within:shadow-accent/10 hover:shadow-accent/10",
+      ],
 
     // Featured generic posts styling
-    !isGallery && featured && [
-      "border-amber-500/30 bg-amber-500/5",
-      "hover:border-amber-500/50 hover:bg-amber-500/10 focus-within:border-amber-500/50 focus-within:bg-amber-500/10",
-      "hover:shadow-amber-500/10 focus-within:shadow-amber-500/10",
-      "shadow-[0_0_20px_-5px_rgba(245,158,11,0.15)]",
-    ],
+    !isGallery &&
+      featured && [
+        "featured-card-shadow border-featured/30 bg-featured/5",
+        "focus-within:border-featured/50 focus-within:bg-featured/10 hover:border-featured/50 hover:bg-featured/10",
+        "focus-within:shadow-featured/10 hover:shadow-featured/10",
+      ],
 
     // Gallery variant styling
-    isGallery && !featured && [
-      "border-purple-500/20 bg-purple-500/5",
-      "hover:border-purple-500/40 hover:bg-purple-500/10 focus-within:border-purple-500/40 focus-within:bg-purple-500/10",
-      "hover:shadow-purple-500/10 focus-within:shadow-purple-500/10",
-    ],
+    isGallery &&
+      !featured && [
+        "border-gallery/20 bg-gallery/5",
+        "focus-within:border-gallery/40 focus-within:bg-gallery/10 hover:border-gallery/40 hover:bg-gallery/10",
+        "focus-within:shadow-gallery/10 hover:shadow-gallery/10",
+      ],
 
     // Featured gallery styling
-    isGallery && featured && [
-      "border-purple-500/40 bg-purple-500/10",
-      "hover:border-purple-500/60 hover:bg-purple-500/15 focus-within:border-purple-500/60 focus-within:bg-purple-500/15",
-      "hover:shadow-purple-500/20 focus-within:shadow-purple-500/20",
-      "shadow-[0_0_20px_-5px_rgba(168,85,247,0.15)]",
-    ],
+    isGallery &&
+      featured && [
+        "gallery-card-shadow border-gallery/40 bg-gallery/10",
+        "focus-within:border-gallery/60 focus-within:bg-gallery/15 hover:border-gallery/60 hover:bg-gallery/15",
+        "focus-within:shadow-gallery/20 hover:shadow-gallery/20",
+      ],
   ]}
+  style={
+    loading === "lazy"
+      ? {
+          contentVisibility: "auto",
+          containIntrinsicSize: coverSrc ? "auto 320px" : "auto 180px",
+        }
+      : undefined
+  }
 >
   <!-- Cursor-following glow -->
   <div
-    class="card-glow-effect pointer-events-none absolute inset-0 z-0 rounded-2xl opacity-0 transition-opacity duration-300 motion-reduce:transition-none group-hover/card:opacity-100 group-focus-within/card:opacity-100"
+    class="card-glow-effect pointer-events-none absolute inset-0 z-0 rounded-2xl opacity-0 transition-opacity duration-300 group-focus-within/card:opacity-100 group-hover/card:opacity-100 motion-reduce:transition-none"
     aria-hidden="true"
-  >
-  </div>
+  ></div>
 
   <!-- Cover image — wrapped in <a> for clickability; aria-hidden so screen readers skip the duplicate link -->
   {coverSrc && (
-    <a href={href} tabindex="-1" aria-hidden="true" class="card-cover-wrapper block" data-cover>
+    <a
+      href={href}
+      tabindex="-1"
+      aria-hidden="true"
+      class="card-cover-wrapper block"
+      data-cover
+    >
       {typeof coverSrc === "object" ? (
         <Image
           src={coverSrc}
@@ -140,6 +150,8 @@ if (SITE.showCoverImages) {
           fetchpriority={fetchpriority}
           widths={[400, 800]}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          format="avif"
+          quality={72}
         />
       ) : (
         <img
@@ -154,7 +166,7 @@ if (SITE.showCoverImages) {
           onerror="this.closest('[data-cover]').style.display='none'"
         />
       )}
-      <div class="card-cover-overlay" aria-hidden="true"></div>
+      <div class="card-cover-overlay" aria-hidden="true" />
     </a>
   )}
 
@@ -162,12 +174,12 @@ if (SITE.showCoverImages) {
     <a
       href={href}
       class:list={[
-        "text-lg font-semibold text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm",
-        isGallery 
-          ? "group-hover/card:text-purple-400 focus-visible:ring-purple-500" 
-          : featured 
-            ? "group-hover/card:text-amber-500 focus-visible:ring-amber-500"
-            : "group-hover/card:text-accent focus-visible:ring-accent"
+        "rounded-sm text-lg font-semibold text-foreground transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
+        isGallery
+          ? "group-hover/card:text-gallery focus-visible:ring-gallery"
+          : featured
+            ? "group-hover/card:text-featured focus-visible:ring-featured"
+            : "group-hover/card:text-accent focus-visible:ring-accent",
       ]}
       aria-labelledby={headingId}
       aria-describedby={descriptionId}
@@ -177,7 +189,7 @@ if (SITE.showCoverImages) {
         {isGallery && (
           <span
             aria-hidden="true"
-            class="inline-flex items-center justify-center rounded-md bg-purple-500/10 p-1 text-purple-400/80 ring-1 ring-purple-500/20"
+            class="inline-flex items-center justify-center rounded-md bg-gallery/10 p-1 text-gallery/80 ring-1 ring-gallery/20"
           >
             <IconGallery class="size-4" />
           </span>
@@ -186,14 +198,17 @@ if (SITE.showCoverImages) {
         {title}
       </Heading>
       <!-- Expand clickable area to whole card on top of everything, minus the description -->
-      <span class="absolute -inset-4 sm:-inset-5 z-10" aria-hidden="true"></span>
+      <span
+        class="absolute -inset-4 z-10 sm:-inset-5"
+        aria-hidden="true"
+      ></span>
     </a>
-    
+
     <!-- Meta row: date + reading time -->
-    <div class="relative z-20 mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 pointer-events-none">
-      <Datetime pubDatetime={pubDatetime} modDatetime={modDatetime} timezone={timezone} />
+    <div class="pointer-events-none relative z-20 mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+      <Datetime pubDatetime={pubDatetime} modDatetime={modDatetime} />
       {readingTime && (
-        <span class="flex items-center gap-1 text-sm text-foreground/60 whitespace-nowrap">
+        <span class="flex items-center gap-1 text-sm whitespace-nowrap">
           <IconClock class="size-4 shrink-0" aria-hidden="true" />
           {readingTime}
         </span>
@@ -202,30 +217,33 @@ if (SITE.showCoverImages) {
 
     <p
       id={descriptionId}
-      class="relative z-20 mt-2 line-clamp-2 text-sm leading-relaxed text-foreground/75 pointer-events-auto select-text"
+      class="pointer-events-auto relative z-20 mt-2 line-clamp-2 text-sm leading-relaxed text-foreground/90 select-text"
     >
       {description}
     </p>
 
     <!-- Tags -->
     {SITE.showTagsInCards && tags.length > 0 && (
-      <ul class="relative z-20 mt-3 flex flex-wrap gap-1.5 pointer-events-auto">
+      <ul class="pointer-events-auto relative z-20 mt-3 flex flex-wrap gap-1.5">
         {tags.slice(0, 4).map((tag: string) => (
           <li>
             <a
-              href={`/tags/${slugifyStr(tag)}/`}
+              href={`${prefix}/tags/${slugifyStr(tag)}/`}
               class:list={[
                 "inline-flex items-center gap-0.5 rounded-full px-2.5 py-0.5",
                 "text-xs font-medium",
                 "border transition-colors duration-200",
                 isGallery
-                  ? "border-purple-500/25 bg-purple-500/8 text-purple-400/80 hover:border-purple-500/50 hover:bg-purple-500/15 hover:text-purple-400"
+                  ? "border-gallery/30 bg-gallery/10 text-gallery hover:border-gallery/60 hover:bg-gallery/20"
                   : featured
-                    ? "border-amber-500/25 bg-amber-500/8 text-amber-500/80 hover:border-amber-500/50 hover:bg-amber-500/15 hover:text-amber-500"
-                    : "border-border/30 bg-muted/15 text-foreground/60 hover:border-accent/40 hover:bg-accent/10 hover:text-accent",
+                    ? "border-featured/30 bg-featured/10 text-featured hover:border-featured/60 hover:bg-featured/20"
+                    : "border-border/30 bg-muted/15 text-foreground/80 hover:border-accent/40 hover:bg-accent/10 hover:text-accent",
               ]}
             >
-              <span aria-hidden="true" class="opacity-60">#</span>{tag}
+              <span aria-hidden="true" class="opacity-60">
+                #
+              </span>
+              {tag}
             </a>
           </li>
         ))}
@@ -239,6 +257,16 @@ if (SITE.showCoverImages) {
     contain: paint;
   }
 
+  .featured-card-shadow {
+    box-shadow: 0 0 20px -5px
+      color-mix(in srgb, var(--featured-color) 15%, transparent);
+  }
+
+  .gallery-card-shadow {
+    box-shadow: 0 0 20px -5px
+      color-mix(in srgb, var(--gallery-color) 15%, transparent);
+  }
+
   .card-glow-effect {
     background: radial-gradient(
       350px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
@@ -247,6 +275,10 @@ if (SITE.showCoverImages) {
       color-mix(in oklab, var(--accent) 0.8%, transparent) 60%,
       transparent 80%
     );
+  }
+
+  :global(.group\/card:hover) .card-glow-effect,
+  :global(.group\/card:focus-within) .card-glow-effect {
     will-change: opacity;
   }
 
@@ -274,7 +306,9 @@ if (SITE.showCoverImages) {
     object-position: center;
     display: block;
     /* Subtle zoom on hover via the parent group */
-    transition: transform 0.4s ease, filter 0.4s ease;
+    transition:
+      transform 0.4s ease,
+      filter 0.4s ease;
     filter: brightness(0.95) saturate(1.05);
   }
 

@@ -35,7 +35,8 @@ import IconArrowNarrowUp from "@/assets/icons/IconArrowNarrowUp.svg";
     <span
       aria-hidden="true"
       id="progress-indicator"
-      class="absolute inset-0 z-0 block rounded-full bg-transparent"></span>
+      class="absolute inset-0 z-0 block rounded-full bg-transparent"
+    ></span>
     <!-- 2: Button Background, leaves 3px of the ring visible -->
     <span
       aria-hidden="true"
@@ -46,9 +47,7 @@ import IconArrowNarrowUp from "@/assets/icons/IconArrowNarrowUp.svg";
       aria-hidden="true"
       class="relative z-20 size-5 text-accent transition-transform duration-200 group-hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 md:size-6"
     />
-    <span
-      class="relative z-20 text-[9px] font-bold tracking-widest text-accent/70 uppercase"
-    >
+    <span class="relative z-20 text-[9px] font-bold tracking-widest text-accent/70 uppercase">
       top
     </span>
     <span class="sr-only">Go back to top</span>
@@ -64,9 +63,8 @@ import IconArrowNarrowUp from "@/assets/icons/IconArrowNarrowUp.svg";
     const { signal } = backToTopCleanup;
 
     const rootElement = document.documentElement;
-    const btnContainer = document.querySelector<HTMLElement>(
-      "#btt-btn-container"
-    );
+    const btnContainer =
+      document.querySelector<HTMLElement>("#btt-btn-container");
     const backToTopBtn = document.querySelector<HTMLButtonElement>(
       "[data-button='back-to-top']"
     );

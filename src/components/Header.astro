@@ -32,7 +32,10 @@ const isActive = (path: string) => {
   Skip to content
 </a>
 
-<header id="main-header" class="sticky top-0 z-40 w-full transition-colors duration-300">
+<header
+  id="main-header"
+  class="sticky top-0 z-40 w-full transition-colors duration-300"
+>
   <div class="header-scrolled-filter w-full">
     <div class="app-layout">
       <div
@@ -54,19 +57,17 @@ const isActive = (path: string) => {
         </a>
 
         <!-- Center Audio Player -->
-        {
-          SITE.introAudio.enabled && (
-            <div class="flex-1 flex justify-center min-w-0">
-              <IntroAudioCompact
-                src={SITE.introAudio.src}
-                label={SITE.introAudio.label}
-                duration={SITE.introAudio.duration}
-                isStream={SITE.introAudio.isStream}
-                class="nav-intro-audio-compact"
-              />
-            </div>
-          )
-        }
+        {SITE.introAudio.enabled && (
+          <div class="flex-1 flex justify-center min-w-0">
+            <IntroAudioCompact
+              src={SITE.introAudio.src}
+              label={SITE.introAudio.label}
+              duration={SITE.introAudio.duration}
+              isStream={SITE.introAudio.isStream}
+              class="nav-intro-audio-compact"
+            />
+          </div>
+        )}
 
         <!-- Nav area -->
         <nav id="nav-menu" class="flex items-center sm:gap-1 shrink-0">
@@ -91,66 +92,67 @@ const isActive = (path: string) => {
               <a
                 href="/posts"
                 class:list={["nav-link", { "nav-active": isActive("/posts") }]}
-                >Posts</a
               >
+                Posts
+              </a>
             </li>
             <li>
               <a
                 href="/tags"
                 class:list={["nav-link", { "nav-active": isActive("/tags") }]}
-                >Tags</a
               >
+                Tags
+              </a>
             </li>
             <li>
               <a
                 href="/about"
                 class:list={["nav-link", { "nav-active": isActive("/about") }]}
-                >About</a
               >
+                About
+              </a>
             </li>
             <li class="flex items-center">
               <a
                 href="/search"
                 class:list={["nav-link", { "nav-active": isActive("/search") }]}
-                title="Go to Search">Search</a
+                title="Go to Search"
               >
+                Search
+              </a>
             </li>
-            {
-              SITE.showArchives && (
-                <li>
-                  <LinkButton
-                    href="/archives"
-                    class:list={[
-                      "nav-link",
-                      { "nav-active": isActive("/archives") },
-                    ]}
-                    title="Archives"
-                    aria-label="archives"
-                  >
-                    <IconArchive class="hidden sm:inline-block" />
-                    <span class="sm:sr-only">Archives</span>
-                  </LinkButton>
-                </li>
-              )
-            }
-            {
-              SITE.showGalleries && (
-                <li>
-                  <LinkButton
-                    href="/galleries"
-                    class:list={[
-                      "nav-link",
-                      { "nav-active": isActive("/galleries") },
-                    ]}
-                    title="Galleries"
-                    aria-label="galleries"
-                  >
-                    <IconGallery class="hidden sm:inline-block" />
-                    <span class="sm:sr-only">Galleries</span>
-                  </LinkButton>
-                </li>
-              )
-            }
+            {SITE.showArchives && (
+              <li>
+                <LinkButton
+                  href="/archives"
+                  class:list={[
+                    "nav-link",
+                    { "nav-active": isActive("/archives") },
+                  ]}
+                  title="Archives"
+                  aria-label="archives"
+                >
+                  <IconArchive class="hidden sm:inline-block" />
+                  <span class="sm:sr-only">Archives</span>
+                </LinkButton>
+              </li>
+            )}
+            {SITE.showGalleries && (
+              <li>
+                <LinkButton
+                  href="/galleries"
+                  class:list={[
+                    "nav-link",
+                    { "nav-active": isActive("/galleries") },
+                  ]}
+                  title="Galleries"
+                  aria-label="galleries"
+                >
+                  <IconGallery class="hidden sm:inline-block" />
+                  <span class="sm:sr-only">Galleries</span>
+                </LinkButton>
+              </li>
+            )}
 
             <!-- Separator -->
             <li class="flex items-center px-1" aria-hidden="true">
@@ -169,22 +171,20 @@ const isActive = (path: string) => {
                 <kbd class="nav-kbd">⌘K</kbd>
               </button>
             </li>
-            {
-              SITE.lightAndDarkMode && (
-                <li class="flex items-center">
-                  <button
-                    id="theme-btn"
-                    class="nav-icon-btn relative"
-                    title="Toggles light & dark"
-                    aria-label="auto"
-                    aria-live="polite"
-                  >
-                    <IconMoon class="absolute top-1/2 left-1/2 -translate-1/2 scale-100 rotate-0 transition-all duration-300 dark:scale-0 dark:-rotate-90" />
-                    <IconSunHigh class="absolute top-1/2 left-1/2 -translate-1/2 scale-0 rotate-90 transition-all duration-300 dark:scale-100 dark:rotate-0" />
-                  </button>
-                </li>
-              )
-            }
+            {SITE.lightAndDarkMode && (
+              <li class="flex items-center">
+                <button
+                  id="theme-btn"
+                  class="nav-icon-btn relative"
+                  title="Toggles light & dark"
+                  aria-label="auto"
+                  aria-live="polite"
+                >
+                  <IconMoon class="absolute top-1/2 left-1/2 -translate-1/2 scale-100 rotate-0 transition-all duration-300 dark:scale-0 dark:-rotate-90" />
+                  <IconSunHigh class="absolute top-1/2 left-1/2 -translate-1/2 scale-0 rotate-90 transition-all duration-300 dark:scale-100 dark:rotate-0" />
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
       </div>
@@ -196,8 +196,7 @@ const isActive = (path: string) => {
   <div
     id="header-border"
     class="header-border-line opacity-0 transition-opacity duration-300 h-px w-full bg-linear-to-r from-transparent via-border/40 to-transparent"
-  >
-  </div>
+  ></div>
 </header>
 
 <style>
@@ -205,9 +204,13 @@ const isActive = (path: string) => {
   #main-header {
     background: transparent;
   }
-  
+
   :global(.header-scrolled) {
-    background: color-mix(in srgb, var(--background) 80%, transparent) !important;
+    background: color-mix(
+      in srgb,
+      var(--background) 80%,
+      transparent
+    ) !important;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
   }
 
@@ -291,10 +294,14 @@ const isActive = (path: string) => {
     font-weight: 500;
     color: var(--foreground);
     border-radius: 0.5rem;
-    transition: color 0.2s ease, background-color 0.2s ease;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
   }
 
-  .nav-link:focus-visible, .nav-icon-btn:focus-visible, .nav-search-btn:focus-visible {
+  .nav-link:focus-visible,
+  .nav-icon-btn:focus-visible,
+  .nav-search-btn:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent);
   }
@@ -331,7 +338,9 @@ const isActive = (path: string) => {
     width: 2rem;
     height: 2rem;
     border-radius: 0.5rem;
-    transition: color 0.2s ease, background-color 0.2s ease;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
     color: var(--foreground);
   }
 
@@ -348,7 +357,10 @@ const isActive = (path: string) => {
     border-radius: 0.5rem;
     background: color-mix(in srgb, var(--muted) 40%, transparent);
     cursor: pointer;
-    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
   }
 
   .nav-search-btn:hover {
@@ -370,8 +382,10 @@ const isActive = (path: string) => {
     border-bottom-width: 2px;
     background: color-mix(in srgb, var(--background) 90%, transparent);
     color: var(--muted-foreground);
-    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
-    transition: color 0.2s ease, border-color 0.2s ease;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
   }
 
   .nav-search-btn:hover .nav-kbd {
@@ -391,7 +405,9 @@ const isActive = (path: string) => {
     border-radius: 0.625rem;
     border: 1px solid transparent;
     background: transparent;
-    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+      background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
   }
 
@@ -457,8 +473,6 @@ const isActive = (path: string) => {
     width: 100%;
     transform: rotate(-45deg);
   }
-
-
 </style>
 
 <script>
@@ -506,7 +520,7 @@ const isActive = (path: string) => {
     const backdrop = document.querySelector(".mobile-menu-backdrop");
 
     if (!menuBtn || !mobileMenu) return;
-    
+
     const closeMenu = () => {
       menuBtn.setAttribute("aria-expanded", "false");
       menuBtn.setAttribute("aria-label", "Open Menu");
@@ -530,7 +544,7 @@ const isActive = (path: string) => {
       },
       { signal }
     );
-    
+
     // Close when clicking the backdrop
     if (backdrop) {
       backdrop.addEventListener("click", closeMenu, { signal });

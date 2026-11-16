@@ -12,8 +12,6 @@ draft: false
 
 The question "SQL or NoSQL?" lost relevance when PostgreSQL acquired robust support for JSON documents. With `JSONB` you have strict schema where you need it and document flexibility where you need it, in the same database.
 
-## Table of contents
-
 ## `JSON` vs `JSONB`: always use JSONB
 
 ```sql

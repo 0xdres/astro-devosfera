@@ -13,8 +13,6 @@ draft: false
 
 The CLI ecosystem experienced a silent revolution. Tools written in Rust and Go replaced decades-old Unix binaries, adding colors, syntax highlighting, fuzzy search, and Git-awareness with almost no sacrifice in speed. These are the ones I use daily.
 
-## Table of contents
-
 ## Shell: Zsh + Starship
 
 [Starship](https://starship.rs) is undoubtedly the prompt that most improves the experience with the least effort. It works with any shell, is incredibly fast (written in Rust) and shows relevant context: Git branch, Node/Python/Rust version, last command status.

@@ -12,8 +12,6 @@ draft: false
 
 Rust appeared on web developers' radars years ago, but adoption was slow. In 2026 the landscape changed: Rust powers critical tools in the JS ecosystem (Biome, Oxc, Rolldown, the SWC compiler) and WebAssembly makes it indispensable on the frontend. It's time to learn it.
 
-## Table of contents
-
 ## The biggest mindset shift: ownership
 
 In JavaScript the garbage collector manages memory. In Rust the responsibility passes to the compiler through the **ownership** system.

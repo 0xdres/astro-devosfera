@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { getCollection, type CollectionEntry } from "astro:content";
 import { getPath } from "@/utils/getPath";
 import { generateOgImageForPost } from "@/utils/generateOgImages";
+import postFilter from "@/utils/postFilter";
 import { SITE } from "@/config";
 
 export async function getStaticPaths() {
@@ -10,7 +11,12 @@ export async function getStaticPaths() {
   }
 
   const posts = await getCollection("blog").then(p =>
-    p.filter(({ data }) => !data.draft && !data.ogImage)
+    p.filter(
+      post =>
+        postFilter(post) &&
+        !post.data.ogImage &&
+        (post.id.startsWith("en/") || !post.id.startsWith("es/"))
+    )
   );
 
   return posts.map(post => ({

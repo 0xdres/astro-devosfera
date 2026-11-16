@@ -3,34 +3,37 @@ import { slugifyStr } from "./slugify";
 
 /**
  * Get full path of a blog post
- * @param id - id of the blog post (aka slug)
- * @param filePath - the blog post full file location
- * @param includeBase - whether to include `/posts` in return value
- * @returns blog post path
+ * @param id - id of the blog post (eg: my-post.md or sub-dir/my-post.md)
+ * @param filePath - full file path of the blog post (eg: src/data/blog/my-post.md)
+ * @param includeBase - whether to include the base path (`/posts`) or not
+ * @returns full path of the blog post (eg: `/posts/my-post` or `/posts/sub-dir/my-post`)
  */
 export function getPath(
   id: string,
   filePath: string | undefined,
   includeBase = true
 ) {
+  // get parent directory of the file (remove file name)
   const pathSegments = filePath
     ?.replace(BLOG_PATH, "")
     .split("/")
-    .filter(path => path !== "") // remove empty string in the segments ["", "other-path"] <- empty string will be removed
+    .filter(path => path !== "") // remove empty string in the segments
     .filter(path => !path.startsWith("_")) // exclude directories start with underscore "_"
-    .slice(0, -1) // remove the last segment_ file name_ since it's unnecessary
+    .filter(path => path !== "en" && path !== "es") // exclude locale subdirectories en and es
+    .slice(0, -1) // remove the last segment
     .map(segment => slugifyStr(segment)); // slugify each segment path
 
   const basePath = includeBase ? "/posts" : "";
 
-  // Making sure `id` does not contain the directory
-  const blogId = id.split("/");
-  const slug = blogId.length > 0 ? blogId.slice(-1) : blogId;
-
-  // If not inside the sub-dir, simply return the file path
-  if (!pathSegments || pathSegments.length < 1) {
-    return [basePath, slug].join("/");
+  // if file is in the root of BLOG_PATH, return only the slug of the file
+  if (!pathSegments || pathSegments.length === 0) {
+    // remove language prefix from id if present (e.g. en/hello-world -> hello-world)
+    const cleanId = id.replace(/^(en|es)\//, "");
+    const slug = cleanId.split("/").pop() ?? cleanId;
+    return `${basePath}/${slugifyStr(slug)}`;
   }
 
-  return [basePath, ...pathSegments, slug].join("/");
+  const cleanId = id.replace(/^(en|es)\//, "");
+  const slug = cleanId.split("/").pop() ?? cleanId;
+  return `${basePath}/${pathSegments.join("/")}/${slugifyStr(slug)}`;
 }

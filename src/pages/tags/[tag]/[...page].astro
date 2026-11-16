@@ -1,69 +1,63 @@
 ---
-import { getCollection } from "astro:content";
 import type { GetStaticPathsOptions } from "astro";
-import Main from "@/layouts/Main.astro";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
 import Card from "@/components/Card.astro";
 import Pagination from "@/components/Pagination.astro";
-import getUniqueTags from "@/utils/getUniqueTags";
-import getPostsByTag from "@/utils/getPostsByTag";
+import { buildTagStaticPaths } from "@/utils/staticPaths";
 import { SITE } from "@/config";
+import { useTranslations } from "@/i18n/utils";
 
-export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
-  const [blogPosts, galleryPosts] = await Promise.all([
-    getCollection("blog"),
-    SITE.showGalleries && SITE.showGalleriesInIndex
-      ? getCollection("galleries")
-      : Promise.resolve([]),
-  ]);
-  const posts = [...blogPosts, ...galleryPosts];
-  const tags = getUniqueTags(posts);
-
-  return tags.flatMap(({ tag, tagName }) => {
-    const tagPosts = getPostsByTag(posts, tag);
-
-    return paginate(tagPosts, {
-      params: { tag },
-      props: { tagName },
-      pageSize: SITE.postPerPage,
-    });
-  });
-}
+export const getStaticPaths = ({ paginate }: GetStaticPathsOptions) =>
+  buildTagStaticPaths("en", paginate);
 
 const params = Astro.params;
 const { tag } = params;
 const { page, tagName } = Astro.props;
 
-const tagOgImage = `/tags/${tag}/og.png`;
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
 
 // Prevent duplicate metadata in tag pagination pages
-const metaTitle = page.currentPage > 1
-  ? `Tag: ${tagName} (Page ${page.currentPage} of ${page.lastPage}) | ${SITE.title}`
-  : `Tag: ${tagName} | ${SITE.title}`;
+const metaTitle =
+  page.currentPage > 1
+    ? `${t("tags.tag")}: ${tagName} (${t("tags.page")} ${page.currentPage} ${t("tags.of")} ${page.lastPage}) | ${SITE.title}`
+    : `${t("tags.tag")}: ${tagName} | ${SITE.title}`;
 
-const tagDescription = page.currentPage > 1
-  ? `All articles tagged with "${tagName}" on ${SITE.title} (Page ${page.currentPage} of ${page.lastPage}).`
-  : `All articles tagged with "${tagName}" on ${SITE.title}.`;
+const tagDescription =
+  page.currentPage > 1
+    ? locale === "es"
+      ? `Todos los artículos etiquetados con "${tagName}" en ${SITE.title} (Página ${page.currentPage} de ${page.lastPage}).`
+      : `All articles tagged with "${tagName}" on ${SITE.title} (Page ${page.currentPage} of ${page.lastPage}).`
+    : locale === "es"
+      ? `Todos los artículos etiquetados con "${tagName}" en ${SITE.title}.`
+      : `All articles tagged with "${tagName}" on ${SITE.title}.`;
 
-const prevURL = page.url.prev ? new URL(page.url.prev, SITE.website).toString() : undefined;
-const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() : undefined;
+const prevURL = page.url.prev
+  ? new URL(page.url.prev, SITE.website).toString()
+  : undefined;
+const nextURL = page.url.next
+  ? new URL(page.url.next, SITE.website).toString()
+  : undefined;
 ---
 
 <Layout
   title={metaTitle}
   description={tagDescription}
-  ogImage={tagOgImage}
   prev={prevURL}
   next={nextURL}
 >
   <Header />
-  <Main
-    pageTitle={[`Tag:`, `${tagName}`]}
-    titleTransition={tag}
-    pageDesc={`All the articles with the tag "${tagName}".`}
-  >
+  <Breadcrumb />
+  <main id="main-content" class="app-layout pb-4">
+    <h1 class="text-2xl font-semibold sm:text-3xl">
+      {t("tags.tag")}:<span transition:name={tag}>{tagName}</span>
+    </h1>
+    <p class="mt-2 mb-6 italic">
+      {t("tags.articlesWith")} "{tagName}".
+    </p>
     <ul>
       {page.data.map((data, index) => (
         <Card
@@ -73,10 +67,9 @@ const nextURL = page.url.next ? new URL(page.url.next, SITE.website).toString() 
         />
       ))}
     </ul>
-  </Main>
+  </main>
 
   <Pagination {page} />
 
   <Footer noMarginTop={page.lastPage > 1} />
 </Layout>
-

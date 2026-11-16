@@ -4,15 +4,31 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Breadcrumb from "@/components/Breadcrumb.astro";
+import AuroraHero from "@/components/AuroraHero.astro";
 import IconHash from "@/assets/icons/IconHash.svg";
 import getUniqueTags from "@/utils/getUniqueTags";
 import getPostsByTag from "@/utils/getPostsByTag";
+import postFilter from "@/utils/postFilter";
 import { SITE } from "@/config";
+import { useTranslations } from "@/i18n/utils";
+
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
+const prefix = locale === "es" ? "/es" : "";
+
+const isMatchingLocale = (id: string) =>
+  id.startsWith(`${locale}/`) || (locale === "en" && !id.startsWith("es/"));
 
 const [blogPosts, galleryPosts] = await Promise.all([
-  getCollection("blog"),
+  getCollection(
+    "blog",
+    entry => postFilter(entry) && isMatchingLocale(entry.id)
+  ),
   SITE.showGalleries && SITE.showGalleriesInIndex
-    ? getCollection("galleries")
+    ? getCollection(
+        "galleries",
+        entry => postFilter(entry) && isMatchingLocale(entry.id)
+      )
     : Promise.resolve([]),
 ]);
 const posts = [...blogPosts, ...galleryPosts];
@@ -24,73 +40,64 @@ const tagsWithCount = tags.map(({ tag, tagName }) => ({
   count: getPostsByTag(posts, tag).length,
 }));
 
-const maxCount = Math.max(...tagsWithCount.map(t => t.count));
+const maxCount = Math.max(1, ...tagsWithCount.map(t => t.count));
 ---
 
-<Layout title={`Tags | ${SITE.title}`}>
+<Layout title={`${t("tags.title")} | ${SITE.title}`}>
   <Header />
   <Breadcrumb />
   <main id="main-content" class="app-layout pb-12">
     <!-- Hero with mouse-tracking aurora -->
-    <div class="tags-hero" data-aurora-hero>
-      <div class="aurora-orb aurora-orb-1"></div>
-      <div class="aurora-orb aurora-orb-2"></div>
-      <div class="aurora-orb aurora-orb-3"></div>
-      <div class="aurora-mouse-follow" data-aurora-mouse></div>
-      <div class="relative z-10">
-        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
-          <span class="glow-text">Tags</span>
-        </h1>
-        <p class="mt-3 max-w-lg text-foreground/70 italic">
-          Explore all blog topics. Each tag is a universe of
-          contenido.
-        </p>
-        <div class="mt-4 flex items-center gap-2 text-sm text-foreground/50">
-          <span class="hero-badge">
-            {tagsWithCount.length} tags
-          </span>
-          <span class="hero-badge">
-            {posts.length} posts
-          </span>
-        </div>
+    <AuroraHero
+      title={t("tags.title")}
+      description={t("tags.desc")}
+      class="mb-10"
+    >
+      <div class="mt-4 flex items-center gap-2 text-sm text-foreground/50">
+        <span class="hero-badge">
+          {tagsWithCount.length}
+          {t("tags.count")}
+        </span>
+        <span class="hero-badge">
+          {posts.length}
+          {t("tags.postsCount")}
+        </span>
       </div>
-    </div>
+    </AuroraHero>
 
     <div class="tags-grid">
-      {
-        tagsWithCount.map(({ tag, tagName, count }) => {
-          const intensity = count / maxCount;
-          return (
-            <a
-              href={`/tags/${tag}/`}
-              transition:name={tag}
-              class="tag-card group"
-              data-tag-card
-            >
-              <div class="tag-aurora" data-tag-aurora />
-              <div class="tag-border-glow" data-tag-border />
-              <div class="tag-content">
-                <div class="flex items-center gap-1.5">
-                  <IconHash class="size-5 text-accent opacity-60 transition-opacity group-hover:opacity-100" />
-                  <span class="tag-name">{tagName}</span>
-                </div>
-                <div class="tag-count">
-                  <span class="tag-count-number">{count}</span>
-                  <span class="tag-count-label">
-                    {count === 1 ? "post" : "posts"}
-                  </span>
-                </div>
+      {tagsWithCount.map(({ tag, tagName, count }) => {
+        const intensity = count / maxCount;
+        return (
+          <a
+            href={`${prefix}/tags/${tag}/`}
+            transition:name={tag}
+            class="tag-card group"
+            data-tag-card
+          >
+            <div class="tag-aurora" data-tag-aurora />
+            <div class="tag-border-glow" data-tag-border />
+            <div class="tag-content">
+              <div class="flex items-center gap-1.5">
+                <IconHash class="size-5 text-accent opacity-60 transition-opacity group-hover:opacity-100" />
+                <span class="tag-name">{tagName}</span>
               </div>
-              <div class="tag-bar">
-                <div
-                  class="tag-bar-fill"
-                  style={`width: ${Math.max(intensity * 100, 8)}%`}
-                />
+              <div class="tag-count">
+                <span class="tag-count-number">{count}</span>
+                <span class="tag-count-label">
+                  {count === 1 ? t("tags.post") : t("tags.posts")}
+                </span>
               </div>
-            </a>
-          );
-        })
-      }
+            </div>
+            <div class="tag-bar">
+              <div
+                class="tag-bar-fill"
+                style={`width: ${Math.max(intensity * 100, 8)}%`}
+              />
+            </div>
+          </a>
+        );
+      })}
     </div>
   </main>
   <Footer />
@@ -104,35 +111,6 @@ const maxCount = Math.max(...tagsWithCount.map(t => t.count));
     if (tagsCleanup) tagsCleanup.abort();
     tagsCleanup = new AbortController();
     const { signal } = tagsCleanup;
-
-    // Hero mouse-follow aurora
-    const hero = document.querySelector("[data-aurora-hero]") as HTMLElement;
-    const heroMouse = document.querySelector(
-      "[data-aurora-mouse]"
-    ) as HTMLElement;
-    if (hero && heroMouse) {
-      hero.addEventListener(
-        "mousemove",
-        e => {
-          requestAnimationFrame(() => {
-            const rect = hero.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            heroMouse.style.setProperty("--mx", `${x}px`);
-            heroMouse.style.setProperty("--my", `${y}px`);
-            heroMouse.style.opacity = "1";
-          });
-        },
-        { signal }
-      );
-      hero.addEventListener(
-        "mouseleave",
-        () => {
-          heroMouse.style.opacity = "0";
-        },
-        { signal }
-      );
-    }
 
     // Tag cards mouse-follow aurora
     const tagCards = document.querySelectorAll("[data-tag-card]");
@@ -172,152 +150,6 @@ const maxCount = Math.max(...tagsWithCount.map(t => t.count));
 </script>
 
 <style>
-  /* ===== Hero ===== */
-  .tags-hero {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1.5rem;
-    padding: 2.5rem 2rem;
-    margin-bottom: 2.5rem;
-    background: color-mix(
-      in srgb,
-      var(--color-foreground) 3%,
-      var(--color-background)
-    );
-    border: 1px solid color-mix(in srgb, var(--color-accent) 12%, transparent);
-  }
-
-  @media (min-width: 640px) {
-    .tags-hero {
-      padding: 3rem 3rem;
-    }
-  }
-
-  /* Floating aurora orbs */
-  .aurora-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(60px);
-    pointer-events: none;
-    will-change: transform;
-  }
-
-  .aurora-orb-1 {
-    width: 300px;
-    height: 300px;
-    top: -30%;
-    left: -10%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-accent) 25%, transparent),
-      transparent 70%
-    );
-    animation: orb-drift-1 7s ease-in-out infinite alternate;
-  }
-
-  .aurora-orb-2 {
-    width: 250px;
-    height: 250px;
-    top: 10%;
-    right: -5%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-border) 20%, transparent),
-      transparent 70%
-    );
-    animation: orb-drift-2 9s ease-in-out infinite alternate;
-  }
-
-  .aurora-orb-3 {
-    width: 200px;
-    height: 200px;
-    bottom: -20%;
-    left: 40%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-accent) 12%, transparent),
-      transparent 70%
-    );
-    animation: orb-drift-3 11s ease-in-out infinite alternate;
-  }
-
-  @keyframes orb-drift-1 {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    100% {
-      transform: translate(40px, 20px) scale(1.2);
-    }
-  }
-  @keyframes orb-drift-2 {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    100% {
-      transform: translate(-30px, 30px) scale(1.15);
-    }
-  }
-  @keyframes orb-drift-3 {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    100% {
-      transform: translate(20px, -25px) scale(1.1);
-    }
-  }
-
-  /* Mouse aurora follower inside hero */
-  .aurora-mouse-follow {
-    position: absolute;
-    width: 350px;
-    height: 350px;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-accent) 18%, transparent),
-      color-mix(in srgb, var(--color-border) 8%, transparent) 40%,
-      transparent 70%
-    );
-    filter: blur(50px);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    transform: translate(
-      calc(var(--mx, 0px) - 175px),
-      calc(var(--my, 0px) - 175px)
-    );
-    will-change: transform;
-    z-index: 1;
-  }
-
-  .glow-text {
-    background: linear-gradient(
-      135deg,
-      var(--color-foreground),
-      var(--color-accent)
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(
-      0 0 25px color-mix(in srgb, var(--color-accent) 25%, transparent)
-    );
-  }
-
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.3rem 0.85rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--color-accent);
-    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-accent) 15%, transparent);
-    backdrop-filter: blur(8px);
-  }
-
   /* ===== Tags Grid ===== */
   .tags-grid {
     display: grid;
@@ -379,8 +211,12 @@ const maxCount = Math.max(...tagsWithCount.map(t => t.count));
       calc(var(--mx, 0px) - 100px),
       calc(var(--my, 0px) - 100px)
     );
-    will-change: transform;
     z-index: -1;
+  }
+
+  .tag-card:hover .tag-aurora,
+  .tag-card:focus-within .tag-aurora {
+    will-change: transform;
   }
 
   /* Mouse-follow border glow */
@@ -402,9 +238,13 @@ const maxCount = Math.max(...tagsWithCount.map(t => t.count));
       calc(var(--mx, 0px) - 60px),
       calc(var(--my, 0px) - 60px)
     );
-    will-change: transform;
     z-index: -1;
     mix-blend-mode: screen;
+  }
+
+  .tag-card:hover .tag-border-glow,
+  .tag-card:focus-within .tag-border-glow {
+    will-change: transform;
   }
 
   .tag-content {

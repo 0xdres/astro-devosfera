@@ -50,13 +50,13 @@ A typical vibe coding cycle today looks like this:
 
 ## What tools define the ecosystem in 2026
 
-| Tool                 | Purpose                           | Strong point                  |
-| -------------------- | --------------------------------- | ----------------------------- |
-| **GitHub Copilot**   | Autocomplete + agent in editor    | Native VS Code integration    |
-| **Cursor**           | AI-first editor                   | Full codebase context         |
-| **Windsurf**         | Autonomous editing agent          | Multi-file flows              |
-| **Claude (API)**     | Complex reasoning                 | Huge context window           |
-| **Gemini 2.0 Flash** | Speed and cost                    | Fast iterations               |
+| Tool                 | Purpose                        | Strong point               |
+| -------------------- | ------------------------------ | -------------------------- |
+| **GitHub Copilot**   | Autocomplete + agent in editor | Native VS Code integration |
+| **Cursor**           | AI-first editor                | Full codebase context      |
+| **Windsurf**         | Autonomous editing agent       | Multi-file flows           |
+| **Claude (API)**     | Complex reasoning              | Huge context window        |
+| **Gemini 2.0 Flash** | Speed and cost                 | Fast iterations            |
 
 ## The skills that gain more value
 

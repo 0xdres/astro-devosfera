@@ -129,3 +129,41 @@ export const getIntroAudioStore = (config: IntroAudioConfig) => {
 
   return store;
 };
+
+export const formatAudioTime = (secs: number): string => {
+  const s = Math.max(0, Math.floor(secs));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+};
+
+export const toggleIntroAudioPlayback = (store: IntroAudioStore) => {
+  if (store.audio.paused) {
+    void store.audio.play().catch(() => {
+      /* playback blocked by browser */
+    });
+  } else {
+    store.audio.pause();
+  }
+};
+
+export const subscribeIntroAudioState = (
+  store: IntroAudioStore,
+  render: (state: IntroAudioState) => void
+) => {
+  const controller = new AbortController();
+
+  window.addEventListener(
+    INTRO_AUDIO_STATE_EVENT,
+    event => render((event as CustomEvent<IntroAudioState>).detail),
+    { signal: controller.signal }
+  );
+
+  document.addEventListener(
+    "astro:before-swap",
+    () => {
+      controller.abort();
+    },
+    { once: true, signal: controller.signal }
+  );
+
+  emitIntroAudioState(store);
+};

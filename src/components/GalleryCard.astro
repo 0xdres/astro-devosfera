@@ -3,21 +3,35 @@ import type { CollectionEntry } from "astro:content";
 import type { ImageMetadata } from "astro";
 import { Image } from "astro:assets";
 import Datetime from "./Datetime.astro";
+import { useTranslations } from "@/i18n/utils";
 
 type Props = {
   gallery: CollectionEntry<"galleries">;
   slug: string;
   fallbackImage?: ImageMetadata;
   imageCount?: number;
+  loading?: "lazy" | "eager";
+  fetchpriority?: "auto" | "high" | "low";
 };
 
-const { gallery, slug, fallbackImage, imageCount } = Astro.props;
+const {
+  gallery,
+  slug,
+  fallbackImage,
+  imageCount,
+  loading = "lazy",
+  fetchpriority,
+} = Astro.props;
 const { title, description, pubDatetime, coverImage } = gallery.data;
 const coverSrc = coverImage ?? fallbackImage;
+
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
+const prefix = locale === "es" ? "/es" : "";
 ---
 
 <a
-  href={`/galleries/${slug}`}
+  href={`${prefix}/galleries/${slug}`}
   class:list={[
     "card-glow group/card relative flex flex-col overflow-hidden rounded-2xl",
     "border border-border/25 backdrop-blur-sm",
@@ -27,63 +41,66 @@ const coverSrc = coverImage ?? fallbackImage;
     "hover:-translate-y-0.5",
     "hover:shadow-lg hover:shadow-accent/10",
   ]}
+  style={
+    loading === "lazy"
+      ? {
+          contentVisibility: "auto",
+          containIntrinsicSize: "auto 340px",
+        }
+      : undefined
+  }
 >
   <!-- Cursor-following glow -->
   <div
     class="card-glow-effect pointer-events-none absolute inset-0 z-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover/card:opacity-100"
     aria-hidden="true"
-  >
-  </div>
+  ></div>
 
   <!-- Cover image -->
-  <div
-    class="gallery-card-cover relative aspect-video w-full overflow-hidden bg-foreground/5"
-  >
-    {
-      coverSrc ? (
-        <Image
-          src={coverSrc}
-          alt={title}
-          class="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
-          loading="lazy"
-          widths={[400, 800]}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        />
-      ) : (
-        <div class="flex h-full w-full items-center justify-center text-foreground/20">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-        </div>
-      )
-    }
-    {
-      imageCount !== undefined && imageCount > 0 && (
-        <span class="absolute end-2 bottom-2 rounded-full bg-background/80 px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
-          {imageCount} {imageCount === 1 ? "photo" : "photos"}
-        </span>
-      )
-    }
+  <div class="gallery-card-cover relative aspect-video w-full overflow-hidden bg-foreground/5">
+    {coverSrc ? (
+      <Image
+        src={coverSrc}
+        alt={title}
+        class="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+        loading={loading}
+        fetchpriority={fetchpriority}
+        widths={[400, 800]}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        format="avif"
+        quality={72}
+      />
+    ) : (
+      <div class="flex h-full w-full items-center justify-center text-foreground/20">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+      </div>
+    )}
+    {imageCount !== undefined && imageCount > 0 && (
+      <span class="absolute end-2 bottom-2 rounded-full bg-background/80 px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
+        {imageCount}{" "}
+        {imageCount === 1 ? t("galleries.photo") : t("galleries.photos")}
+      </span>
+    )}
   </div>
 
   <!-- Info -->
   <div class="relative z-5 flex flex-1 flex-col gap-1.5 p-4 sm:p-5">
-    <h2
-      class="line-clamp-2 text-lg font-semibold text-foreground transition-colors duration-200 group-hover/card:text-accent"
-    >
+    <h2 class="line-clamp-2 text-lg font-semibold text-foreground transition-colors duration-200 group-hover/card:text-accent">
       {title}
     </h2>
     <Datetime pubDatetime={pubDatetime} class="text-xs" />

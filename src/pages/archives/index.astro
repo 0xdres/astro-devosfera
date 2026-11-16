@@ -4,25 +4,49 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Breadcrumb from "@/components/Breadcrumb.astro";
+import AuroraHero from "@/components/AuroraHero.astro";
 import IconGallery from "@/assets/icons/IconGallery.svg";
 import { getEntryPath } from "@/utils/contentEntry";
 import { slugifyStr } from "@/utils/slugify";
 import getPostsByGroupCondition from "@/utils/getPostsByGroupCondition";
+import getSortedPosts from "@/utils/getSortedPosts";
 import { SITE } from "@/config";
 
 if (!SITE.showArchives) {
   return Astro.redirect("/404");
 }
 
+import { useTranslations } from "@/i18n/utils";
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
+const prefix = locale === "es" ? "/es" : "";
+
+const isMatchingLocale = (id: string) =>
+  id.startsWith(`${locale}/`) || (locale === "en" && !id.startsWith("es/"));
+
 const [blogPosts, galleryPosts] = await Promise.all([
-  getCollection("blog", ({ data }) => !data.draft),
+  getCollection("blog", ({ id }) => isMatchingLocale(id)),
   SITE.showGalleries && SITE.showGalleriesInIndex
-    ? getCollection("galleries", ({ data }) => !data.draft)
+    ? getCollection("galleries", ({ id }) => isMatchingLocale(id))
     : Promise.resolve([]),
 ]);
-const posts = [...blogPosts, ...galleryPosts];
+const posts = getSortedPosts([...blogPosts, ...galleryPosts]);
 
-const months = [
+const monthsEN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const monthsES = [
   "Enero",
   "Febrero",
   "Marzo",
@@ -36,120 +60,128 @@ const months = [
   "Noviembre",
   "Diciembre",
 ];
+const months = locale === "es" ? monthsES : monthsEN;
 
 const totalPosts = posts.length;
 
 const yearGroups = Object.entries(
   getPostsByGroupCondition(posts, post => post.data.pubDatetime.getFullYear())
 ).sort(([a], [b]) => Number(b) - Number(a));
+
+let postIndex = 0;
 ---
 
-<Layout title={`Archives | ${SITE.title}`}>
+<Layout title={`${t("archives.title")} | ${SITE.title}`}>
   <Header />
   <Breadcrumb />
   <main id="main-content" class="app-layout pb-12">
     <!-- Hero -->
-    <div class="archive-hero" data-archive-hero>
-      <div class="aurora-orb aurora-orb-1"></div>
-      <div class="aurora-orb aurora-orb-2"></div>
-      <div class="aurora-orb aurora-orb-3"></div>
-      <div class="aurora-mouse" data-archive-mouse></div>
-      <div class="relative z-10">
-        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
-          <span class="glow-text">Archive</span>
-        </h1>
-        <p class="mt-3 max-w-lg text-foreground/70 italic">
-          A journey through everything I've published, organized over time.
-        </p>
-        <div class="mt-4 flex flex-wrap items-center gap-2">
-          <span class="hero-badge">{totalPosts} posts</span>
-          <span class="hero-badge"
-            >{yearGroups.length}
-            {yearGroups.length === 1 ? "año" : "años"}</span
-          >
-        </div>
+    <AuroraHero
+      title={t("archives.title")}
+      description={t("archives.desc")}
+      class="mb-10"
+    >
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <span class="hero-badge">
+          {totalPosts} {t("archives.posts")}
+        </span>
+        <span class="hero-badge">
+          {yearGroups.length}
+          {yearGroups.length === 1 ? t("archives.year") : t("archives.years")}
+        </span>
       </div>
-    </div>
+    </AuroraHero>
 
     <!-- Timeline -->
     <div class="timeline">
-      {
-        yearGroups.map(([year, yearPosts]) => {
-          const monthGroups = Object.entries(
-            getPostsByGroupCondition(
-              yearPosts,
-              post => post.data.pubDatetime.getMonth() + 1
-            )
-          ).sort(([a], [b]) => Number(b) - Number(a));
+      {yearGroups.map(([year, yearPosts]) => {
+        const monthGroups = Object.entries(
+          getPostsByGroupCondition(
+            yearPosts,
+            post => post.data.pubDatetime.getMonth() + 1
+          )
+        ).sort(([a], [b]) => Number(b) - Number(a));
 
-          return (
-            <div class="year-section">
-              {/* Year marker */}
-              <div class="year-marker" data-archive-card>
-                <div class="year-aurora" data-card-aurora />
-                <span class="year-label">{year}</span>
-                <span class="year-count">{yearPosts.length}</span>
-              </div>
-
-              {monthGroups.map(([month, monthPosts]) => (
-                <div class="month-section">
-                  <div class="month-header">
-                    <span class="month-name">{months[Number(month) - 1]}</span>
-                    <span class="month-count">{monthPosts.length}</span>
-                    <div class="month-line" />
-                  </div>
-
-                  <div class="posts-list">
-                    {monthPosts
-                      .sort(
-                        (a, b) =>
-                          new Date(b.data.pubDatetime).getTime() -
-                          new Date(a.data.pubDatetime).getTime()
-                      )
-                      .map(post => {
-                        const day = new Date(post.data.pubDatetime).getDate();
-                        return (
-                          <a
-                            href={getEntryPath(post)}
-                            class="post-card group"
-                            data-archive-card
-                          >
-                            <div class="post-aurora" data-card-aurora />
-                            <div class="post-border-glow" data-card-border />
-                            <div class="post-dot" />
-                            <div class="post-inner">
-                              <div class="post-day">
-                                {String(day).padStart(2, "0")}
-                              </div>
-                              <div class="post-info">
-                                <span
-                                  class="post-title flex items-center gap-2"
-                                  style={{
-                                    viewTransitionName: slugifyStr(
-                                      post.data.title.replaceAll(".", "-")
-                                    ),
-                                  }}
-                                >
-                                  {post.collection === "galleries" && (
-                                    <span title="Gallery" class="inline-flex items-center justify-center p-0.5 rounded-md text-accent/80 opacity-70">
-                                      <IconGallery class="size-3.5" />
-                                    </span>
-                                  )}
-                                  {post.data.title}
-                                </span>
-                                <p class="post-desc">{post.data.description}</p>
-                              </div>
-                            </div>
-                          </a>
-                        );
-                      })}
-                  </div>
-                </div>
-              ))}
+        return (
+          <div class="year-section">
+            {/* Year marker */}
+            <div class="year-marker" data-archive-card>
+              <div class="year-aurora" data-card-aurora />
+              <span class="year-label">{year}</span>
+              <span class="year-count">{yearPosts.length}</span>
             </div>
-          );
-        })
-      }
+
+            {monthGroups.map(([month, monthPosts]) => (
+              <div class="month-section">
+                <div class="month-header">
+                  <span class="month-name">{months[Number(month) - 1]}</span>
+                  <span class="month-count">{monthPosts.length}</span>
+                  <div class="month-line" />
+                </div>
+
+                <div class="posts-list">
+                  {monthPosts
+                    .sort(
+                      (a, b) =>
+                        new Date(b.data.pubDatetime).getTime() -
+                        new Date(a.data.pubDatetime).getTime()
+                    )
+                    .map(post => {
+                      const day = new Date(post.data.pubDatetime).getDate();
+                      const isLazy = postIndex >= 6;
+                      postIndex++;
+                      return (
+                        <a
+                          href={prefix + getEntryPath(post)}
+                          class="post-card group"
+                          data-archive-card
+                          style={
+                            isLazy
+                              ? {
+                                  contentVisibility: "auto",
+                                  containIntrinsicSize: "auto 110px",
+                                }
+                              : undefined
+                          }
+                        >
+                          <div class="post-aurora" data-card-aurora />
+                          <div class="post-border-glow" data-card-border />
+                          <div class="post-dot" />
+                          <div class="post-inner">
+                            <div class="post-day">
+                              {String(day).padStart(2, "0")}
+                            </div>
+                            <div class="post-info">
+                              <span
+                                class="post-title flex items-center gap-2"
+                                style={{
+                                  viewTransitionName: slugifyStr(
+                                    post.data.title.replaceAll(".", "-")
+                                  ),
+                                }}
+                              >
+                                {post.collection === "galleries" && (
+                                  <span
+                                    title="Gallery"
+                                    class="inline-flex items-center justify-center rounded-md p-0.5 text-accent/80 opacity-70"
+                                  >
+                                    <IconGallery class="size-3.5" />
+                                  </span>
+                                )}
+                                {post.data.title}
+                              </span>
+                              <p class="post-desc">{post.data.description}</p>
+                            </div>
+                          </div>
+                        </a>
+                      );
+                    })}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })}
     </div>
   </main>
   <Footer />
@@ -163,33 +195,6 @@ const yearGroups = Object.entries(
     if (archiveCleanup) archiveCleanup.abort();
     archiveCleanup = new AbortController();
     const { signal } = archiveCleanup;
-
-    // Hero mouse-follow
-    const hero = document.querySelector("[data-archive-hero]") as HTMLElement;
-    const heroMouse = document.querySelector(
-      "[data-archive-mouse]"
-    ) as HTMLElement;
-    if (hero && heroMouse) {
-      hero.addEventListener(
-        "mousemove",
-        e => {
-          requestAnimationFrame(() => {
-            const rect = hero.getBoundingClientRect();
-            heroMouse.style.setProperty("--mx", `${e.clientX - rect.left}px`);
-            heroMouse.style.setProperty("--my", `${e.clientY - rect.top}px`);
-            heroMouse.style.opacity = "1";
-          });
-        },
-        { signal }
-      );
-      hero.addEventListener(
-        "mouseleave",
-        () => {
-          heroMouse.style.opacity = "0";
-        },
-        { signal }
-      );
-    }
 
     // Card mouse-follow aurora
     document.querySelectorAll("[data-archive-card]").forEach(card => {
@@ -230,145 +235,6 @@ const yearGroups = Object.entries(
 </script>
 
 <style>
-  /* ===== Hero ===== */
-  .archive-hero {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1.5rem;
-    padding: 2.5rem 2rem;
-    margin-bottom: 2.5rem;
-    background: color-mix(
-      in srgb,
-      var(--color-foreground) 3%,
-      var(--color-background)
-    );
-    border: 1px solid color-mix(in srgb, var(--color-accent) 12%, transparent);
-  }
-  @media (min-width: 640px) {
-    .archive-hero {
-      padding: 3rem;
-    }
-  }
-
-  .aurora-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(60px);
-    pointer-events: none;
-    will-change: transform;
-  }
-  .aurora-orb-1 {
-    width: 300px;
-    height: 300px;
-    top: -30%;
-    left: -10%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-accent) 25%, transparent),
-      transparent 70%
-    );
-    animation: orb-1 7s ease-in-out infinite alternate;
-  }
-  .aurora-orb-2 {
-    width: 250px;
-    height: 250px;
-    top: 10%;
-    right: -5%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-border) 20%, transparent),
-      transparent 70%
-    );
-    animation: orb-2 9s ease-in-out infinite alternate;
-  }
-  .aurora-orb-3 {
-    width: 200px;
-    height: 200px;
-    bottom: -20%;
-    left: 40%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-accent) 12%, transparent),
-      transparent 70%
-    );
-    animation: orb-3 11s ease-in-out infinite alternate;
-  }
-  @keyframes orb-1 {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    100% {
-      transform: translate(40px, 20px) scale(1.2);
-    }
-  }
-  @keyframes orb-2 {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    100% {
-      transform: translate(-30px, 30px) scale(1.15);
-    }
-  }
-  @keyframes orb-3 {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    100% {
-      transform: translate(20px, -25px) scale(1.1);
-    }
-  }
-
-  .aurora-mouse {
-    position: absolute;
-    width: 350px;
-    height: 350px;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-accent) 18%, transparent),
-      color-mix(in srgb, var(--color-border) 8%, transparent) 40%,
-      transparent 70%
-    );
-    filter: blur(50px);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    transform: translate(
-      calc(var(--mx, 0px) - 175px),
-      calc(var(--my, 0px) - 175px)
-    );
-    will-change: transform;
-    z-index: 1;
-  }
-
-  .glow-text {
-    background: linear-gradient(
-      135deg,
-      var(--color-foreground),
-      var(--color-accent)
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(
-      0 0 25px color-mix(in srgb, var(--color-accent) 25%, transparent)
-    );
-  }
-
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.3rem 0.85rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--color-accent);
-    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-accent) 15%, transparent);
-    backdrop-filter: blur(8px);
-  }
-
   /* ===== Timeline ===== */
   .timeline {
     position: relative;
@@ -565,8 +431,12 @@ const yearGroups = Object.entries(
       calc(var(--mx, 0px) - 100px),
       calc(var(--my, 0px) - 100px)
     );
-    will-change: transform;
     z-index: -1;
+  }
+
+  .post-card:hover .post-aurora,
+  .post-card:focus-within .post-aurora {
+    will-change: transform;
   }
 
   .post-border-glow {
@@ -587,9 +457,13 @@ const yearGroups = Object.entries(
       calc(var(--mx, 0px) - 60px),
       calc(var(--my, 0px) - 60px)
     );
-    will-change: transform;
     z-index: -1;
     mix-blend-mode: screen;
+  }
+
+  .post-card:hover .post-border-glow,
+  .post-card:focus-within .post-border-glow {
+    will-change: transform;
   }
 
   /* Timeline dot */

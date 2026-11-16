@@ -21,7 +21,12 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
   class:list={["app-layout mt-6 mb-2", { "overflow-hidden": withBackButton }]}
   aria-label={withBackButton ? "Contextual navigation" : "breadcrumb"}
 >
-  <div class:list={["flex items-center gap-3", { "justify-between": withBackButton }]}>
+  <div
+    class:list={[
+      "flex items-center gap-3",
+      { "justify-between": withBackButton },
+    ]}
+  >
     {withBackButton && (
       <a
         id="back-button"
@@ -30,7 +35,9 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
         aria-label={`Go back to the previous page. Current context: ${currentPageLabel}`}
       >
         <IconChevronLeft class="size-4 opacity-70 transition-transform duration-200 group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5" />
-        <span aria-hidden="true" class="tracking-wide">cd ..</span>
+        <span aria-hidden="true" class="tracking-wide">
+          cd ..
+        </span>
         <span class="visually-hidden">Go back</span>
       </a>
     )}
@@ -43,10 +50,13 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
         },
       ]}
     >
-      <li class:list={["breadcrumb-item", { "is-root": withBackButton }]}> 
+      <li class:list={["breadcrumb-item", { "is-root": withBackButton }]}>
         <a
           href="/"
-          class:list={["breadcrumb-home", { "breadcrumb-link-soft": withBackButton }]}
+          class:list={[
+            "breadcrumb-home",
+            { "breadcrumb-link-soft": withBackButton },
+          ]}
           aria-label="Home"
           title="Home"
         >
@@ -54,21 +64,23 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
           <span class="visually-hidden">Home</span>
         </a>
       </li>
-    {
-      breadcrumbs.map(item => (
+      {breadcrumbs.map(item => (
         <li class:list={["breadcrumb-item", { "is-current": !item.href }]}>
           {item.href ? (
             <a href={item.href} class="breadcrumb-link">
               {item.label}
             </a>
           ) : (
-            <span class="breadcrumb-current" aria-current="page" title={item.label}>
+            <span
+              class="breadcrumb-current"
+              aria-current="page"
+              title={item.label}
+            >
               {item.label}
             </span>
           )}
         </li>
-      ))
-    }
+      ))}
     </ol>
   </div>
 </nav>
@@ -251,45 +263,40 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
   }
 </style>
 
-{
-  withBackButton && (
-    <script>
-      const BACK_BUTTON_SELECTOR = "#back-button";
-      const FALLBACK_BACK_URL = "/";
+{withBackButton && <script>
+  const BACK_BUTTON_SELECTOR = "#back-button";
+  const FALLBACK_BACK_URL = "/";
 
-      function toSafeBackPath(rawBackUrl: string | null) {
-        if (!rawBackUrl) return FALLBACK_BACK_URL;
+  function toSafeBackPath(rawBackUrl: string | null) {
+    if (!rawBackUrl) return FALLBACK_BACK_URL;
 
-        try {
-          const parsedUrl = new URL(rawBackUrl, window.location.origin);
-          const isSameOrigin = parsedUrl.origin === window.location.origin;
-          const isHttpProtocol =
-            parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+    try {
+      const parsedUrl = new URL(rawBackUrl, window.location.origin);
+      const isSameOrigin = parsedUrl.origin === window.location.origin;
+      const isHttpProtocol =
+        parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
 
-          if (!isSameOrigin || !isHttpProtocol) return FALLBACK_BACK_URL;
+      if (!isSameOrigin || !isHttpProtocol) return FALLBACK_BACK_URL;
 
-          return (
-            `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}` ||
-            FALLBACK_BACK_URL
-          );
-        } catch {
-          return FALLBACK_BACK_URL;
-        }
-      }
+      return (
+        `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}` ||
+        FALLBACK_BACK_URL
+      );
+    } catch {
+      return FALLBACK_BACK_URL;
+    }
+  }
 
-      function updateGoBackUrl() {
-        const backButton = document.querySelector<HTMLAnchorElement>(
-          BACK_BUTTON_SELECTOR
-        );
+  function updateGoBackUrl() {
+    const backButton =
+      document.querySelector<HTMLAnchorElement>(BACK_BUTTON_SELECTOR);
 
-        if (!backButton) return;
+    if (!backButton) return;
 
-        const rawBackUrl = sessionStorage.getItem("backUrl");
-        backButton.href = toSafeBackPath(rawBackUrl);
-      }
+    const rawBackUrl = sessionStorage.getItem("backUrl");
+    backButton.href = toSafeBackPath(rawBackUrl);
+  }
 
-      document.addEventListener("astro:page-load", updateGoBackUrl);
-      updateGoBackUrl();
-    </script>
-  )
-}
+  document.addEventListener("astro:page-load", updateGoBackUrl);
+  updateGoBackUrl();
+</script>}

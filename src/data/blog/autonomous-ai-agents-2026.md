@@ -23,8 +23,6 @@ For years, AI assistants acted as oracles: you asked, they answered. In 2026 the
   </figcaption>
 </figure>
 
-## Table of contents
-
 ## What is an AI agent?
 
 An agent is a system that perceives its environment, reasons about it, and takes actions to achieve a goal. What changed in recent years is that LLMs (Large Language Models) now act as the agent's "brain", while external tools —search engines, code interpreters, APIs— are its "hands".
@@ -105,12 +103,12 @@ crew.kickoff()
 
 ## Real use cases
 
-| Use case                 | Agent involved                       | Estimated savings                  |
-| ------------------------ | ------------------------------------ | ---------------------------------- |
-| Automated code review    | Static analysis agent + LLM          | 60% of review time                 |
-| Test generation          | Plan-and-Execute over codebase       | 40% effortless coverage            |
-| Incident response        | Monitor + Reasoner + Actuator        | MTTR reduction by 70%              |
-| Living documentation     | Agent that reads commits & makes docs| Non-stop updated documentation     |
+| Use case              | Agent involved                        | Estimated savings              |
+| --------------------- | ------------------------------------- | ------------------------------ |
+| Automated code review | Static analysis agent + LLM           | 60% of review time             |
+| Test generation       | Plan-and-Execute over codebase        | 40% effortless coverage        |
+| Incident response     | Monitor + Reasoner + Actuator         | MTTR reduction by 70%          |
+| Living documentation  | Agent that reads commits & makes docs | Non-stop updated documentation |
 
 ## Security considerations
 

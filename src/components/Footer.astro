@@ -26,16 +26,11 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
   {...attrs}
 >
   <!-- Top gradient border -->
-  <div
-    class="h-px w-full bg-linear-to-r from-transparent via-border/40 to-transparent"
-  >
-  </div>
+  <div class="h-px w-full bg-linear-to-r from-transparent via-border/40 to-transparent"></div>
 
   <div class="app-layout py-8 sm:py-10">
     <!-- Main footer grid -->
-    <div
-      class="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between"
-    >
+    <div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between">
       <!-- Brand column -->
       <div class="flex flex-col items-center gap-3 sm:items-start">
         <a
@@ -46,53 +41,48 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
           <Logo class="footer-logo w-28 opacity-80 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105 dark:invert" />
           <span class="sr-only">{SITE.title}</span>
         </a>
-        <p
-          class="max-w-xs text-center font-firacode text-[11px] leading-relaxed tracking-wide text-foreground/55 sm:text-start"
-        >
+        <p class="max-w-xs text-center font-firacode text-[11px] leading-relaxed tracking-wide text-foreground/55 sm:text-start">
           A space where curiosity turns into code.
         </p>
       </div>
 
       <!-- Social links -->
-      <nav class="flex flex-col items-center gap-3 sm:items-end" aria-labelledby={socialHeadingId}>
+      <nav
+        class="flex flex-col items-center gap-3 sm:items-end"
+        aria-labelledby={socialHeadingId}
+      >
         <p
           id={socialHeadingId}
           class="font-firacode text-[10px] tracking-wider text-foreground/55 uppercase select-none"
-          >Connect</p
         >
+          Connect
+        </p>
         <ul class="flex items-center gap-2" role="list">
-          {
-            socialLinks.map(social => (
-              <li>
-                <LinkButton
-                  href={social.href}
-                  target={social.isExternal ? "_blank" : undefined}
-                  rel={social.isExternal ? "noopener noreferrer" : undefined}
-                  aria-label={social.linkTitle}
-                  class="footer-social-btn group relative flex size-9 items-center justify-center rounded-xl border border-border/20 bg-muted/20 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
-                  title={social.linkTitle}
-                >
-                  <social.icon class="size-4.5 fill-transparent stroke-foreground/60 stroke-[1.5px] transition-all duration-300 group-hover:stroke-accent" />
-                  <span class="sr-only">{social.linkTitle}</span>
-                </LinkButton>
-              </li>
-            ))
-          }
+          {socialLinks.map(social => (
+            <li>
+              <LinkButton
+                href={social.href}
+                target={social.isExternal ? "_blank" : undefined}
+                rel={social.isExternal ? "noopener noreferrer" : undefined}
+                aria-label={social.linkTitle}
+                class="footer-social-btn group relative flex size-9 items-center justify-center rounded-xl border border-border/20 bg-muted/20 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                title={social.linkTitle}
+              >
+                <social.icon class="size-4.5 fill-transparent stroke-foreground/60 stroke-[1.5px] transition-all duration-300 group-hover:stroke-accent" />
+                <span class="sr-only">{social.linkTitle}</span>
+              </LinkButton>
+            </li>
+          ))}
         </ul>
       </nav>
     </div>
 
     <!-- Bottom bar -->
     <div class="mt-8 flex items-center gap-3" aria-hidden="true">
-      <div
-        class="h-px flex-1 bg-linear-to-r from-transparent via-border/25 to-transparent"
-      >
-      </div>
+      <div class="h-px flex-1 bg-linear-to-r from-transparent via-border/25 to-transparent"></div>
     </div>
 
-    <div
-      class="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row"
-    >
+    <div class="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
       <p class="font-firacode text-[11px] tracking-wide text-foreground/50">
         &copy; {currentYear}
         {SITE.title}. All rights reserved.
@@ -116,7 +106,9 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
     );
   }
 
-  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  @supports (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+  ) {
     .footer-wrapper {
       backdrop-filter: blur(12px) saturate(140%);
       -webkit-backdrop-filter: blur(12px) saturate(140%);
@@ -133,7 +125,8 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
   }
 
   .footer-social-btn:hover {
-    box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--accent) 30%, transparent);
+    box-shadow: 0 8px 20px -4px
+      color-mix(in srgb, var(--accent) 30%, transparent);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -34,8 +34,12 @@ const backUrl = SITE.showBackButton ? `${Astro.url.pathname}` : "/";
       <div class="search-aurora" data-card-aurora></div>
       <div class="search-border-glow" data-card-border></div>
       <div class="search-inner">
-        <div id="pagefind-search" class="premium-search" transition:persist data-backurl={backUrl}>
-        </div>
+        <div
+          id="pagefind-search"
+          class="premium-search"
+          transition:persist
+          data-backurl={backUrl}
+        ></div>
       </div>
     </div>
   </main>

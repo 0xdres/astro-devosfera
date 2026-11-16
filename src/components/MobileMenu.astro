@@ -11,8 +11,8 @@ interface Props {
 const { currentPath } = Astro.props;
 
 const isActive = (path: string) => {
-  const currentPathArray = currentPath.split("/").filter((p) => p.trim());
-  const pathArray = path.split("/").filter((p) => p.trim());
+  const currentPathArray = currentPath.split("/").filter(p => p.trim());
+  const pathArray = path.split("/").filter(p => p.trim());
   return currentPath === path || currentPathArray[0] === pathArray[0];
 };
 ---
@@ -23,9 +23,7 @@ const isActive = (path: string) => {
 
   <!-- Floating Glass Panel -->
   <div class="app-layout">
-    <div
-      class="mobile-menu-panel relative mt-2 w-full mx-auto rounded-2xl border border-white/10 dark:border-white/5 overflow-hidden shadow-2xl"
-    >
+    <div class="mobile-menu-panel relative mt-2 w-full mx-auto rounded-2xl border border-white/10 dark:border-white/5 overflow-hidden shadow-2xl">
       <div class="mobile-menu-inner">
         <nav class="mobile-nav-links">
           <a
@@ -52,36 +50,32 @@ const isActive = (path: string) => {
             <span class="mobile-nav-indicator"></span>
             <span>About</span>
           </a>
-          {
-            SITE.showArchives && (
-              <a
-                href="/archives"
-                class:list={[
-                  "mobile-nav-link",
-                  { active: isActive("/archives") },
-                ]}
-                style="--i:3"
-              >
-                <span class="mobile-nav-indicator" />
-                <span>Archives</span>
-              </a>
-            )
-          }
-          {
-            SITE.showGalleries && (
-              <a
-                href="/galleries"
-                class:list={[
-                  "mobile-nav-link",
-                  { active: isActive("/galleries") },
-                ]}
-                style="--i:4"
-              >
-                <span class="mobile-nav-indicator" />
-                <span>Galleries</span>
-              </a>
-            )
-          }
+          {SITE.showArchives && (
+            <a
+              href="/archives"
+              class:list={[
+                "mobile-nav-link",
+                { active: isActive("/archives") },
+              ]}
+              style="--i:3"
+            >
+              <span class="mobile-nav-indicator" />
+              <span>Archives</span>
+            </a>
+          )}
+          {SITE.showGalleries && (
+            <a
+              href="/galleries"
+              class:list={[
+                "mobile-nav-link",
+                { active: isActive("/galleries") },
+              ]}
+              style="--i:4"
+            >
+              <span class="mobile-nav-indicator" />
+              <span>Galleries</span>
+            </a>
+          )}
         </nav>
 
         <!-- Divider -->
@@ -98,22 +92,20 @@ const isActive = (path: string) => {
             <IconSearch class="size-4" />
             <span>Search</span>
           </button>
-          {
-            SITE.lightAndDarkMode && (
-              <button
-                id="theme-btn-mobile"
-                class="mobile-action-btn flex-1 justify-center"
-                title="Toggle theme"
-                aria-label="auto"
-                aria-live="polite"
-              >
-                <IconMoon class="block size-4 dark:hidden" />
-                <IconSunHigh class="hidden size-4 dark:block" />
-                <span class="block dark:hidden">Dark mode</span>
-                <span class="hidden dark:block">Light mode</span>
-              </button>
-            )
-          }
+          {SITE.lightAndDarkMode && (
+            <button
+              id="theme-btn-mobile"
+              class="mobile-action-btn flex-1 justify-center"
+              title="Toggle theme"
+              aria-label="auto"
+              aria-live="polite"
+            >
+              <IconMoon class="block size-4 dark:hidden" />
+              <IconSunHigh class="hidden size-4 dark:block" />
+              <span class="block dark:hidden">Dark mode</span>
+              <span class="hidden dark:block">Light mode</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -140,7 +132,9 @@ const isActive = (path: string) => {
     inset: 0;
     z-index: -1;
     background: rgba(0, 0, 0, 0);
-    transition: background-color 0.4s ease, opacity 0.4s ease;
+    transition:
+      background-color 0.4s ease,
+      opacity 0.4s ease;
     opacity: 0;
     pointer-events: none;
   }
@@ -196,7 +190,9 @@ const isActive = (path: string) => {
     font-weight: 500;
     color: var(--foreground);
     border-radius: 0.75rem;
-    transition: color 0.1s ease-out, background-color 0.1s ease-out;
+    transition:
+      color 0.1s ease-out,
+      background-color 0.1s ease-out;
     opacity: 0;
     transform: translateY(8px);
   }
@@ -232,7 +228,9 @@ const isActive = (path: string) => {
     height: 6px;
     border-radius: 50%;
     background: color-mix(in srgb, var(--foreground) 20%, transparent);
-    transition: background-color 0.1s ease-out, box-shadow 0.1s ease-out;
+    transition:
+      background-color 0.1s ease-out,
+      box-shadow 0.1s ease-out;
     flex-shrink: 0;
   }
 
@@ -262,7 +260,9 @@ const isActive = (path: string) => {
     gap: 0.5rem;
     opacity: 0;
     transform: translateY(6px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
   }
 
   .mobile-menu.is-open .mobile-menu-actions {
@@ -283,7 +283,9 @@ const isActive = (path: string) => {
     border: 1px solid color-mix(in srgb, var(--border) 20%, transparent);
     background: color-mix(in srgb, var(--background) 50%, transparent);
     backdrop-filter: blur(8px);
-    transition: color 0.2s ease, background-color 0.2s ease,
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
       border-color 0.2s ease;
     cursor: pointer;
   }

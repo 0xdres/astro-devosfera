@@ -84,7 +84,11 @@ import "@pagefind/default-ui/css/ui.css";
 
     <!-- Search body -->
     <div class="search-modal-body">
-      <div id="modal-pagefind-search" class="premium-search" style="--pagefind-ui-scale: 0.9;"></div>
+      <div
+        id="modal-pagefind-search"
+        class="premium-search"
+        style="--pagefind-ui-scale: 0.9;"
+      ></div>
       <!-- Empty state illustration -->
       <div class="search-empty-state" data-search-empty>
         <div class="empty-icon">
@@ -244,7 +248,7 @@ import "@pagefind/default-ui/css/ui.css";
         window.requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1));
       onIdle(async () => {
         if (signal.aborted) return;
-        
+
         // Ensure Pagefind UI does not re-initialize on the same element
         if (container.querySelector(".pagefind-ui")) return;
 

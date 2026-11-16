@@ -1,8 +1,12 @@
 import satori from "satori";
+import type { CollectionEntry } from "astro:content";
 import { SITE } from "@/config";
-import loadGoogleFonts from "../loadGoogleFont";
+import loadOgFont from "../loadOgFont";
 
-export default async post => {
+export default async function postOgImage(post: CollectionEntry<"blog">) {
+  const siteHostname = new URL(SITE.website).hostname;
+  const writtenBy = post.id.startsWith("es/") ? "Escrito por " : "Written by ";
+
   return satori(
     {
       type: "div",
@@ -59,7 +63,7 @@ export default async post => {
                     color: "#e2e8f0",
                     letterSpacing: "2px",
                   },
-                  children: SITE.title + ".com",
+                  children: siteHostname,
                 },
               },
             },
@@ -73,7 +77,6 @@ export default async post => {
                 display: "flex",
                 flexDirection: "column",
                 width: "100%",
-                // zIndex removed (not needed due to child order)
               },
               children: {
                 type: "h1",
@@ -85,7 +88,6 @@ export default async post => {
                     margin: 0,
                     color: "#ffffff",
                     textShadow: "0 2px 10px rgba(0,0,0,0.3)",
-
                     overflow: "hidden",
                     display: "-webkit-box",
                     lineClamp: 3,
@@ -105,7 +107,6 @@ export default async post => {
                 display: "flex",
                 alignItems: "center",
                 width: "100%",
-                // zIndex removed
               },
               children: [
                 // Decorative separator line
@@ -128,7 +129,7 @@ export default async post => {
                       color: "#cbd5e1",
                     },
                     children: [
-                      "Written by ",
+                      writtenBy,
                       {
                         type: "span",
                         props: {
@@ -153,9 +154,7 @@ export default async post => {
       width: 1200,
       height: 630,
       embedFont: true,
-      fonts: await loadGoogleFonts(
-        post.data.title + post.data.author + SITE.title + "Writtenby" + ".com"
-      ),
+      fonts: await loadOgFont(),
     }
   );
-};
+}

@@ -12,8 +12,6 @@ draft: false
 
 React 19 is the most important update since the introduction of Hooks. It doesn't bring radical new concepts — it brings the definitive solution to a problem we solved a thousand times in different ways: **handling forms and mutations**.
 
-## Table of contents
-
 ## The problem React 19 solves
 
 Before React 19, a form with loading feedback, error handling, and optimistic updating required this:
@@ -198,10 +196,10 @@ export function PostCard({ post }: { post: Post }) {
 
 ## Summary of new APIs
 
-| API              | Replaces                                    | When to use                               |
-| ---------------- | ------------------------------------------- | ----------------------------------------- |
-| `useActionState` | `useState` + `useReducer` for forms         | Any mutation with UI feedback             |
-| `useOptimistic`  | Manual rollback logic                       | Updates that improve perceived performance|
-| `use(promise)`   | `useEffect` + `useState` for data fetching  | Components reading promises in render     |
-| `use(context)`   | `useContext`                                | When you need to read it conditionally    |
-| `ref` as prop    | `forwardRef`                                | Always — removes the unnecessary wrapper  |
+| API              | Replaces                                   | When to use                                |
+| ---------------- | ------------------------------------------ | ------------------------------------------ |
+| `useActionState` | `useState` + `useReducer` for forms        | Any mutation with UI feedback              |
+| `useOptimistic`  | Manual rollback logic                      | Updates that improve perceived performance |
+| `use(promise)`   | `useEffect` + `useState` for data fetching | Components reading promises in render      |
+| `use(context)`   | `useContext`                               | When you need to read it conditionally     |
+| `ref` as prop    | `forwardRef`                               | Always — removes the unnecessary wrapper   |

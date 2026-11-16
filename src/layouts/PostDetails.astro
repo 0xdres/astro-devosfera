@@ -4,7 +4,6 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Datetime from "@/components/Datetime.astro";
-import EditPost from "@/components/EditPost.astro";
 import ShareLinks from "@/components/ShareLinks.astro";
 import Breadcrumb from "@/components/Breadcrumb.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
@@ -26,12 +25,9 @@ const {
   author,
   description,
   ogImage: initOgImage,
-  canonicalURL,
   pubDatetime,
   modDatetime,
-  timezone,
   tags,
-  hideEditPost,
 } = post.data;
 
 const { Content } = await render(post);
@@ -62,7 +58,6 @@ const layoutProps = {
   description,
   pubDatetime,
   modDatetime,
-  canonicalURL,
   ogImage,
   scrollSmooth: true,
 };
@@ -79,7 +74,9 @@ const currentPostIndex = allPosts.findIndex(a => a.id === post.id);
 
 const prevPost = currentPostIndex !== 0 ? allPosts[currentPostIndex - 1] : null;
 const nextPost =
-  currentPostIndex < allPosts.length - 1 ? allPosts[currentPostIndex + 1] : null;
+  currentPostIndex < allPosts.length - 1
+    ? allPosts[currentPostIndex + 1]
+    : null;
 ---
 
 <Layout {...layoutProps}>
@@ -104,27 +101,21 @@ const nextPost =
 
         <!-- Tags as badges -->
         <div class="mt-4 flex flex-wrap justify-center gap-2">
-          {
-            tags.map((tag: string) => (
-              <a
-                href={`/tags/${slugifyStr(tag)}/`}
-                class="post-tag-badge inline-flex items-center gap-1 rounded-full border border-accent/20 bg-accent/5 px-2.5 py-0.5 font-firacode text-xs text-accent transition-all duration-200 hover:border-accent/40 hover:bg-accent/10 hover:shadow-sm hover:shadow-accent/10"
-              >
-                <span class="opacity-50">#</span>
-                {tag}
-              </a>
-            ))
-          }
+          {tags.map((tag: string) => (
+            <a
+              href={`/tags/${slugifyStr(tag)}/`}
+              class="post-tag-badge inline-flex items-center gap-1 rounded-full border border-accent/20 bg-accent/5 px-2.5 py-0.5 font-firacode text-xs text-accent transition-all duration-200 hover:border-accent/40 hover:bg-accent/10 hover:shadow-sm hover:shadow-accent/10"
+            >
+              <span class="opacity-50">#</span>
+              {tag}
+            </a>
+          ))}
         </div>
 
         <!-- Metadata row -->
-        <div
-          class="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm"
-        >
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm">
           <!-- Author chip -->
-          <div
-            class="inline-flex items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 backdrop-blur-sm"
-          >
+          <div class="inline-flex items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 backdrop-blur-sm">
             <svg
               class="size-3.5 text-accent/70"
               viewBox="0 0 24 24"
@@ -141,9 +132,7 @@ const nextPost =
           </div>
 
           <!-- Date chip -->
-          <div
-            class="inline-flex items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 backdrop-blur-sm"
-          >
+          <div class="inline-flex items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 backdrop-blur-sm">
             <svg
               class="size-3.5 text-accent/70"
               viewBox="0 0 24 24"
@@ -161,7 +150,6 @@ const nextPost =
             <Datetime
               {pubDatetime}
               {modDatetime}
-              {timezone}
               size="sm"
               class="opacity-70 [&>svg]:hidden"
             />
@@ -169,9 +157,7 @@ const nextPost =
 
           <!-- Reading time chip -->
           {readingTime && (
-            <div
-              class="inline-flex items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 backdrop-blur-sm"
-            >
+            <div class="inline-flex items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 backdrop-blur-sm">
               <svg
                 class="size-3.5 text-accent/70"
                 viewBox="0 0 24 24"
@@ -188,16 +174,7 @@ const nextPost =
               <span class="text-sm opacity-70">{readingTime}</span>
             </div>
           )}
-
-          <!-- Edit post -->
-          <EditPost
-            {hideEditPost}
-            {post}
-            class="flex rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 opacity-70 backdrop-blur-sm transition-all duration-200 hover:border-accent/30 hover:opacity-100 [&>svg]:size-3.5"
-          />
         </div>
-
-
       </div>
     </header>
 
@@ -209,11 +186,14 @@ const nextPost =
     </article>
 
     <!-- ═══════ Post footer section ═══════ -->
-    <div class="relative mt-12 mb-8 flex items-center justify-center gap-4" aria-hidden="true">
+    <div
+      class="relative mt-12 mb-8 flex items-center justify-center gap-4"
+      aria-hidden="true"
+    >
       <div class="relative h-px flex-1 bg-linear-to-r from-transparent via-border/30 to-accent/20">
         <div class="absolute inset-0 bg-linear-to-r from-transparent via-accent/40 to-accent/40 blur-[2px]"></div>
       </div>
-      
+
       <div class="relative z-10 flex items-center gap-2 font-firacode text-[10px] tracking-widest text-accent/40 uppercase select-none">
         <span class="h-1.5 w-1.5 rounded-full bg-accent/50 shadow-[0_0_8px_var(--color-accent)]"></span>
         end
@@ -225,23 +205,22 @@ const nextPost =
     </div>
 
     <!-- Tags & Share row -->
-    <div
-      class="mt-6 mb-8 flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between"
-    >
+    <div class="mt-6 mb-8 flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between">
       <!-- Tags (duplicated from header — aria-hidden to avoid double indexing) -->
-      <div class="flex flex-wrap justify-center gap-2 sm:justify-start" aria-hidden="true">
-        {
-          tags.map((tag: string) => (
-            <a
-              href={`/tags/${slugifyStr(tag)}/`}
-              tabindex="-1"
-              class="inline-flex items-center gap-1 rounded-full border border-border/25 bg-muted/10 px-2.5 py-1 font-firacode text-xs transition-all duration-200 hover:border-accent/40 hover:bg-accent/5 hover:text-accent"
-            >
-              <span class="opacity-40">#</span>
-              {tag}
-            </a>
-          ))
-        }
+      <div
+        class="flex flex-wrap justify-center gap-2 sm:justify-start"
+        aria-hidden="true"
+      >
+        {tags.map((tag: string) => (
+          <a
+            href={`/tags/${slugifyStr(tag)}/`}
+            tabindex="-1"
+            class="inline-flex items-center gap-1 rounded-full border border-border/25 bg-muted/10 px-2.5 py-1 font-firacode text-xs transition-all duration-200 hover:border-accent/40 hover:bg-accent/5 hover:text-accent"
+          >
+            <span class="opacity-40">#</span>
+            {tag}
+          </a>
+        ))}
       </div>
 
       <!-- Share links -->
@@ -250,76 +229,69 @@ const nextPost =
 
     <!-- Decorative separator before prev/next -->
     <div class="my-6 flex items-center gap-3" aria-hidden="true">
-      <div
-        class="h-px flex-1 bg-linear-to-r from-transparent via-border/30 to-transparent"
-      >
-      </div>
+      <div class="h-px flex-1 bg-linear-to-r from-transparent via-border/30 to-transparent"></div>
     </div>
 
     <!-- Previous/Next Post Navigation -->
     <div data-pagefind-ignore class="grid grid-cols-2 gap-3">
-      {
-        prevPost ? (
-          <a
-            href={getPath(prevPost.id, prevPost.filePath)}
-            class="post-nav-link group relative flex flex-col gap-1 rounded-2xl border border-border/20 px-5 py-4 transition-all duration-300 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
-          >
-            <div class="post-nav-bg" />
-            <div class="flex items-center gap-1.5">
-              <svg
-                class="size-3.5 text-accent/50 transition-transform duration-300 group-hover:-translate-x-1 rtl:rotate-180"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="19" y1="12" x2="5" y2="12" />
-                <polyline points="12 19 5 12 12 5" />
-              </svg>
-              <span class="font-firacode text-[10px] tracking-wider text-foreground/35 uppercase">
-                Previous
-              </span>
-            </div>
-            <span class="line-clamp-2 text-sm leading-snug font-medium text-foreground/70 transition-colors duration-200 group-hover:text-accent">
-              {prevPost.title}
+      {prevPost ? (
+        <a
+          href={getPath(prevPost.id, prevPost.filePath)}
+          class="post-nav-link group relative flex flex-col gap-1 rounded-2xl border border-border/20 px-5 py-4 transition-all duration-300 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
+        >
+          <div class="post-nav-bg" />
+          <div class="flex items-center gap-1.5">
+            <svg
+              class="size-3.5 text-accent/50 transition-transform duration-300 group-hover:-translate-x-1 rtl:rotate-180"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span class="font-firacode text-[10px] tracking-wider text-foreground/35 uppercase">
+              Previous
             </span>
-          </a>
-        ) : (
-          <div />
-        )
-      }
-      {
-        nextPost && (
-          <a
-            href={getPath(nextPost.id, nextPost.filePath)}
-            class="post-nav-link group relative col-start-2 flex flex-col items-end gap-1 rounded-2xl border border-border/20 px-5 py-4 text-end transition-all duration-300 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
-          >
-            <div class="post-nav-bg" />
-            <div class="flex items-center gap-1.5">
-              <span class="font-firacode text-[10px] tracking-wider text-foreground/35 uppercase">
-                Next
-              </span>
-              <svg
-                class="size-3.5 text-accent/50 transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </div>
-            <span class="line-clamp-2 text-sm leading-snug font-medium text-foreground/70 transition-colors duration-200 group-hover:text-accent">
-              {nextPost.title}
+          </div>
+          <span class="line-clamp-2 text-sm leading-snug font-medium text-foreground/70 transition-colors duration-200 group-hover:text-accent">
+            {prevPost.title}
+          </span>
+        </a>
+      ) : (
+        <div />
+      )}
+      {nextPost && (
+        <a
+          href={getPath(nextPost.id, nextPost.filePath)}
+          class="post-nav-link group relative col-start-2 flex flex-col items-end gap-1 rounded-2xl border border-border/20 px-5 py-4 text-end transition-all duration-300 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
+        >
+          <div class="post-nav-bg" />
+          <div class="flex items-center gap-1.5">
+            <span class="font-firacode text-[10px] tracking-wider text-foreground/35 uppercase">
+              Next
             </span>
-          </a>
-        )
-      }
+            <svg
+              class="size-3.5 text-accent/50 transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </div>
+          <span class="line-clamp-2 text-sm leading-snug font-medium text-foreground/70 transition-colors duration-200 group-hover:text-accent">
+            {nextPost.title}
+          </span>
+        </a>
+      )}
     </div>
   </main>
   <BackToTopButton />
@@ -362,7 +334,7 @@ const nextPost =
             const height =
               document.documentElement.scrollHeight -
               document.documentElement.clientHeight;
-            myBar.style.width = ((winScroll / height) * 100) + "%";
+            myBar.style.width = (winScroll / height) * 100 + "%";
             ticking = false;
           });
           ticking = true;
@@ -499,7 +471,11 @@ const nextPost =
      blur effect via filter:blur(16px), avoiding a second compositing layer */
     background: color-mix(in srgb, var(--muted) 5%, transparent);
     position: relative;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+    transition:
+      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.3s ease,
+      border-color 0.3s ease,
+      background-color 0.3s ease;
   }
 
   .post-nav-link:hover {

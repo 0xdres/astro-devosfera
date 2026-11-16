@@ -1,12 +1,7 @@
 ---
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
 import IconCalendar from "@/assets/icons/IconCalendar.svg";
 import { SITE } from "@/config";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { useTranslations } from "@/i18n/utils";
 
 type Props = {
   class?: string;
@@ -25,31 +20,43 @@ const {
 } = Astro.props;
 
 /* ========== Formatted Datetime ========== */
-const locale = SITE.lang || "en";
-const localeCode = locale.toLowerCase().split("-")[0] || "en";
+const locale = Astro.currentLocale || SITE.lang || "en";
 const resolvedTimezone = postTimezone || SITE.timezone;
+const t = useTranslations(locale);
 
-const publishedDatetime = dayjs(pubDatetime).tz(resolvedTimezone);
-const modifiedDatetime = modDatetime ? dayjs(modDatetime).tz(resolvedTimezone) : null;
+const pubDate = new Date(pubDatetime);
+const modDate = modDatetime ? new Date(modDatetime) : null;
 
 const isModified = Boolean(
-  modifiedDatetime?.isValid() &&
-    publishedDatetime.isValid() &&
-    modifiedDatetime.isAfter(publishedDatetime)
+  modDate &&
+  !isNaN(modDate.getTime()) &&
+  !isNaN(pubDate.getTime()) &&
+  modDate.getTime() > pubDate.getTime()
 );
 
-const datetime = isModified && modifiedDatetime ? modifiedDatetime : publishedDatetime;
+const targetDate = isModified && modDate ? modDate : pubDate;
 
-const date = datetime.locale(localeCode).format("D MMM, YYYY");
+// Formats "15 Jan, 2026" / "15 ene, 2026" using native Intl
+const parts = new Intl.DateTimeFormat(locale, {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: resolvedTimezone,
+}).formatToParts(targetDate);
+
+const day = parts.find(p => p.type === "day")?.value ?? "";
+const month = parts.find(p => p.type === "month")?.value ?? "";
+const year = parts.find(p => p.type === "year")?.value ?? "";
+const date = `${day} ${month}, ${year}`;
 
 const srDate = new Intl.DateTimeFormat(locale, {
   dateStyle: "long",
   timeZone: resolvedTimezone,
-}).format(datetime.toDate());
+}).format(targetDate);
 
-const updatedText = "Updated:";
-const publishedText = "Published date";
-const updatedSrText = "Updated date";
+const updatedText = t("datetime.updatedLabel");
+const publishedText = t("datetime.published");
+const updatedSrText = t("datetime.updated");
 const srLabel = isModified ? updatedSrText : publishedText;
 ---
 
@@ -62,21 +69,23 @@ const srLabel = isModified ? updatedSrText : publishedText;
     ]}
   />
   <span class="sr-only">{srLabel}: </span>
-  {
-    isModified && (
-      <span
-        aria-hidden="true"
-        class:list={["text-sm", { "sm:text-base": size === "lg" }]}
-      >
-        {updatedText}
-      </span>
-    )
-  }
+  {isModified && (
+    <span
+      aria-hidden="true"
+      class:list={["text-sm", { "sm:text-base": size === "lg" }]}
+    >
+      {updatedText}
+    </span>
+  )}
   <time
-    class:list={["text-sm whitespace-nowrap", { "sm:text-base": size === "lg" }]}
-    datetime={datetime.toISOString()}
+    class:list={[
+      "text-sm whitespace-nowrap",
+      { "sm:text-base": size === "lg" },
+    ]}
+    datetime={targetDate.toISOString()}
     title={srDate}
     aria-label={`${srLabel}: ${srDate}`}
-    >{date}</time
   >
+    {date}
+  </time>
 </div>

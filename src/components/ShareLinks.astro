@@ -9,29 +9,27 @@ import LinkButton from "./LinkButton.astro";
 const URL = Astro.url;
 ---
 
-{
-  SHARE_LINKS.length > 0 && (
-    <div class="flex shrink-0 flex-col items-center gap-2 sm:items-end">
-      <span class="font-firacode text-[10px] tracking-wider text-foreground/40 uppercase select-none">
-        Share
-      </span>
-      <div class="flex items-center gap-1">
-        {SHARE_LINKS.map(social => (
-          <LinkButton
-            href={`${social.href + URL}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="share-btn inline-flex size-8 items-center justify-center rounded-lg border border-border/20 bg-muted/5 transition-all duration-200 hover:border-accent/40 hover:bg-accent/10 hover:text-accent hover:shadow-sm hover:shadow-accent/10"
-            title={social.linkTitle}
-          >
-            <social.icon class="size-4 fill-transparent stroke-current stroke-2" />
-            <span class="sr-only">{social.linkTitle}</span>
-          </LinkButton>
-        ))}
-      </div>
+{SHARE_LINKS.length > 0 && (
+  <div class="flex shrink-0 flex-col items-center gap-2 sm:items-end">
+    <span class="font-firacode text-[10px] tracking-wider text-foreground/40 uppercase select-none">
+      Share
+    </span>
+    <div class="flex items-center gap-1">
+      {SHARE_LINKS.map(social => (
+        <LinkButton
+          href={`${social.href + URL}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-btn inline-flex size-8 items-center justify-center rounded-lg border border-border/20 bg-muted/5 transition-all duration-200 hover:border-accent/40 hover:bg-accent/10 hover:text-accent hover:shadow-sm hover:shadow-accent/10"
+          title={social.linkTitle}
+        >
+          <social.icon class="size-4 fill-transparent stroke-current stroke-2" />
+          <span class="sr-only">{social.linkTitle}</span>
+        </LinkButton>
+      ))}
     </div>
-  )
-}
+  </div>
+)}
 
 <style>
   .share-btn {

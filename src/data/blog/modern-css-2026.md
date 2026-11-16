@@ -12,8 +12,6 @@ draft: false
 
 For years, the answer to "how do I do X in CSS?" was "use JavaScript". In 2026 that answer no longer applies in most cases. Three features in particular redrew the design map in the browser.
 
-## Table of contents
-
 ## Container Queries: respond to the container, not the screen
 
 Media queries respond to the _viewport_ width. The problem: a component can live in a narrow column or a wide one depending on the parent layout. **Container queries** solve this.

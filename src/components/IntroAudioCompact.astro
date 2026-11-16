@@ -1,7 +1,7 @@
 ---
 /**
  * IntroAudioCompact — A minimized version of the intro/brand audio player.
- * It is meant to be displayed in the header or persistent navigation areas 
+ * It is meant to be displayed in the header or persistent navigation areas
  * once the user navigates away from the home page.
  */
 interface Props {
@@ -60,9 +60,9 @@ const isStream = streamOverride ?? /^https?:\/\//i.test(src);
   </button>
 
   <span class="intro-audio-compact-label">{label}</span>
-  <span id="intro-audio-compact-meta" class="intro-audio-compact-meta"
-    >{isStream ? "LIVE" : "0:00"}</span
-  >
+  <span id="intro-audio-compact-meta" class="intro-audio-compact-meta">
+    {isStream ? "LIVE" : "0:00"}
+  </span>
 </div>
 
 <style>
@@ -84,7 +84,8 @@ const isStream = streamOverride ?? /^https?:\/\//i.test(src);
       transform 0.22s ease,
       border-color 0.22s ease;
     backdrop-filter: blur(10px);
-    box-shadow: 0 8px 22px -16px color-mix(in srgb, var(--accent) 50%, transparent);
+    box-shadow: 0 8px 22px -16px
+      color-mix(in srgb, var(--accent) 50%, transparent);
   }
 
   .intro-audio-compact.is-visible {
@@ -108,7 +109,9 @@ const isStream = streamOverride ?? /^https?:\/\//i.test(src);
     background: color-mix(in srgb, var(--accent) 12%, transparent);
     color: var(--accent);
     cursor: pointer;
-    transition: transform 0.15s ease, background-color 0.2s ease;
+    transition:
+      transform 0.15s ease,
+      background-color 0.2s ease;
   }
 
   .intro-audio-compact-btn:hover {
@@ -154,23 +157,28 @@ const isStream = streamOverride ?? /^https?:\/\//i.test(src);
 <script>
   import {
     getIntroAudioStore,
-    emitIntroAudioState,
-    INTRO_AUDIO_STATE_EVENT,
+    formatAudioTime,
+    toggleIntroAudioPlayback,
+    subscribeIntroAudioState,
     type IntroAudioState,
   } from "@/utils/introAudioStore";
 
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const fmt = (secs: number) => {
-    const s = Math.max(0, Math.floor(secs));
-    return `${Math.floor(s / 60)}:${pad(s % 60)}`;
-  };
-
   function initIntroAudioCompact() {
-    const wrap = document.getElementById("intro-audio-compact") as HTMLElement | null;
-    const btn = document.getElementById("intro-audio-compact-btn") as HTMLButtonElement | null;
-    const iconPlay = document.getElementById("intro-audio-compact-play") as SVGElement | null;
-    const iconPause = document.getElementById("intro-audio-compact-pause") as SVGElement | null;
-    const meta = document.getElementById("intro-audio-compact-meta") as HTMLElement | null;
+    const wrap = document.getElementById(
+      "intro-audio-compact"
+    ) as HTMLElement | null;
+    const btn = document.getElementById(
+      "intro-audio-compact-btn"
+    ) as HTMLButtonElement | null;
+    const iconPlay = document.getElementById(
+      "intro-audio-compact-play"
+    ) as SVGElement | null;
+    const iconPause = document.getElementById(
+      "intro-audio-compact-pause"
+    ) as SVGElement | null;
+    const meta = document.getElementById(
+      "intro-audio-compact-meta"
+    ) as HTMLElement | null;
 
     if (!wrap || !btn || !meta) return;
     if (wrap.dataset.introAudioCompactInitialized === "true") return;
@@ -194,8 +202,17 @@ const isStream = streamOverride ?? /^https?:\/\//i.test(src);
     };
 
     const updateVisibility = (state: IntroAudioState) => {
-      const isHome = window.location.pathname === "/" || window.location.pathname === "/index.html";
-      wrap.classList.toggle("is-visible", !isHome && (state.playing || state.hasStarted));
+      const pathname = window.location.pathname;
+      const isHome =
+        pathname === "/" ||
+        pathname === "/index.html" ||
+        pathname === "/es" ||
+        pathname === "/es/" ||
+        pathname === "/es/index.html";
+      wrap.classList.toggle(
+        "is-visible",
+        !isHome && (state.playing || state.hasStarted)
+      );
     };
 
     const render = (state: IntroAudioState) => {
@@ -203,39 +220,14 @@ const isStream = streamOverride ?? /^https?:\/\//i.test(src);
 
       setPlaying(state.playing);
       updateVisibility(state);
-      meta.textContent = state.isStream ? "LIVE" : fmt(state.currentTime);
+      meta.textContent = state.isStream
+        ? "LIVE"
+        : formatAudioTime(state.currentTime);
     };
 
-    btn.addEventListener("click", () => {
-      if (store.audio.paused) {
-        void store.audio.play().catch(() => {
-          /* playback blocked by browser */
-        });
-      } else {
-        store.audio.pause();
-      }
-    });
+    btn.addEventListener("click", () => toggleIntroAudioPlayback(store));
 
-    const controller = new AbortController();
-
-    window.addEventListener(
-      INTRO_AUDIO_STATE_EVENT,
-      (event: Event) => {
-        const customEvent = event as CustomEvent<IntroAudioState>;
-        render(customEvent.detail);
-      },
-      { signal: controller.signal }
-    );
-
-    document.addEventListener(
-      "astro:before-swap",
-      () => {
-        controller.abort();
-      },
-      { once: true }
-    );
-
-    emitIntroAudioState(store);
+    subscribeIntroAudioState(store, render);
   }
 
   initIntroAudioCompact();

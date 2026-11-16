@@ -34,8 +34,12 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
   aria-label={isStream ? "Live radio player" : "Intro audio player"}
 >
   <!-- Terminal-like prefix indicator -->
-  <span class="intro-audio-prefix" aria-hidden="true">$</span>
-  <span class="intro-audio-cmd" aria-hidden="true">play</span>
+  <span class="intro-audio-prefix" aria-hidden="true">
+    $
+  </span>
+  <span class="intro-audio-cmd" aria-hidden="true">
+    play
+  </span>
 
   <!-- Play/pause button -->
   <button
@@ -52,9 +56,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
       fill="currentColor"
       aria-hidden="true"
     >
-      <path
-        d="M3 2.5a.5.5 0 0 1 .765-.424l10 5.5a.5.5 0 0 1 0 .848l-10 5.5A.5.5 0 0 1 3 13.5v-11z"
-      ></path>
+      <path d="M3 2.5a.5.5 0 0 1 .765-.424l10 5.5a.5.5 0 0 1 0 .848l-10 5.5A.5.5 0 0 1 3 13.5v-11z"></path>
     </svg>
     <!-- Pause icon -->
     <svg
@@ -64,60 +66,57 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
       fill="currentColor"
       aria-hidden="true"
     >
-      <path
-        d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"
-      ></path>
+      <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"></path>
     </svg>
   </button>
 
   <!-- Waveform bars (animated during playback) -->
   <div class="intro-waveform" id="intro-waveform" aria-hidden="true">
-    {
-      Array.from({ length: 8 }).map((_, i) => (
-        <span
-          class="intro-wave-bar"
-          style={`--delay: ${i * 0.07}s; --h: ${[55, 80, 40, 95, 65, 85, 45, 70][i]}%`}
-        />
-      ))
-    }
+    {Array.from({ length: 8 }).map((_, i) => (
+      <span
+        class="intro-wave-bar"
+        style={`--delay: ${i * 0.07}s; --h: ${[55, 80, 40, 95, 65, 85, 45, 70][i]}%`}
+      />
+    ))}
   </div>
 
   <!-- Progress bar -->
-  {
-    !isStream && (
-      <div
-        class="intro-progress-track"
-        id="intro-progress-track"
-        role="slider"
-        tabindex="0"
-        aria-valuenow={0}
-        aria-valuemin={0}
-        aria-valuemax={duration}
-        aria-label="Audio progress control"
-      >
-        <div class="intro-progress-bar" id="intro-progress-bar"></div>
-      </div>
-    )
-  }
+  {!isStream && (
+    <div
+      class="intro-progress-track"
+      id="intro-progress-track"
+      role="slider"
+      tabindex="0"
+      aria-valuenow={0}
+      aria-valuemin={0}
+      aria-valuemax={duration}
+      aria-label="Audio progress control"
+    >
+      <div class="intro-progress-bar" id="intro-progress-bar" />
+    </div>
+  )}
 
   <!-- Time -->
-  {
-    isStream ? (
-      <span class="intro-live-pill" aria-live="off">LIVE</span>
-    ) : (
-      <span class="intro-time" id="intro-time" aria-live="off">
-        <span id="intro-current">0:00</span><span class="opacity-30"> /</span><span
-          id="intro-total"
-          class="opacity-30"
-        >
-          {formattedDuration}</span
-        >
-      </span>
-    )
-  }
+  {isStream ? (
+    <span class="intro-live-pill" aria-live="off">
+      LIVE
+    </span>
+  ) : (
+    <span class="intro-time" id="intro-time" aria-live="off">
+      <>
+        <span id="intro-current">0:00</span>
+        <span class="opacity-30"> /</span>
+        <span id="intro-total" class="opacity-30">
+          {formattedDuration}
+        </span>
+      </>
+    </span>
+  )}
 
   <!-- File label -->
-  <span class="intro-label" aria-label={`File: ${label}`}>{label}</span>
+  <span class="intro-label" aria-label={`File: ${label}`}>
+    {label}
+  </span>
 </div>
 
 <style>
@@ -313,16 +312,11 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
 <script>
   import {
     getIntroAudioStore,
-    emitIntroAudioState,
-    INTRO_AUDIO_STATE_EVENT,
+    formatAudioTime,
+    toggleIntroAudioPlayback,
+    subscribeIntroAudioState,
     type IntroAudioState,
   } from "@/utils/introAudioStore";
-
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const fmt = (secs: number) => {
-    const s = Math.max(0, Math.floor(secs));
-    return `${Math.floor(s / 60)}:${pad(s % 60)}`;
-  };
 
   function initIntroAudio() {
     const wrap = document.getElementById(
@@ -385,11 +379,11 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
 
       if (bar) bar.style.width = `${pct}%`;
 
-      const nowStr = fmt(now);
+      const nowStr = formatAudioTime(now);
       if (current && current.textContent !== nowStr) {
         current.textContent = nowStr;
       }
-      
+
       if (track) {
         track.setAttribute("aria-valuenow", String(Math.floor(now)));
         const maxVal = String(Math.max(total, 0));
@@ -397,24 +391,16 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
           track.setAttribute("aria-valuemax", maxVal);
         }
       }
-      
+
       if (totalLabel) {
-        const totalStr = fmt(total);
+        const totalStr = formatAudioTime(total);
         if (totalLabel.textContent !== totalStr) {
           totalLabel.textContent = totalStr;
         }
       }
     };
 
-    btn.addEventListener("click", () => {
-      if (store.audio.paused) {
-        store.audio.play().catch(() => {
-          /* playback blocked by browser */
-        });
-      } else {
-        store.audio.pause();
-      }
-    });
+    btn.addEventListener("click", () => toggleIntroAudioPlayback(store));
 
     // Click on progress bar to skip
     track?.addEventListener("click", (e: MouseEvent) => {
@@ -442,26 +428,7 @@ const formattedDuration = `${Math.floor(duration / 60)}:${String(duration % 60).
       }
     });
 
-    const controller = new AbortController();
-
-    window.addEventListener(
-      INTRO_AUDIO_STATE_EVENT,
-      (event: Event) => {
-        const customEvent = event as CustomEvent<IntroAudioState>;
-        render(customEvent.detail);
-      },
-      { signal: controller.signal }
-    );
-
-    document.addEventListener(
-      "astro:before-swap",
-      () => {
-        controller.abort();
-      },
-      { once: true }
-    );
-
-    emitIntroAudioState(store);
+    subscribeIntroAudioState(store, render);
   }
 
   // Initialize on full load and also on navigation with View Transitions.

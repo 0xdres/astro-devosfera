@@ -1,7 +1,9 @@
 export const SITE = {
   website: "https://devosfera.vercel.app/",
   author: "Andrés Ujpán",
-  profile: process.env.PUBLIC_SOCIAL_GITHUB ?? "", // set in .env
+  profile:
+    (typeof process !== "undefined" && process.env?.PUBLIC_SOCIAL_GITHUB) ||
+    (import.meta.env?.PUBLIC_SOCIAL_GITHUB ?? ""), // set in .env
   desc: "A space where curiosity becomes code. Exploring web development, software architecture and everything that makes the tech world spin.",
   title: "Astro Devosfera",
   ogImage: "devosfera-og.webp", // located in the public folder

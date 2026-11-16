@@ -11,8 +11,6 @@ draft: false
 
 TypeScript continues to evolve at a rapid pace. The 5.x versions brought changes that go beyond performance improvements: they redefine patterns we have been using for years.
 
-## Table of contents
-
 ## Standard decorators (TC39 Stage 3)
 
 Finally. After years with the experimental version, TypeScript 5.0 adopted the **standard decorators** from TC39. The syntax is similar but the semantics changed quite a bit.
@@ -139,10 +137,10 @@ TS 5.x optimized incremental builds. In large projects the improvement can be up
 
 ## Quick summary
 
-| Feature                    | Version                  | Impact                                   |
-| -------------------------- | ------------------------ | ---------------------------------------- |
-| Standard decorators        | 5.0                      | High — replaces experimental             |
-| `const` type params        | 5.0                      | Medium — less `as const`                 |
-| `satisfies`                | 4.9 / consolidated in 5.x| High — more expressive typing            |
-| `infer ... extends`        | 5.x                      | Medium — more precise conditional types  |
-| Improved incremental build | 5.x                      | High in monorepos                        |
+| Feature                    | Version                   | Impact                                  |
+| -------------------------- | ------------------------- | --------------------------------------- |
+| Standard decorators        | 5.0                       | High — replaces experimental            |
+| `const` type params        | 5.0                       | Medium — less `as const`                |
+| `satisfies`                | 4.9 / consolidated in 5.x | High — more expressive typing           |
+| `infer ... extends`        | 5.x                       | Medium — more precise conditional types |
+| Improved incremental build | 5.x                       | High in monorepos                       |

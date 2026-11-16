@@ -11,7 +11,7 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 > Visit **[devosfera.vercel.app](https://devosfera.vercel.app)** to see this template running in production on the creator's personal blog with custom advanced interactive extensions (interactive terminal, daily physics widgets, web audio synthesizers, and quizzes).
 >
 > 📖 To explore the complete architecture and design decisions behind this base template, read the deep-dive article:  
-> **[Introducing Astro Devosfera: Re-engineering the Developer Blog Experience](https://devosfera.vercel.app/posts/introducing-astro-devosfera)** *(also available in [Spanish](https://devosfera.vercel.app/es/posts/introducing-astro-devosfera))*.
+> **[Introducing Astro Devosfera: Re-engineering the Developer Blog Experience](https://devosfera.vercel.app/posts/introducing-astro-devosfera)** _(also available in [Spanish](https://devosfera.vercel.app/es/posts/introducing-astro-devosfera))_.
 
 > [!IMPORTANT]
 > **Social links and personal URLs are no longer hardcoded.**
@@ -52,11 +52,11 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 
 ### Custom typography
 
-| Role          | Font                      |
-| :------------ | :------------------------ |
-| Body          | `Wotfard` (local)         |
-| Code / Mono   | `Cascadia Code` (local)   |
-| Italics / H3  | `Sriracha` (Local) |
+| Role         | Font                |
+| :----------- | :------------------ |
+| Body         | `Wotfard` (local)   |
+| Code / Mono  | `Fira Code` (local) |
+| Italics / H3 | `Sriracha` (Local)  |
 
 ### Global search (⌘K)
 
@@ -90,13 +90,13 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 
 ### Redesigned pages
 
-| Page        | Highlights                                          |
-| :---------- | :-------------------------------------------------- |
+| Page        | Highlights                                                          |
+| :---------- | :------------------------------------------------------------------ |
 | `/` Home    | Terminal hero, featured grid, section counters, optional mixed feed |
-| `/archives` | Vertical timeline with glow, includes gallery entries |
-| `/tags`     | Grid with proportional progress bar                 |
-| `/search`   | Reactive aurora, restyled Pagefind                  |
-| Posts       | Paginated mixed feed (posts + galleries), inline Pagefind search |
+| `/archives` | Vertical timeline with glow, includes gallery entries               |
+| `/tags`     | Grid with proportional progress bar                                 |
+| `/search`   | Reactive aurora, restyled Pagefind                                  |
+| Posts       | Paginated mixed feed (posts + galleries), inline Pagefind search    |
 
 ---
 
@@ -117,6 +117,7 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 │   ├── pages/             # Astro routes
 │   ├── styles/            # global.css, typography.css
 │   └── utils/             # Filters, OG with Satori, Shiki transformers
+├── tests/                 # Unit test suite (Node.js native test runner)
 └── astro.config.ts
 ```
 
@@ -124,7 +125,7 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 
 ## 👨🏻‍💻 Installation and local development
 
-**Requirements:** Node.js 20+ and pnpm.
+**Requirements:** Node.js 22.12+ (Node.js 24+ for unit tests) and pnpm.
 
 ```bash
 # 1. Install dependencies
@@ -152,14 +153,15 @@ docker run -p 4321:80 devosfera-blog
 
 ## 🧞 Commands
 
-| Command            | Action                                                   |
-| :----------------- | :------------------------------------------------------- |
-| `pnpm install`     | Install dependencies                                     |
-| `pnpm run dev`     | Local dev server at `localhost:4321`                     |
-| `pnpm run build`   | Production build (`astro check` + build + Pagefind)      |
-| `pnpm run preview` | Preview the production build                             |
-| `pnpm run format`  | Format with Prettier                                     |
-| `pnpm run lint`    | Lint with ESLint                                         |
+| Command            | Action                                              |
+| :----------------- | :-------------------------------------------------- |
+| `pnpm install`     | Install dependencies                                |
+| `pnpm run dev`     | Local dev server at `localhost:4321`                |
+| `pnpm run build`   | Production build (`astro check` + build + Pagefind) |
+| `pnpm run preview` | Preview the production build                        |
+| `pnpm test`        | Run unit tests (Node.js native test runner)         |
+| `pnpm run format`  | Format with Prettier                                |
+| `pnpm run lint`    | Lint with ESLint                                    |
 
 > `pnpm run build` internally runs `pagefind --site dist && cp -r dist/pagefind public/`. The search index ends up in `public/pagefind/` ready for preview.
 
@@ -174,19 +176,15 @@ Create a `.md` or `.mdx` file with the following frontmatter:
 ```yaml
 ---
 title: "Post title"
-pubDatetime: 2026-01-15T10:00:00Z   # required — ISO 8601 with timezone
+pubDatetime: 2026-01-15T10:00:00Z # required — ISO 8601 with timezone
 description: "Short description for SEO and cards"
 tags: ["astro", "dev"]
-featured: false       # highlight on the home page
-draft: false          # hidden in production
-timezone: "America/Guatemala"  # overrides SITE.timezone
-hideEditPost: false
+featured: false # highlight on the home page
+draft: false # hidden in production
 ---
 ```
 
 **MDX**: JSX components can be used directly. `<GalleryEmbed>` is available without importing it (see next section).
-
-**Table of Contents**: add `## Table of contents` to the post body to auto-generate the TOC with `remark-toc` + `remark-collapse`.
 
 **Annotated code blocks** (via Shiki transformers):
 
@@ -239,13 +237,13 @@ Social links and "Share" links are defined in `src/constants.ts`.
 >
 > **What changed:**
 >
-> | Variable | What it controls |
-> | :--- | :--- |
-> | `PUBLIC_SOCIAL_GITHUB` | GitHub profile link & JSON-LD author URL |
-> | `PUBLIC_SOCIAL_X` | X / Twitter profile link |
-> | `PUBLIC_SOCIAL_LINKEDIN` | LinkedIn profile link |
-> | `PUBLIC_SOCIAL_EMAIL` | Contact email (shown as `mailto:` link) |
-> | `PUBLIC_EDIT_POST_URL` | "Edit this post" button base URL |
+> | Variable                 | What it controls                         |
+> | :----------------------- | :--------------------------------------- |
+> | `PUBLIC_SOCIAL_GITHUB`   | GitHub profile link & JSON-LD author URL |
+> | `PUBLIC_SOCIAL_X`        | X / Twitter profile link                 |
+> | `PUBLIC_SOCIAL_LINKEDIN` | LinkedIn profile link                    |
+> | `PUBLIC_SOCIAL_EMAIL`    | Contact email (shown as `mailto:` link)  |
+> | `PUBLIC_EDIT_POST_URL`   | "Edit this post" button base URL         |
 >
 > **To restore your socials after forking or updating:**
 >
@@ -263,15 +261,15 @@ Social links and "Share" links are defined in `src/constants.ts`.
 
 Bugs and feature requests from the official [AstroPaper](https://github.com/satnaing/astro-paper) repository implemented in this version:
 
-| Issue                                                      | Description                                                                                                                                                                                                             | Files                                        | Credits                                                                                                                                                   |
-| :--------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [#614](https://github.com/satnaing/astro-paper/issues/614) | **Back to Top shifts the pagination button** when `ShareLinks` is empty                                                                                                                                                 | `BackToTopButton.astro`                      | —                                                                                                                                                         |
-| [#574](https://github.com/satnaing/astro-paper/issues/574) | **Markdown tables overflow the layout on mobile** — fixed with `w-full table-auto` and `word-wrap` on cells                                                                                                             | `typography.css`                             | [@GladerJ](https://github.com/GladerJ) — [solution](https://github.com/satnaing/astro-paper/issues/574#issuecomment-3427381261)                           |
-| [#569](https://github.com/satnaing/astro-paper/issues/569) | **Back to Top inconsistent on desktop** — unified circular design with progress ring and `fixed` positioning                                                                                                            | `BackToTopButton.astro`, `PostDetails.astro` | —                                                                                                                                                         |
-| [#566](https://github.com/satnaing/astro-paper/issues/566) | **Share links don't open in a new tab** — added `target="_blank"` and `rel="noopener noreferrer"`                                                                                                                       | `ShareLinks.astro`                           | [PR #611](https://github.com/satnaing/astro-paper/pull/611) by [@zerone0x](https://github.com/zerone0x)                                                   |
-| [#131](https://github.com/satnaing/astro-paper/issues/131) | **No MDX support** — added `@astrojs/mdx` integration with `extendMarkdownConfig: true`                                                                                                                                | `astro.config.ts`, `content.config.ts`       | —                                                                                                                                                         |
-| [#495](https://github.com/satnaing/astro-paper/issues/495) | **Inconsistent post filtering by timezone** — fixed using `dayjs` + `utc`/`timezone` plugins; also fixed a bug in the reference solution that used `.millisecond()` instead of `.valueOf()`                            | `postFilter.ts`                              | [@kj-9](https://github.com/kj-9) — [reference fix](https://github.com/satnaing/astro-paper/compare/main...kj-9:astro-paper:fix-post-filter-date)          |
-| [#553](https://github.com/satnaing/astro-paper/issues/553) | **No galleries section** — implemented full `/galleries` section with lightbox, `GalleryEmbed`, image optimization and `showGalleries` flag. See [GALLERIES.md](GALLERIES.md)                                           | multiple — see GALLERIES.md                  | —                                                                                                                                                         |
+| Issue                                                      | Description                                                                                                                                                                                                      | Files                                        | Credits                                                                                                                                          |
+| :--------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [#614](https://github.com/satnaing/astro-paper/issues/614) | **Back to Top shifts the pagination button** when `ShareLinks` is empty                                                                                                                                          | `BackToTopButton.astro`                      | —                                                                                                                                                |
+| [#574](https://github.com/satnaing/astro-paper/issues/574) | **Markdown tables overflow the layout on mobile** — fixed with `w-full table-auto` and `word-wrap` on cells                                                                                                      | `typography.css`                             | [@GladerJ](https://github.com/GladerJ) — [solution](https://github.com/satnaing/astro-paper/issues/574#issuecomment-3427381261)                  |
+| [#569](https://github.com/satnaing/astro-paper/issues/569) | **Back to Top inconsistent on desktop** — unified circular design with progress ring and `fixed` positioning                                                                                                     | `BackToTopButton.astro`, `PostDetails.astro` | —                                                                                                                                                |
+| [#566](https://github.com/satnaing/astro-paper/issues/566) | **Share links don't open in a new tab** — added `target="_blank"` and `rel="noopener noreferrer"`                                                                                                                | `ShareLinks.astro`                           | [PR #611](https://github.com/satnaing/astro-paper/pull/611) by [@zerone0x](https://github.com/zerone0x)                                          |
+| [#131](https://github.com/satnaing/astro-paper/issues/131) | **No MDX support** — added `@astrojs/mdx` integration with `extendMarkdownConfig: true`                                                                                                                          | `astro.config.ts`, `content.config.ts`       | —                                                                                                                                                |
+| [#495](https://github.com/satnaing/astro-paper/issues/495) | **Inconsistent post filtering by timezone** — resolved using native UTC timestamp comparison (`Date.now() > pubTime - margin`) in `postFilter.ts`, eliminating external date libraries and timezone offset drift | `postFilter.ts`                              | [@kj-9](https://github.com/kj-9) — [reference fix](https://github.com/satnaing/astro-paper/compare/main...kj-9:astro-paper:fix-post-filter-date) |
+| [#553](https://github.com/satnaing/astro-paper/issues/553) | **No galleries section** — implemented full `/galleries` section with lightbox, `GalleryEmbed`, image optimization and `showGalleries` flag. See [GALLERIES.md](GALLERIES.md)                                    | multiple — see GALLERIES.md                  | —                                                                                                                                                |
 
 ---
 

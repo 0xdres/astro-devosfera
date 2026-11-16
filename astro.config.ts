@@ -2,8 +2,6 @@ import { defineConfig, envField, fontProviders } from "astro/config";
 import mdx from "@astrojs/mdx";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
-import remarkToc from "remark-toc";
-import remarkCollapse from "remark-collapse";
 import {
   transformerNotationDiff,
   transformerNotationHighlight,
@@ -15,20 +13,33 @@ import { SITE } from "./src/config";
 // https://astro.build/config
 export default defineConfig({
   site: SITE.website,
+  // Astro 7 defaults to JSX-style whitespace stripping ("jsx"), which glues
+  // together inline elements split across lines (e.g. "with ♥ and coffee",
+  // tag pills, keyboard hints). Keep the HTML-aware, lossless compression
+  // the whole UI was designed around.
+  compressHTML: true,
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "es"],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
   prefetch: {
-    prefetchAll: true,
-    defaultStrategy: "hover",
+    prefetchAll: false,
+    defaultStrategy: "viewport",
   },
   integrations: [
     mdx({
       extendMarkdownConfig: true,
     }),
     sitemap({
-      filter: page => SITE.showArchives || !page.endsWith("/archives"),
+      filter: page =>
+        (SITE.showArchives || !/\/archives\/?$/.test(page)) &&
+        (SITE.showGalleries || !/\/galleries(\/|$)/.test(page)),
     }),
   ],
   markdown: {
-    remarkPlugins: [remarkToc, [remarkCollapse, { test: "Table of contents" }]],
     shikiConfig: {
       // For more themes, visit https://shiki.style/themes
       themes: { light: "min-light", dark: "github-dark-default" },
@@ -128,19 +139,6 @@ export default defineConfig({
         variants: [
           {
             src: ["./src/assets/fonts/firacode.woff2"],
-          },
-        ],
-      },
-    },
-    {
-      name: "Cascadia Code",
-      cssVariable: "--font-cascadia-code",
-      fallbacks: ["monospace"],
-      provider: fontProviders.local(),
-      options: {
-        variants: [
-          {
-            src: ["./src/assets/fonts/cascadia-code.woff2"],
           },
         ],
       },
