@@ -9,7 +9,7 @@ const isGalleryEntry = (
 ): entry is CollectionEntry<"galleries"> => entry.collection === "galleries";
 
 export const getGallerySlug = (id: string) =>
-  id.replace(/\/index(?:\.(?:md|mdx))?$/, "");
+  id.replace(/^(?:en|es)\//, "").replace(/\/index(?:\.(?:md|mdx))?$/, "");
 
 export const getEntryPath = (
   entry: Pick<ContentEntry, "collection" | "id" | "filePath">

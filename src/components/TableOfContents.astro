@@ -1,0 +1,143 @@
+---
+import type { MarkdownHeading } from "astro";
+import { useTranslations } from "@/i18n/utils";
+
+type Props = {
+  headings: MarkdownHeading[];
+};
+
+const { headings } = Astro.props;
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
+
+// Filter headings: only h2 and h3
+const tocHeadings = headings.filter(h => h.depth > 1 && h.depth < 4);
+
+if (tocHeadings.length === 0) {
+  return null;
+}
+---
+
+<nav class="toc-navigation" aria-label={t("toc.aria")}>
+  <h2 class="toc-heading font-firacode text-[10px] tracking-widest text-foreground/45 uppercase select-none">
+    {t("toc.title")}
+  </h2>
+  <ul class="toc-list mt-4 flex flex-col gap-1.5">
+    {tocHeadings.map(heading => (
+      <li class={`toc-item depth-${heading.depth}`}>
+        <a
+          href={`#${heading.slug}`}
+          class="toc-link block font-firacode text-[12.5px] text-foreground/60 no-underline transition-all duration-200 hover:text-accent"
+          data-toc-link
+        >
+          {heading.text}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<script>
+  function setupTocHighlight() {
+    const headingElements = Array.from(
+      document.querySelectorAll("#article h2, #article h3")
+    );
+    const tocLinks = Array.from(document.querySelectorAll("[data-toc-link]"));
+
+    if (headingElements.length === 0 || tocLinks.length === 0) return null;
+
+    const activeHeaders = new Map<string, boolean>();
+
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          activeHeaders.set(entry.target.id, entry.isIntersecting);
+        });
+
+        // Find the first visible heading
+        let activeId = "";
+        for (const heading of headingElements) {
+          if (activeHeaders.get(heading.id)) {
+            activeId = heading.id;
+            break;
+          }
+        }
+
+        // If no heading is currently in view, find the last one that was above the viewport
+        if (!activeId) {
+          const scrollPosition = window.scrollY + 120; // offset for sticky header
+          for (let i = headingElements.length - 1; i >= 0; i--) {
+            const heading = headingElements[i];
+            const offsetTop =
+              heading.getBoundingClientRect().top + window.scrollY;
+            if (scrollPosition >= offsetTop) {
+              activeId = heading.id;
+              break;
+            }
+          }
+        }
+
+        // Update active state in DOM
+        tocLinks.forEach(link => {
+          if (link.getAttribute("href") === `#${activeId}`) {
+            link.classList.add("active");
+          } else {
+            link.classList.remove("active");
+          }
+        });
+      },
+      {
+        rootMargin: "0px 0px -65% 0px",
+        threshold: 0.1,
+      }
+    );
+
+    headingElements.forEach(el => observer.observe(el));
+
+    // Return cleanup function
+    return () => observer.disconnect();
+  }
+
+  let cleanup: (() => void) | null = null;
+
+  document.addEventListener("astro:page-load", () => {
+    if (cleanup) cleanup();
+    const result = setupTocHighlight();
+    if (result) cleanup = result;
+  });
+</script>
+
+<style>
+  .toc-navigation {
+    position: relative;
+    padding-left: 0.5rem;
+  }
+
+  .toc-heading {
+    border-bottom: 1px dashed color-mix(in srgb, var(--border) 15%, transparent);
+    padding-bottom: 0.5rem;
+  }
+
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .toc-item.depth-3 {
+    padding-left: 0.75rem;
+    border-left: 1px solid color-mix(in srgb, var(--border) 10%, transparent);
+    margin-left: 0.25rem;
+  }
+
+  .toc-link {
+    line-height: 1.5;
+    padding: 0.2rem 0;
+  }
+
+  .toc-link.active {
+    color: var(--accent) !important;
+    font-weight: 500;
+    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+</style>

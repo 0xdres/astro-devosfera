@@ -4,9 +4,14 @@ import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import LinkButton from "@/components/LinkButton.astro";
 import { SITE } from "@/config";
+import { useTranslations } from "@/i18n/utils";
+
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
+const esT = useTranslations("es");
 ---
 
-<Layout title={`404 Not Found | ${SITE.title}`}>
+<Layout title={`404 | ${SITE.title}`}>
   <Header />
 
   <main
@@ -16,15 +21,44 @@ import { SITE } from "@/config";
     <div class="mb-14 flex flex-col items-center justify-center">
       <h1 class="text-9xl font-bold text-accent">404</h1>
       <span aria-hidden="true">¯\_(ツ)_/¯</span>
-      <p class="mt-4 text-2xl sm:text-3xl">Page not found</p>
-      <LinkButton
-        href="/"
-        class="my-6 text-lg underline decoration-dashed underline-offset-8"
+      <p
+        id="not-found-title"
+        class="mt-4 text-2xl sm:text-3xl"
+        data-es-title={esT("404.title")}
       >
-        Go back home
+        {t("404.title")}
+      </p>
+      <LinkButton
+        id="not-found-home"
+        href={locale === "es" ? "/es" : "/"}
+        class="my-6 text-lg underline decoration-dashed underline-offset-8"
+        data-es-back={esT("404.back")}
+      >
+        {t("404.back")}
       </LinkButton>
     </div>
   </main>
 
   <Footer />
 </Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const pathname = window.location.pathname;
+    if (pathname === "/es" || pathname.startsWith("/es/")) {
+      const titleEl = document.getElementById("not-found-title");
+      const homeLink = document.getElementById(
+        "not-found-home"
+      ) as HTMLAnchorElement | null;
+      if (titleEl) {
+        titleEl.textContent =
+          titleEl.getAttribute("data-es-title") || titleEl.textContent;
+      }
+      if (homeLink) {
+        homeLink.href = "/es";
+        homeLink.textContent =
+          homeLink.getAttribute("data-es-back") || homeLink.textContent;
+      }
+    }
+  });
+</script>

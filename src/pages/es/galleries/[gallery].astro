@@ -1,0 +1,10 @@
+---
+import { buildGalleryStaticPaths } from "@/utils/staticPaths";
+import Page from "../../galleries/[gallery].astro";
+
+export const getStaticPaths = () => buildGalleryStaticPaths("es");
+
+const props = Astro.props;
+---
+
+<Page {...props} />

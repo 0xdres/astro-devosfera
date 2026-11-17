@@ -2,19 +2,118 @@
 /**
  * ShareLinks — Renders social media share buttons for the current page (e.g. inside a post).
  * Retrieves the available platforms from the SHARE_LINKS constant in `constants.ts`.
+ * Supports both a horizontal row footer layout and a vertical sidebar widget layout.
  */
 import { SHARE_LINKS } from "@/constants";
+import { useTranslations } from "@/i18n/utils";
 import LinkButton from "./LinkButton.astro";
 
+interface Props {
+  isSidebar?: boolean;
+}
+
+const { isSidebar = false } = Astro.props;
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
 const URL = Astro.url;
 ---
 
-{SHARE_LINKS.length > 0 && (
-  <div class="flex shrink-0 flex-col items-center gap-2 sm:items-end">
+{isSidebar ? (
+  <div class="sidebar-share-widget pl-2">
+    <h2 class="toc-heading border-b border-dashed border-border/15 pb-2 font-firacode text-[10px] tracking-widest text-foreground/45 uppercase select-none">
+      {t("share.post")}
+    </h2>
+    <div class="mt-4 flex flex-wrap gap-2">
+      {/* Copy URL Button */}
+      <button
+        class="copy-url-btn share-btn inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border/20 bg-muted/5 transition-all duration-200 hover:border-accent/40 hover:bg-accent/10 hover:text-accent hover:shadow-sm hover:shadow-accent/10"
+        title={t("share.copy")}
+        aria-label={t("share.copy")}
+        data-copied-label={t("share.copied")}
+      >
+        <svg
+          class="copy-icon size-4 fill-transparent stroke-current stroke-2"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path
+            d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <svg
+          class="check-icon animate-scale-in hidden size-4 fill-transparent stroke-current stroke-2 text-green-500"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <polyline
+            points="20 6 9 17 4 12"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      {/* Social Share Buttons */}
+      {SHARE_LINKS.map(social => (
+        <LinkButton
+          href={`${social.href + URL}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-btn inline-flex size-8 items-center justify-center rounded-lg border border-border/20 bg-muted/5 transition-all duration-200 hover:border-accent/40 hover:bg-accent/10 hover:text-accent hover:shadow-sm hover:shadow-accent/10"
+          title={social.linkTitle}
+        >
+          <social.icon class="size-4 fill-transparent stroke-current stroke-2" />
+          <span class="sr-only">{social.linkTitle}</span>
+        </LinkButton>
+      ))}
+    </div>
+  </div>
+) : (
+  <div class="flex shrink-0 flex-col items-center gap-2">
     <span class="font-firacode text-[10px] tracking-wider text-foreground/40 uppercase select-none">
-      Share
+      {t("share.label")}
     </span>
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-1.5">
+      {/* Copy URL Button */}
+      <button
+        class="copy-url-btn share-btn inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-border/20 bg-muted/5 transition-all duration-200 hover:border-accent/40 hover:bg-accent/10 hover:text-accent hover:shadow-sm hover:shadow-accent/10"
+        title={t("share.copy")}
+        aria-label={t("share.copy")}
+        data-copied-label={t("share.copied")}
+      >
+        <svg
+          class="copy-icon size-4 fill-transparent stroke-current stroke-2"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path
+            d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <svg
+          class="check-icon animate-scale-in hidden size-4 fill-transparent stroke-current stroke-2 text-green-500"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <polyline
+            points="20 6 9 17 4 12"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      {/* Social Share Buttons */}
       {SHARE_LINKS.map(social => (
         <LinkButton
           href={`${social.href + URL}`}
@@ -31,9 +130,69 @@ const URL = Astro.url;
   </div>
 )}
 
+<script>
+  function setupCopyUrlButtons() {
+    const copyBtns = document.querySelectorAll(".copy-url-btn");
+    copyBtns.forEach(btn => {
+      // Avoid duplicate event listeners in Astro View Transitions
+      if (btn.getAttribute("data-copy-active") === "true") return;
+      btn.setAttribute("data-copy-active", "true");
+
+      btn.addEventListener("click", async (e: Event) => {
+        e.preventDefault();
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+
+          const copyIcon = btn.querySelector(".copy-icon");
+          const checkIcon = btn.querySelector(".check-icon");
+
+          if (copyIcon && checkIcon) {
+            copyIcon.classList.add("hidden");
+            checkIcon.classList.remove("hidden");
+
+            const originalTitle = btn.getAttribute("title") || "Copy URL";
+            const copiedLabel =
+              btn.getAttribute("data-copied-label") || "Copied!";
+            btn.setAttribute("title", copiedLabel);
+            btn.setAttribute("aria-label", copiedLabel);
+
+            setTimeout(() => {
+              copyIcon.classList.remove("hidden");
+              checkIcon.classList.add("hidden");
+              btn.setAttribute("title", originalTitle);
+              btn.setAttribute("aria-label", originalTitle);
+            }, 2000);
+          }
+        } catch {
+          // Ignore copy failure
+        }
+      });
+    });
+  }
+
+  // Bind on both standard load and Astro's view transitions
+  document.addEventListener("astro:page-load", setupCopyUrlButtons);
+</script>
+
 <style>
   .share-btn {
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+  }
+
+  /* Micro-animation for checkmark pop */
+  @keyframes scale-in {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 </style>

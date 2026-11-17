@@ -2,6 +2,7 @@
 import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
 import { SITE } from "@/config";
 import { buildBreadcrumbItems } from "@/utils/breadcrumbs";
+import { useTranslations } from "@/i18n/utils";
 
 type Props = {
   withBackButton?: boolean;
@@ -9,18 +10,54 @@ type Props = {
 
 const { withBackButton = false } = Astro.props as Props;
 
+const locale = Astro.currentLocale || SITE.lang || "en";
+const t = useTranslations(locale);
+
 const breadcrumbs = buildBreadcrumbItems(Astro.url.pathname, {
-  locale: SITE.lang || undefined,
+  locale,
   compactNumericPagination: true,
 });
 
-const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
+const currentPageLabel =
+  breadcrumbs.at(-1)?.label ?? (locale === "es" ? "Inicio" : "Home");
+const prefix = locale === "es" ? "/es" : "";
+
+// Compile JSON-LD BreadcrumbList Schema for SEO
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: locale === "es" ? "Inicio" : "Home",
+      item: new URL(prefix || "/", SITE.website).toString(),
+    },
+    ...breadcrumbs.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 2,
+      name: item.label,
+      item: new URL(item.href || Astro.url.pathname, SITE.website).toString(),
+    })),
+  ],
+};
 ---
 
 <nav
   class:list={["app-layout mt-6 mb-2", { "overflow-hidden": withBackButton }]}
-  aria-label={withBackButton ? "Contextual navigation" : "breadcrumb"}
+  aria-label={
+    withBackButton
+      ? locale === "es"
+        ? "Navegación contextual"
+        : "Contextual navigation"
+      : "breadcrumb"
+  }
 >
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify(breadcrumbSchema)}
+  />
   <div
     class:list={[
       "flex items-center gap-3",
@@ -30,15 +67,19 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
     {withBackButton && (
       <a
         id="back-button"
-        href="/"
-        class="breadcrumb-bar back-btn group flex-shrink-0 !gap-2 text-foreground/60 transition-colors duration-200 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background font-firacode text-sm"
-        aria-label={`Go back to the previous page. Current context: ${currentPageLabel}`}
+        href={prefix || "/"}
+        class="breadcrumb-bar back-btn group shrink-0 gap-2! text-foreground/90 transition-colors duration-200 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background font-firacode text-sm"
+        aria-label={
+          locale === "es"
+            ? `Volver a la página anterior. Contexto actual: ${currentPageLabel}`
+            : `Go back to the previous page. Current context: ${currentPageLabel}`
+        }
       >
         <IconChevronLeft class="size-4 opacity-70 transition-transform duration-200 group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5" />
         <span aria-hidden="true" class="tracking-wide">
           cd ..
         </span>
-        <span class="visually-hidden">Go back</span>
+        <span class="visually-hidden">{t("nav.goBack")}</span>
       </a>
     )}
 
@@ -52,16 +93,18 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
     >
       <li class:list={["breadcrumb-item", { "is-root": withBackButton }]}>
         <a
-          href="/"
+          href={prefix || "/"}
           class:list={[
             "breadcrumb-home",
             { "breadcrumb-link-soft": withBackButton },
           ]}
-          aria-label="Home"
-          title="Home"
+          aria-label={locale === "es" ? "Inicio" : "Home"}
+          title={locale === "es" ? "Inicio" : "Home"}
         >
           <span aria-hidden="true">~</span>
-          <span class="visually-hidden">Home</span>
+          <span class="visually-hidden">
+            {locale === "es" ? "Inicio" : "Home"}
+          </span>
         </a>
       </li>
       {breadcrumbs.map(item => (
@@ -265,10 +308,14 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
 
 {withBackButton && <script>
   const BACK_BUTTON_SELECTOR = "#back-button";
-  const FALLBACK_BACK_URL = "/";
 
-  function toSafeBackPath(rawBackUrl: string | null) {
-    if (!rawBackUrl) return FALLBACK_BACK_URL;
+  function getDefaultBackUrl() {
+    const pathname = window.location.pathname;
+    return pathname === "/es" || pathname.startsWith("/es/") ? "/es" : "/";
+  }
+
+  function toSafeBackPath(rawBackUrl: string | null, fallbackUrl: string) {
+    if (!rawBackUrl) return fallbackUrl;
 
     try {
       const parsedUrl = new URL(rawBackUrl, window.location.origin);
@@ -276,14 +323,14 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
       const isHttpProtocol =
         parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
 
-      if (!isSameOrigin || !isHttpProtocol) return FALLBACK_BACK_URL;
+      if (!isSameOrigin || !isHttpProtocol) return fallbackUrl;
 
       return (
         `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}` ||
-        FALLBACK_BACK_URL
+        fallbackUrl
       );
     } catch {
-      return FALLBACK_BACK_URL;
+      return fallbackUrl;
     }
   }
 
@@ -293,8 +340,9 @@ const currentPageLabel = breadcrumbs.at(-1)?.label ?? "Home";
 
     if (!backButton) return;
 
+    const defaultBackUrl = getDefaultBackUrl();
     const rawBackUrl = sessionStorage.getItem("backUrl");
-    backButton.href = toSafeBackPath(rawBackUrl);
+    backButton.href = toSafeBackPath(rawBackUrl, defaultBackUrl);
   }
 
   document.addEventListener("astro:page-load", updateGoBackUrl);

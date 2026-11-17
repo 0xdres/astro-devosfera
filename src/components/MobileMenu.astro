@@ -1,8 +1,15 @@
 ---
 import IconMoon from "@/assets/icons/IconMoon.svg";
+import IconArchive from "@/assets/icons/IconArchive.svg";
+import IconGallery from "@/assets/icons/IconGallery.svg";
 import IconSearch from "@/assets/icons/IconSearch.svg";
 import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
 import { SITE } from "@/config";
+import {
+  useTranslations,
+  getTargetLanguageUrl,
+  isActive as checkRouteActive,
+} from "@/i18n/utils";
 
 interface Props {
   currentPath: string;
@@ -10,70 +17,154 @@ interface Props {
 
 const { currentPath } = Astro.props;
 
-const isActive = (path: string) => {
-  const currentPathArray = currentPath.split("/").filter(p => p.trim());
-  const pathArray = path.split("/").filter(p => p.trim());
-  return currentPath === path || currentPathArray[0] === pathArray[0];
-};
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
+const targetLocale = locale === "es" ? "en" : "es";
+const targetLanguageUrl = getTargetLanguageUrl(
+  Astro.url.pathname,
+  targetLocale
+);
+const langToggleTitle =
+  locale === "es" ? "Switch to English" : "Cambiar a Español";
+const langToggleLabel =
+  locale === "es" ? "Switch to English" : "Cambiar a Español";
+
+const isActive = (path: string) => checkRouteActive(currentPath, path);
 ---
 
-<div id="mobile-menu" class="mobile-menu sm:hidden" aria-hidden="true">
+<div id="mobile-menu" class="mobile-menu lg:hidden" aria-hidden="true">
   <!-- Overlay/Backdrop -->
   <div class="mobile-menu-backdrop"></div>
 
   <!-- Floating Glass Panel -->
   <div class="app-layout">
-    <div class="mobile-menu-panel relative mt-2 w-full mx-auto rounded-2xl border border-white/10 dark:border-white/5 overflow-hidden shadow-2xl">
+    <div class="mobile-menu-panel relative mx-auto mt-2 mb-6 w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl dark:border-white/5">
       <div class="mobile-menu-inner">
-        <nav class="mobile-nav-links">
+        <!-- Primary navigation links -->
+        <nav
+          class="mobile-nav-links"
+          aria-label={
+            locale === "es" ? "Navegación principal" : "Main navigation"
+          }
+        >
+          <!-- Posts -->
           <a
-            href="/posts"
+            href={locale === "es" ? "/es/posts" : "/posts"}
             class:list={["mobile-nav-link", { active: isActive("/posts") }]}
             style="--i:0"
           >
-            <span class="mobile-nav-indicator"></span>
-            <span>Posts</span>
+            <span class="mobile-nav-icon" aria-hidden="true">
+              <!-- Document icon -->
+              <svg
+                class="size-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                ></path>
+              </svg>
+            </span>
+            <span>{t("nav.posts")}</span>
+            {isActive("/posts") && (
+              <span class="mobile-nav-active-dot" aria-hidden="true" />
+            )}
           </a>
+
+          <!-- About -->
           <a
-            href="/tags"
-            class:list={["mobile-nav-link", { active: isActive("/tags") }]}
+            href={locale === "es" ? "/es/about" : "/about"}
+            class:list={["mobile-nav-link", { active: isActive("/about") }]}
             style="--i:1"
           >
-            <span class="mobile-nav-indicator"></span>
-            <span>Tags</span>
+            <span class="mobile-nav-icon" aria-hidden="true">
+              <!-- User icon -->
+              <svg
+                class="size-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                ></path>
+              </svg>
+            </span>
+            <span>{t("nav.about")}</span>
+            {isActive("/about") && (
+              <span class="mobile-nav-active-dot" aria-hidden="true" />
+            )}
           </a>
+
+          <!-- Tags -->
           <a
-            href="/about"
-            class:list={["mobile-nav-link", { active: isActive("/about") }]}
+            href={locale === "es" ? "/es/tags" : "/tags"}
+            class:list={["mobile-nav-link", { active: isActive("/tags") }]}
             style="--i:2"
           >
-            <span class="mobile-nav-indicator"></span>
-            <span>About</span>
+            <span class="mobile-nav-icon" aria-hidden="true">
+              <!-- Tag icon -->
+              <svg
+                class="size-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M7 7h.01M3 7l6 6 6 6 6-6-6-6-6-6-6 6z"
+                ></path>
+              </svg>
+            </span>
+            <span>{t("nav.tags")}</span>
+            {isActive("/tags") && (
+              <span class="mobile-nav-active-dot" aria-hidden="true" />
+            )}
           </a>
+
           {SITE.showArchives && (
             <a
-              href="/archives"
+              href={locale === "es" ? "/es/archives" : "/archives"}
               class:list={[
                 "mobile-nav-link",
                 { active: isActive("/archives") },
               ]}
               style="--i:3"
             >
-              <span class="mobile-nav-indicator" />
-              <span>Archives</span>
+              <span class="mobile-nav-icon" aria-hidden="true">
+                <IconArchive class="size-4" />
+              </span>
+              <span>{t("nav.archives")}</span>
+              {isActive("/archives") && (
+                <span class="mobile-nav-active-dot" aria-hidden="true" />
+              )}
             </a>
           )}
           {SITE.showGalleries && (
             <a
-              href="/galleries"
+              href={locale === "es" ? "/es/galleries" : "/galleries"}
               class:list={[
                 "mobile-nav-link",
                 { active: isActive("/galleries") },
               ]}
               style="--i:4"
             >
-              <span class="mobile-nav-indicator" />
-              <span>Galleries</span>
+              <span class="mobile-nav-icon" aria-hidden="true">
+                <IconGallery class="size-4" />
+              </span>
+              <span>{t("nav.galleries")}</span>
+              {isActive("/galleries") && (
+                <span class="mobile-nav-active-dot" aria-hidden="true" />
+              )}
             </a>
           )}
         </nav>
@@ -81,29 +172,78 @@ const isActive = (path: string) => {
         <!-- Divider -->
         <div class="mobile-menu-divider"></div>
 
-        <!-- Bottom action row -->
+        <!-- Utilities section label -->
+        <p class="mobile-section-label">
+          {locale === "es" ? "Herramientas" : "Tools"}
+        </p>
+
+        <!-- Action row: Search -->
         <div class="mobile-menu-actions">
           <button
             data-search-trigger
-            class="mobile-action-btn flex-1 justify-center"
-            title="Search (⌘K)"
-            aria-label="Open search"
+            class="mobile-action-btn"
+            title={locale === "es" ? "Buscar (⌘K)" : "Search (⌘K)"}
+            aria-label={t("nav.openSearch")}
           >
-            <IconSearch class="size-4" />
-            <span>Search</span>
+            <IconSearch class="size-4 shrink-0" />
+            <span>{t("nav.search")}</span>
+            <kbd class="mobile-kbd ml-auto">⌘K</kbd>
           </button>
+        </div>
+
+        <!-- Divider -->
+        <div class="mobile-menu-divider"></div>
+
+        <!-- Preferences section label -->
+        <p class="mobile-section-label">
+          {locale === "es" ? "Preferencias" : "Preferences"}
+        </p>
+
+        <!-- Preferences row: Lang + Theme -->
+        <div class="mobile-prefs-row">
+          <!-- Language toggle -->
+          <a
+            href={targetLanguageUrl}
+            class="mobile-pref-btn flex-1"
+            title={langToggleTitle}
+            aria-label={langToggleLabel}
+            data-lang-toggle={targetLocale}
+          >
+            <svg
+              class="size-4 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5c-.03.077-.07.154-.114.23-.9 1.54-2.11 3.05-3.535 4.5M6.412 9a14.95 14.95 0 003.535 4.5m0 0a14.973 14.973 0 01-3.298 3.19M6.412 9H3.9M15 9h-2.5"
+              ></path>
+            </svg>
+            <span class="font-firacode text-xs font-bold tracking-wider">
+              {locale === "es" ? "EN" : "ES"}
+            </span>
+          </a>
+
           {SITE.lightAndDarkMode && (
             <button
               id="theme-btn-mobile"
-              class="mobile-action-btn flex-1 justify-center"
-              title="Toggle theme"
+              class="mobile-pref-btn flex-1"
+              title={t("nav.theme")}
               aria-label="auto"
               aria-live="polite"
             >
-              <IconMoon class="block size-4 dark:hidden" />
-              <IconSunHigh class="hidden size-4 dark:block" />
-              <span class="block dark:hidden">Dark mode</span>
-              <span class="hidden dark:block">Light mode</span>
+              <IconMoon class="block size-4 shrink-0 dark:hidden" />
+              <IconSunHigh class="hidden size-4 shrink-0 dark:block" />
+              <span class="block dark:hidden">
+                {locale === "es" ? "Oscuro" : "Dark"}
+              </span>
+              <span class="hidden dark:block">
+                {locale === "es" ? "Claro" : "Light"}
+              </span>
             </button>
           )}
         </div>
@@ -113,14 +253,24 @@ const isActive = (path: string) => {
 </div>
 
 <style>
+  /* Declarative scroll lock when menu is open on mobile */
+  @media (max-width: 1023px) {
+    :global(body:has(#mobile-menu.is-open)) {
+      overflow: hidden;
+    }
+  }
+
   /* ─── Mobile Menu Floating Sheet ─── */
   .mobile-menu {
     position: absolute;
     top: 100%;
     left: 0;
     width: 100%;
-    z-index: 30;
+    z-index: 20;
     pointer-events: none;
+    max-height: calc(100dvh - 100%);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .mobile-menu.is-open {
@@ -132,11 +282,15 @@ const isActive = (path: string) => {
     inset: 0;
     z-index: -1;
     background: rgba(0, 0, 0, 0);
-    transition:
-      background-color 0.4s ease,
-      opacity 0.4s ease;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
     opacity: 0;
     pointer-events: none;
+    transition:
+      background-color 0.4s ease,
+      opacity 0.4s ease,
+      backdrop-filter 0.4s ease,
+      -webkit-backdrop-filter 0.4s ease;
   }
 
   .mobile-menu.is-open .mobile-menu-backdrop {
@@ -171,22 +325,41 @@ const isActive = (path: string) => {
   /* ─── Mobile Menu Inner ─── */
   .mobile-menu-inner {
     position: relative;
-    padding: 1rem;
+    padding: 0.875rem;
+  }
+
+  /* ─── Section labels ─── */
+  .mobile-section-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--foreground) 35%, transparent);
+    padding: 0 0.5rem 0.375rem;
+    font-family: var(--font-firacode, monospace);
+    user-select: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    transition-delay: 0.35s;
+  }
+
+  .mobile-menu.is-open .mobile-section-label {
+    opacity: 1;
   }
 
   /* ─── Mobile Nav Links ─── */
   .mobile-nav-links {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.125rem;
   }
 
   .mobile-nav-link {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    font-size: 1.05rem;
+    padding: 0.6875rem 0.75rem;
+    font-size: 0.9375rem;
     font-weight: 500;
     color: var(--foreground);
     border-radius: 0.75rem;
@@ -195,6 +368,7 @@ const isActive = (path: string) => {
       background-color 0.1s ease-out;
     opacity: 0;
     transform: translateY(8px);
+    position: relative;
   }
 
   .mobile-menu.is-open .mobile-nav-link {
@@ -205,46 +379,56 @@ const isActive = (path: string) => {
       transform 0.25s ease,
       color 0.1s ease-out,
       background-color 0.1s ease-out;
-    transition-delay: calc(0.08s * var(--i, 0) + 0.12s);
+    transition-delay: calc(0.07s * var(--i, 0) + 0.1s);
   }
 
-  :is(.mobile-nav-link, .mobile-action-btn):hover {
+  :is(.mobile-nav-link, .mobile-action-btn, .mobile-pref-btn):hover {
     color: var(--accent);
     background: color-mix(in srgb, var(--accent) 8%, transparent);
   }
 
-  .mobile-action-btn:hover {
-    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-  }
-
   .mobile-nav-link.active {
     color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
   }
 
-  .mobile-nav-indicator {
-    display: block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--foreground) 20%, transparent);
-    transition:
-      background-color 0.1s ease-out,
-      box-shadow 0.1s ease-out;
+  /* ─── Nav icon container ─── */
+  .mobile-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--foreground) 6%, transparent);
+    color: color-mix(in srgb, var(--foreground) 60%, transparent);
     flex-shrink: 0;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
   }
 
-  :is(.mobile-nav-link.active, .mobile-nav-link:hover) .mobile-nav-indicator {
+  .mobile-nav-link.active .mobile-nav-icon,
+  .mobile-nav-link:hover .mobile-nav-icon {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
+  }
+
+  /* ─── Active dot (right side) ─── */
+  .mobile-nav-active-dot {
+    display: block;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
     background: var(--accent);
-  }
-
-  .mobile-nav-link.active .mobile-nav-indicator {
-    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
+    margin-left: auto;
+    flex-shrink: 0;
   }
 
   /* ─── Menu Divider ─── */
   .mobile-menu-divider {
-    margin: 0.75rem 0.5rem;
+    margin: 0.625rem 0.25rem;
     height: 1px;
     background: linear-gradient(
       90deg,
@@ -257,36 +441,98 @@ const isActive = (path: string) => {
   /* ─── Mobile Action Buttons ─── */
   .mobile-menu-actions {
     display: flex;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
     opacity: 0;
     transform: translateY(6px);
     transition:
       opacity 0.3s ease,
       transform 0.3s ease;
+    transition-delay: 0.32s;
+    margin-bottom: 0.5rem;
   }
 
   .mobile-menu.is-open .mobile-menu-actions {
     opacity: 1;
     transform: translateY(0);
-    transition-delay: 0.35s;
   }
 
   .mobile-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5625rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--foreground) 80%, transparent);
+    border-radius: 0.625rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
+    text-align: left;
+    width: 100%;
+  }
+
+  /* KBD inside mobile actions */
+  .mobile-kbd {
     display: inline-flex;
     align-items: center;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+    border-bottom-width: 2px;
+    background: color-mix(in srgb, var(--background) 80%, transparent);
+    color: color-mix(in srgb, var(--foreground) 45%, transparent);
+    font-family: inherit;
+    line-height: 1;
+  }
+
+  /* ─── Preferences Row ─── */
+  .mobile-prefs-row {
+    display: flex;
+    gap: 0.375rem;
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+    transition-delay: 0.38s;
+  }
+
+  .mobile-menu.is-open .mobile-prefs-row {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .mobile-pref-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--foreground);
+    color: color-mix(in srgb, var(--foreground) 75%, transparent);
     border-radius: 0.625rem;
     border: 1px solid color-mix(in srgb, var(--border) 20%, transparent);
-    background: color-mix(in srgb, var(--background) 50%, transparent);
-    backdrop-filter: blur(8px);
-    transition:
-      color 0.2s ease,
-      background-color 0.2s ease,
-      border-color 0.2s ease;
+    background: color-mix(in srgb, var(--foreground) 3%, transparent);
     cursor: pointer;
+    text-decoration: none;
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease,
+      border-color 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .mobile-pref-btn:hover {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
   }
 </style>

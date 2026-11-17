@@ -1,0 +1,266 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import AuroraHero from "@/components/AuroraHero.astro";
+import Card from "@/components/Card.astro";
+import "@pagefind/default-ui/css/ui.css";
+import type { ContentEntry } from "@/utils/contentEntry";
+import getSortedPosts from "@/utils/getSortedPosts";
+import postFilter from "@/utils/postFilter";
+import { SITE } from "@/config";
+import { useTranslations } from "@/i18n/utils";
+
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
+
+const [blogPosts, galleryPosts] = await Promise.all([
+  getCollection(
+    "blog",
+    entry => postFilter(entry) && entry.id.startsWith(`${locale}/`)
+  ),
+  SITE.showGalleries && SITE.showGalleriesInIndex
+    ? getCollection(
+        "galleries",
+        entry => postFilter(entry) && entry.id.startsWith(`${locale}/`)
+      )
+    : Promise.resolve([]),
+]);
+const posts = getSortedPosts([...blogPosts, ...galleryPosts]);
+const totalPosts = posts.length;
+
+const metaTitle = `${t("posts.title")} | ${SITE.title}`;
+const metaDesc = t("posts.desc");
+---
+
+<Layout title={metaTitle} description={metaDesc}>
+  <Header />
+  <Breadcrumb />
+  <main id="main-content" class="app-layout pb-4">
+    <!-- Hero -->
+    <AuroraHero title={t("posts.title")} description={t("posts.desc")}>
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <span class="hero-badge">
+          {totalPosts} {t("posts.count")}
+        </span>
+      </div>
+    </AuroraHero>
+
+    <!-- Posts Toolbar -->
+    <div class="posts-toolbar mb-8">
+      <div class="posts-search-wrapper">
+        <div
+          id="posts-pagefind"
+          class="premium-search"
+          data-placeholder={t("search.placeholder")}
+          data-clear={t("search.close")}
+        ></div>
+      </div>
+    </div>
+
+    <!-- Posts Grid -->
+    <div data-default-posts-container class="w-full">
+      {posts.length === 0 ? (
+        <div class="empty-state">
+          <div class="empty-icon-wrapper">
+            <svg
+              class="size-12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="9" y1="15" x2="15" y2="15" />
+            </svg>
+          </div>
+          <h3 class="empty-title">{t("posts.emptyTitle")}</h3>
+          <p class="empty-desc">{t("posts.emptyDesc")}</p>
+        </div>
+      ) : (
+        <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((data: ContentEntry, index) => (
+            <Card
+              {...data}
+              loading={index < 3 ? "eager" : "lazy"}
+              fetchpriority={index < 3 ? "high" : "auto"}
+            />
+          ))}
+        </ul>
+      )}
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  let cleanupController: AbortController | null = null;
+
+  function initPostsPage() {
+    if (cleanupController) cleanupController.abort();
+    cleanupController = new AbortController();
+    const { signal } = cleanupController;
+
+    // Initialize Pagefind local search
+    const container = document.querySelector("#posts-pagefind");
+    if (!container || container.childElementCount > 0) return;
+
+    const onIdle = window.requestIdleCallback || (cb => setTimeout(cb, 1));
+    onIdle(async () => {
+      if (signal.aborted) return;
+      if (container.childElementCount > 0) return;
+
+      // @ts-expect-error PagefindUI does not export ESM compatible types in this dynamic import
+      const { PagefindUI } = await import("@pagefind/default-ui");
+
+      // Navigation may have occurred while the module was loading (first load, uncached)
+      if (signal.aborted || container.childElementCount > 0) return;
+
+      if (import.meta.env.DEV) {
+        container.innerHTML = `
+          <div class="bg-muted/75 rounded p-4 text-sm mb-4 border border-border">
+            <p><strong>Dev Mode:</strong> The search will attempt to use the latest built index. If you don't see results, run <code>pnpm run build</code> first.</p>
+          </div>
+        `;
+        // Removed the early return to allow pagefind to attempt loading the local index
+      }
+
+      const placeholder = container.getAttribute("data-placeholder") || "";
+      const clear = container.getAttribute("data-clear") || "";
+
+      new PagefindUI({
+        element: "#posts-pagefind",
+        showImages: false,
+        showSubResults: true,
+        translations: {
+          placeholder,
+          clear_search: clear,
+        },
+      });
+
+      // Toggle default posts grid visibility when typing
+      const input = container.querySelector(
+        ".pagefind-ui__search-input"
+      ) as HTMLInputElement;
+      const defaultContainer = document.querySelector(
+        "[data-default-posts-container]"
+      ) as HTMLElement;
+
+      if (input && defaultContainer) {
+        const toggleVisibility = () => {
+          const hasValue = input.value.trim().length > 0;
+          if (hasValue) {
+            defaultContainer.style.display = "none";
+          } else {
+            defaultContainer.style.display = "";
+          }
+        };
+
+        input.addEventListener("input", toggleVisibility, { signal });
+
+        // Handle clear button
+        const clearBtn = container.querySelector(".pagefind-ui__search-clear");
+        if (clearBtn) {
+          clearBtn.addEventListener(
+            "click",
+            () => {
+              requestAnimationFrame(() => toggleVisibility());
+            },
+            { signal }
+          );
+        }
+      }
+
+      // Intercept Global Cmd+K / Ctrl+K to focus inline search instead of Modal
+      const handleCmdK = (e: KeyboardEvent) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+          e.preventDefault();
+          e.stopPropagation();
+          if (input) {
+            input.focus();
+            // Scroll to the search box if it's not visible
+            input.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      };
+
+      // Use capture mode to intercept before the global modal listener
+      document.addEventListener("keydown", handleCmdK, {
+        signal,
+        capture: true,
+      });
+    });
+  }
+
+  document.addEventListener("astro:page-load", initPostsPage);
+</script>
+
+<style>
+  /* Toolbar & Search Styles */
+  .posts-toolbar {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Empty State */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    border-radius: 1.5rem;
+    border: 2px dashed color-mix(in srgb, var(--border) 40%, transparent);
+    background: color-mix(in srgb, var(--background) 50%, transparent);
+    backdrop-filter: blur(12px);
+  }
+
+  .empty-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 5rem;
+    height: 5rem;
+    border-radius: 1.25rem;
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 15%, transparent),
+      0 10px 30px -10px color-mix(in srgb, var(--accent) 25%, transparent);
+    animation: empty-float 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes empty-float {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-desc {
+    font-size: 0.95rem;
+    color: var(--muted-foreground);
+    max-width: 300px;
+    margin: 0 auto;
+  }
+</style>

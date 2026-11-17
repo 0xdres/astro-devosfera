@@ -4,9 +4,13 @@ import { SOCIALS } from "@/constants";
 import LinkButton from "./LinkButton.astro";
 import { SITE } from "@/config";
 import Logo from "@/assets/logo/devosfera.svg";
+import { useTranslations } from "@/i18n/utils";
 
 const currentYear = new Date().getFullYear();
 const socialHeadingId = "footer-social-heading";
+
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
 
 const socialLinks = SOCIALS.map(social => ({
   ...social,
@@ -34,15 +38,19 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
       <!-- Brand column -->
       <div class="flex flex-col items-center gap-3 sm:items-start">
         <a
-          href="/"
-          aria-label={`Go to home of ${SITE.title}`}
+          href={locale === "es" ? "/es" : "/"}
+          aria-label={
+            locale === "es"
+              ? `Ir al inicio de ${SITE.title}`
+              : `Go to home of ${SITE.title}`
+          }
           class="group footer-home-link relative flex items-center gap-2 rounded-md text-lg font-bold tracking-tight"
         >
-          <Logo class="footer-logo w-28 opacity-80 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105 dark:invert" />
+          <Logo class="footer-logo w-28 opacity-80 transition-all duration-300 group-hover:scale-105 group-hover:opacity-100 dark:invert" />
           <span class="sr-only">{SITE.title}</span>
         </a>
         <p class="max-w-xs text-center font-firacode text-[11px] leading-relaxed tracking-wide text-foreground/55 sm:text-start">
-          A space where curiosity turns into code.
+          {t("footer.desc")}
         </p>
       </div>
 
@@ -55,7 +63,7 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
           id={socialHeadingId}
           class="font-firacode text-[10px] tracking-wider text-foreground/55 uppercase select-none"
         >
-          Connect
+          {t("footer.connect")}
         </p>
         <ul class="flex items-center gap-2" role="list">
           {socialLinks.map(social => (
@@ -65,7 +73,7 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
                 target={social.isExternal ? "_blank" : undefined}
                 rel={social.isExternal ? "noopener noreferrer" : undefined}
                 aria-label={social.linkTitle}
-                class="footer-social-btn group relative flex size-9 items-center justify-center rounded-xl border border-border/20 bg-muted/20 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                class="footer-social-btn group relative flex size-9 items-center justify-center rounded-xl border border-border/20 bg-muted/20 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:bg-accent/10 focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:outline-none"
                 title={social.linkTitle}
               >
                 <social.icon class="size-4.5 fill-transparent stroke-foreground/60 stroke-[1.5px] transition-all duration-300 group-hover:stroke-accent" />
@@ -85,10 +93,12 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
     <div class="mt-4 flex flex-col items-center justify-between gap-2 sm:flex-row">
       <p class="font-firacode text-[11px] tracking-wide text-foreground/50">
         &copy; {currentYear}
-        {SITE.title}. All rights reserved.
+        {SITE.title}. {t("footer.rights")}
       </p>
       <p class="font-firacode text-[11px] tracking-wide text-foreground/45">
-        Made with <span class="text-accent">&#9829;</span> and lots of coffee
+        {t("footer.madeWith")}
+        <span class="text-accent">&#9829;</span>
+        {t("footer.andCoffee")}
       </p>
     </div>
   </div>
@@ -121,7 +131,6 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
 
   .footer-social-btn {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    will-change: transform, box-shadow;
   }
 
   .footer-social-btn:hover {
@@ -132,7 +141,6 @@ const { noMarginTop = false, class: className, ...attrs } = Astro.props;
   @media (prefers-reduced-motion: reduce) {
     .footer-social-btn {
       transition: none !important;
-      will-change: auto;
     }
 
     .footer-social-btn:hover {

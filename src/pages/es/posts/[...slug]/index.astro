@@ -1,0 +1,10 @@
+---
+import { buildPostStaticPaths } from "@/utils/staticPaths";
+import Page from "../../../posts/[...slug]/index.astro";
+
+export const getStaticPaths = () => buildPostStaticPaths("es");
+
+const { post, sortedPosts } = Astro.props;
+---
+
+<Page post={post} sortedPosts={sortedPosts} />

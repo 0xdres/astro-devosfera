@@ -12,11 +12,16 @@ import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
 import { SITE } from "@/config";
 import { SOCIALS } from "@/constants";
 import IntroAudio from "@/components/IntroAudio.astro";
+import { useTranslations } from "@/i18n/utils";
+
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
+const prefix = locale === "es" ? "/es" : "";
 
 const [blogPosts, galleryPosts] = await Promise.all([
-  getCollection("blog"),
+  getCollection("blog", ({ id }) => id.startsWith(`${locale}/`)),
   SITE.showGalleries && SITE.showGalleriesInIndex
-    ? getCollection("galleries")
+    ? getCollection("galleries", ({ id }) => id.startsWith(`${locale}/`))
     : Promise.resolve([]),
 ]);
 const posts = [...blogPosts, ...galleryPosts];
@@ -56,7 +61,7 @@ const recentPosts = sortedPosts.filter(
           {SITE.title}
           <a
             target="_blank"
-            href="/rss.xml"
+            href={`${prefix}/rss.xml`}
             class="ml-1 inline-block align-middle"
             aria-label="RSS Feed"
             title="RSS Feed"
@@ -82,13 +87,11 @@ const recentPosts = sortedPosts.filter(
 
         <!-- Description -->
         <p class="mt-7 max-w-xl text-base leading-relaxed opacity-75 sm:text-lg">
-          A space where curiosity turns into code. Exploring web development,
-          software architecture, and everything that makes the tech world go
-          round.
+          {t("index.heroDesc")}
         </p>
         <div class="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
           <p class="text-sm opacity-50 flex-shrink-0">
-            Written by
+            {t("index.writtenBy")}
             <LinkButton
               class="font-medium underline decoration-dashed underline-offset-4 hover:text-accent"
               href={SITE.profile}
@@ -123,7 +126,7 @@ const recentPosts = sortedPosts.filter(
             >
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
-            Featured
+            {t("index.featured")}
           </h2>
           <div class="h-px flex-1 bg-border/20" />
         </div>
@@ -146,9 +149,11 @@ const recentPosts = sortedPosts.filter(
     {recentPosts.length > 0 && (
       <section id="recent-posts" class="pt-6 pb-6">
         <div class="mb-6 flex items-center gap-3">
-          <h2 class="text-sm font-bold tracking-widest uppercase">Recent</h2>
+          <h2 class="text-sm font-bold tracking-widest uppercase">
+            {t("index.recent")}
+          </h2>
           <div class="h-px flex-1 bg-border/20" />
-          <span class="font-firacode text-xs text-accent/40 select-none">
+          <span class="font-firacode text-xs text-accent/80 select-none">
             [{recentPosts.slice(0, SITE.postPerIndex).length}/
             {recentPosts.length}]
           </span>
@@ -175,10 +180,10 @@ const recentPosts = sortedPosts.filter(
         <!-- ═══════════════════ CTA ═══════════════════ -->
         <div class="mt-8 mb-4 flex justify-center w-full">
           <LinkButton
-            href="/posts/"
+            href={`${prefix}/posts/`}
             class="group inline-flex items-center w-full sm:w-auto justify-center gap-2 rounded-xl border border-accent/20 bg-accent/10 px-8 py-4 text-base font-bold text-accent transition-all duration-300 hover:border-accent hover:bg-accent/20 hover:shadow-xl hover:shadow-accent/20 hover:-translate-y-0.5"
           >
-            Explore all posts
+            {t("index.exploreAll")}
             <IconArrowRight class="inline-block transition-transform duration-300 group-hover:translate-x-1 rtl:-rotate-180" />
           </LinkButton>
         </div>
@@ -223,7 +228,7 @@ const recentPosts = sortedPosts.filter(
     const indexLayout = (document.querySelector("#main-content") as HTMLElement)
       ?.dataset?.layout;
     if (indexLayout) {
-      sessionStorage.setItem("backUrl", "/");
+      sessionStorage.setItem("backUrl", window.location.pathname);
     }
 
     // ── Card glow follow cursor ──

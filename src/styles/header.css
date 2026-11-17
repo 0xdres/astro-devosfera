@@ -1,0 +1,593 @@
+/* ═══════════════════════════════════════════════════════════════
+   HEADER STYLES
+   Extracted from Header.astro for modularity and caching.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Header Glass & Scroll Physics ─── */
+#main-header {
+  background: transparent;
+}
+
+.header-scrolled {
+  background: color-mix(in srgb, var(--background) 80%, transparent) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
+.header-scrolled .header-scrolled-filter {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+.nav-intro-audio-compact {
+  max-width: 100%;
+}
+
+/* ─── Logo SVG hover effects ─── */
+.logo-text-left,
+.logo-text-right {
+  transition:
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 0.4s ease;
+}
+.logo-sphere {
+  transition:
+    transform 0.3s ease,
+    filter 0.3s ease;
+  transform-origin: 401px 110px;
+}
+
+#main-header .group:hover .logo-text-left {
+  transform: translateX(-5px);
+  filter: drop-shadow(0 0 3px rgba(56, 66, 77, 0.2));
+}
+#main-header .group:hover .logo-text-right {
+  transform: translateX(5px);
+  filter: drop-shadow(0 0 3px rgba(56, 66, 77, 0.2));
+}
+#main-header .group:hover .logo-sphere {
+  filter: drop-shadow(0 0 8px rgba(167, 90, 90, 0.5));
+  animation: sphere-wiggle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes sphere-wiggle {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(-8deg) scale(1.1);
+  }
+  40% {
+    transform: rotate(5deg) scale(1.15);
+  }
+  60% {
+    transform: rotate(-3deg) scale(1.12);
+  }
+  80% {
+    transform: rotate(1deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.nav-logo-text {
+  background: linear-gradient(
+    135deg,
+    var(--foreground) 0%,
+    var(--foreground) 60%,
+    var(--accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ─── Desktop nav links ─── */
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  border-radius: 0.5rem;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.nav-link:focus-visible,
+.nav-icon-btn:focus-visible,
+.nav-search-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+:is(.nav-link, .nav-icon-btn):hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.nav-active {
+  color: var(--accent);
+  background: transparent;
+}
+
+/* Glowing dot for active state (macOS Dock style) */
+.nav-active::after {
+  content: "";
+  position: absolute;
+  bottom: -0.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+
+.nav-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+  color: var(--foreground);
+}
+
+/* ─── Desktop Search Button ─── */
+.nav-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.nav-search-btn:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.nav-kbd {
+  display: inline-flex;
+  align-items: center;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  border-bottom-width: 2px;
+  background: color-mix(in srgb, var(--background) 90%, transparent);
+  color: var(--muted-foreground);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.nav-search-btn:hover .nav-kbd {
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--accent);
+}
+
+/* ─── Header Language Chip ─── */
+.nav-lang-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+  text-decoration: none;
+  cursor: pointer;
+  line-height: 1;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+  user-select: none;
+}
+
+.nav-lang-chip:hover {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.nav-lang-chip:active {
+  transform: scale(0.95);
+}
+
+.nav-lang-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.nav-lang-chip-icon {
+  transition:
+    transform 0.25s ease,
+    color 0.2s ease;
+}
+
+.nav-lang-chip:hover .nav-lang-chip-icon {
+  transform: scale(1.1);
+  color: var(--accent);
+}
+
+.nav-lang-chip-label {
+  font-family: var(--font-firacode, monospace);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* ─── More (···) Popover ─── */
+.more-btn-container {
+  position: relative;
+}
+
+#more-btn[aria-expanded="true"] {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+#more-btn:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.more-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  width: 220px;
+  border-radius: 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--border) 25%, transparent);
+  background: color-mix(in srgb, var(--background) 96%, transparent);
+  box-shadow:
+    0 20px 40px -8px rgba(0, 0, 0, 0.12),
+    0 8px 16px -4px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 0.5rem;
+  z-index: 50;
+  outline: none;
+  isolation: isolate;
+  transform-origin: top right;
+  animation: popover-in 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.more-popover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.more-popover.hidden {
+  display: none;
+}
+
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.popover-section {
+  padding: 0.25rem 0;
+}
+
+.popover-section-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--foreground) 35%, transparent);
+  padding: 0.25rem 0.625rem 0.375rem;
+  font-family: var(--font-firacode, monospace);
+  user-select: none;
+}
+
+.popover-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.popover-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+  border-radius: 0.5rem;
+  transform: translateZ(0);
+  transition:
+    color 0.12s ease,
+    background-color 0.12s ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  text-decoration: none;
+}
+
+.popover-link:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.popover-link:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  outline-offset: -2px;
+}
+
+.popover-link-active {
+  color: var(--accent);
+}
+
+.popover-divider {
+  margin: 0.375rem 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--border) 40%, transparent),
+    transparent
+  );
+}
+
+/* ─── Preference rows (theme, lang, accent) ─── */
+.popover-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+}
+
+.popover-row-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--foreground) 70%, transparent);
+  user-select: none;
+}
+
+/* Theme pill toggle */
+.theme-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  background: color-mix(in srgb, var(--muted) 50%, transparent);
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  gap: 0.3rem;
+}
+
+.theme-toggle-pill:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+}
+
+.theme-pill-option {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Sound FX pill toggle */
+.sound-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  background: color-mix(in srgb, var(--muted) 50%, transparent);
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  gap: 0.3rem;
+}
+
+.sound-toggle-pill:hover,
+.sound-toggle-pill.active {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+}
+
+.sound-toggle-pill.muted {
+  opacity: 0.65;
+  border-color: color-mix(in srgb, var(--border) 30%, transparent);
+}
+
+/* Accent swatches inside popover */
+.popover-row--accent {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.375rem;
+}
+
+.accent-swatches {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.accent-swatch {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--border) 30%, transparent);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  padding: 0;
+}
+
+.accent-swatch:hover {
+  transform: scale(1.2);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--background) 100%, transparent),
+    0 0 0 3.5px color-mix(in srgb, var(--foreground) 30%, transparent);
+}
+
+.accent-swatch:focus-visible {
+  outline: none;
+  transform: scale(1.2);
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--accent);
+}
+
+/* Active accent swatch styling */
+html[data-accent="blue"] [data-accent-color="blue"],
+html[data-accent="green"] [data-accent-color="green"],
+html[data-accent="purple"] [data-accent-color="purple"],
+html[data-accent="amber"] [data-accent-color="amber"],
+html[data-accent="rose"] [data-accent-color="rose"] {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 3.5px var(--accent);
+}
+
+/* ─── Animated Hamburger Button ─── */
+.hamburger-btn {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
+  border: 1px solid transparent;
+  background: transparent;
+  transition:
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+  .hamburger-btn {
+    display: none;
+  }
+}
+
+.hamburger-btn:hover,
+.hamburger-btn[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.hamburger-box {
+  position: relative;
+  width: 18px;
+  height: 14px;
+}
+
+.hamburger-line {
+  position: absolute;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--foreground);
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hamburger-line--1 {
+  top: 0;
+}
+.hamburger-line--2 {
+  top: 6px;
+}
+.hamburger-line--3 {
+  top: 12px;
+  width: 60%;
+}
+
+/* Open state: morph to X */
+.hamburger-btn[aria-expanded="true"] .hamburger-line {
+  background: var(--accent);
+}
+.hamburger-btn[aria-expanded="true"] .hamburger-line--1 {
+  top: 6px;
+  transform: rotate(45deg);
+}
+.hamburger-btn[aria-expanded="true"] .hamburger-line--2 {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.hamburger-btn[aria-expanded="true"] .hamburger-line--3 {
+  top: 6px;
+  width: 100%;
+  transform: rotate(-45deg);
+}

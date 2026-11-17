@@ -27,8 +27,8 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 3. [Installation and local development](#-installation-and-local-development)
 4. [Commands](#-commands)
 5. [Creating content](#-creating-content)
-   - [Posts](#posts-srcdatablog)
-   - [Image galleries](#galleries-srcdatagalleries)
+   - [Posts](#posts-srcdatablogenes)
+   - [Image galleries](#galleries-srcdatagalleriesenes)
 6. [GalleryEmbed component](#%EF%B8%8F-galleryembed-component)
 7. [Configuration](#%EF%B8%8F-configuration)
 8. [Upstream issues resolved](#-upstream-issues-resolved)
@@ -47,6 +47,7 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 ### Modern design
 
 - Hero with animated prompt configurable from `heroTerminalPrompt` in `src/config.ts` (default: `~/ready-to-go $`)
+- Reusable `<AuroraHero>` section headers with interactive mouse-tracking aurora orbs
 - Global backdrop: grid + cursor glow + noise texture (all pages) optional and configurable from `src/config.ts`
 - Glassmorphism on navbar, cards and modals
 
@@ -64,7 +65,7 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 
 ### Image galleries (`/galleries`)
 
-- Albums in `src/data/galleries/<slug>/`; images optimized at build-time (srcset, WebP, lazy)
+- Albums in `src/data/galleries/{en,es}/<slug>/`; images optimized at build-time (srcset, WebP, lazy)
 - Native lightbox with `<dialog>`, redesigned fullscreen layout, keyboard navigation and edge-aware prev/next controls
 - `<GalleryEmbed>` to embed galleries inside MDX posts without importing
 - Controlled by `showGalleries` in `src/config.ts` (also gates gallery inclusion in mixed feeds) — see [GALLERIES.md](GALLERIES.md)
@@ -88,15 +89,28 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 - Intro audio player in the hero with terminal aesthetic (wave bars, progress bar)
 - Fully togglable and configurable from `src/config.ts`
 
+### Reading experience
+
+- Distraction-free **Reading Mode** (`R` shortcut, Sans/Serif typography toggle, 80%–150% font scaling)
+- Sticky desktop **Table of Contents** sidebar with scrollspy active-section highlighting
+- Scroll-driven **Reading Progress Bar** and automatic **"Resume reading where you left off"** bookmark toast
+- Hybrid post navigation (chronological previous post + tag-scored **Recommended Read**)
+
+### Bilingual architecture (`en` / `es`)
+
+- Complete English (`/`) and Spanish (`/es/*`) route tree with header and mobile language switcher (`EN` / `ES`)
+- Locale-organized content in `src/data/blog/{en,es}/` and `src/data/galleries/{en,es}/`
+- `hreflang` alternate links, localized Open Graph metadata, and dedicated RSS feeds (`/rss.xml` and `/es/rss.xml`)
+
 ### Redesigned pages
 
-| Page        | Highlights                                                          |
-| :---------- | :------------------------------------------------------------------ |
-| `/` Home    | Terminal hero, featured grid, section counters, optional mixed feed |
-| `/archives` | Vertical timeline with glow, includes gallery entries               |
-| `/tags`     | Grid with proportional progress bar                                 |
-| `/search`   | Reactive aurora, restyled Pagefind                                  |
-| Posts       | Paginated mixed feed (posts + galleries), inline Pagefind search    |
+| Page         | Highlights                                                          |
+| :----------- | :------------------------------------------------------------------ |
+| `/` Home     | Terminal hero, featured grid, section counters, optional mixed feed |
+| `/posts`     | Unified 3-column grid (posts + galleries) with inline Pagefind      |
+| `/archives`  | Vertical timeline with glow, includes gallery entries               |
+| `/tags`      | Grid with proportional progress bar                                 |
+| `/galleries` | Album grid and fullscreen native `<dialog>` lightbox viewer         |
 
 ---
 
@@ -111,12 +125,14 @@ Heavily customized version of the [AstroPaper](https://github.com/satnaing/astro
 │   ├── assets/            # Local fonts, SVG icons and logo
 │   ├── components/        # Reusable Astro components
 │   ├── data/
-│   │   ├── blog/          # Posts .md / .mdx
-│   │   └── galleries/     # Galleries (one folder per album)
-│   ├── layouts/           # Root layout, PostDetails, etc.
-│   ├── pages/             # Astro routes
-│   ├── styles/            # global.css, typography.css
-│   └── utils/             # Filters, OG with Satori, Shiki transformers
+│   │   ├── blog/          # Posts .md / .mdx by locale (en/, es/)
+│   │   └── galleries/     # Galleries by locale (en/<slug>/, es/<slug>/)
+│   ├── i18n/              # UI translation dictionaries and locale helpers
+│   ├── layouts/           # Root layout, PostDetails, AboutLayout
+│   ├── pages/             # Astro routes (/ and /es/*)
+│   ├── scripts/           # Modular client-side TypeScript modules
+│   ├── styles/            # global.css, header.css, post-details.css, typography.css
+│   └── utils/             # Filters, static paths, OG with Satori, Shiki transformers
 ├── tests/                 # Unit test suite (Node.js native test runner)
 └── astro.config.ts
 ```
@@ -169,7 +185,7 @@ docker run -p 4321:80 devosfera-blog
 
 ## 📝 Creating content
 
-### Posts (`src/data/blog/`)
+### Posts (`src/data/blog/{en,es}/`)
 
 Create a `.md` or `.mdx` file with the following frontmatter:
 
@@ -186,6 +202,8 @@ draft: false # hidden in production
 
 **MDX**: JSX components can be used directly. `<GalleryEmbed>` is available without importing it (see next section).
 
+**Table of Contents**: Automatically rendered in the desktop sidebar with dynamic scrollspy highlighting for `h2` and `h3` headings.
+
 **Annotated code blocks** (via Shiki transformers):
 
 ```
@@ -197,14 +215,14 @@ draft: false # hidden in production
 
 ---
 
-### Galleries (`src/data/galleries/`)
+### Galleries (`src/data/galleries/{en,es}/`)
 
 Quick setup:
 
-1. Create a folder in `src/data/galleries/<slug>/`.
+1. Create a folder in `src/data/galleries/en/<slug>/` (and `src/data/galleries/es/<slug>/` for Spanish).
 2. Add `index.md` (gallery metadata) and image files.
 3. Use numeric prefixes (`01-`, `02-`, …) if you want to control image order.
-4. The folder slug becomes the route: `/galleries/<slug>`.
+4. The folder slug becomes the route: `/galleries/<slug>` (and `/es/galleries/<slug>`).
 
 For full details (frontmatter fields, cover behavior, alt generation, and image optimization), see [GALLERIES.md](GALLERIES.md).
 

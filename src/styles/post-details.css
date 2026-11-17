@@ -1,0 +1,357 @@
+/* ═══════════════════════════════════════════════════════════════
+   POST DETAILS LAYOUT STYLES
+   Extracted from PostDetails.astro for modularity and caching.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Reading Progress Bar styles */
+.progress-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 100;
+  pointer-events: none;
+  background: transparent;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    #a855f7 50%,
+    var(--accent) 100%
+  );
+  background-size: 200% auto;
+  transform-origin: left;
+  transform: scaleX(0);
+  box-shadow:
+    0 0 8px var(--accent),
+    0 0 16px color-mix(in oklab, var(--accent) 60%, #a855f7);
+  animation: shimmer-progress 4s linear infinite;
+}
+
+@keyframes grow-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes shimmer-progress {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@supports ((animation-timeline: scroll()) and (animation-range: 0% 100%)) {
+  .progress-bar {
+    animation:
+      grow-progress auto linear both,
+      shimmer-progress 4s linear infinite;
+    animation-timeline: scroll(y), auto;
+    animation-range:
+      0% 100%,
+      auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar {
+    animation: none !important;
+    transform: scaleX(0) !important;
+    display: none;
+  }
+}
+
+.post-title {
+  background: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    color-mix(in oklab, var(--accent) 60%, var(--foreground)) 25%,
+    var(--foreground) 50%,
+    var(--foreground) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Hero Aurora glow layer — gradient-only, no filter:blur (avoids repaint) */
+.post-hero-bg {
+  position: absolute;
+  inset: -2px;
+  opacity: 0.6;
+  background:
+    radial-gradient(
+      circle at 20% 5%,
+      color-mix(in oklab, var(--accent) 12%, transparent) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse 80% 60% at 80% 95%,
+      color-mix(in oklab, var(--accent) 8%, transparent) 0%,
+      transparent 55%
+    );
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 1.5rem; /* matches rounded-3xl */
+}
+
+.post-nav-link {
+  background: color-mix(in srgb, var(--muted) 5%, transparent);
+  position: relative;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.post-nav-link:hover {
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  transform: translateY(-2px);
+}
+
+.post-nav-link:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Aurora glow layer — opacity-only transition, single blur value */
+.post-nav-bg {
+  position: absolute;
+  inset: -1px;
+  opacity: 0.4;
+  transition: opacity 0.35s ease;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 20% 80%,
+      color-mix(in oklab, var(--accent) 12%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 70% at 80% 20%,
+      color-mix(in oklab, var(--accent) 8%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 90% 40% at 50% 100%,
+      color-mix(in oklab, var(--accent) 6%, transparent) 0%,
+      transparent 50%
+    );
+  filter: blur(16px);
+  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
+}
+
+.post-nav-link:hover .post-nav-bg {
+  opacity: 1;
+}
+
+@media (pointer: fine) {
+  .post-nav-link:hover .post-nav-bg {
+    will-change: opacity;
+  }
+}
+
+@media (min-width: 1024px) {
+  #article #table-of-contents,
+  #article details {
+    display: none !important;
+  }
+}
+
+/* Reading Resume Modal breathing pulse animations */
+@keyframes reading-halo-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.97);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes reading-border-pulse {
+  0%,
+  100% {
+    border-color: color-mix(in srgb, var(--accent) 18%, transparent);
+    box-shadow:
+      0 10px 30px -10px rgba(0, 0, 0, 0.3),
+      0 0 15px -3px color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+  50% {
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow:
+      0 10px 35px -8px rgba(0, 0, 0, 0.35),
+      0 0 20px 0px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+}
+
+.animate-reading-halo {
+  animation: reading-halo-pulse 3.5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+#reading-resume-modal {
+  animation: reading-border-pulse 3.5s ease-in-out infinite;
+  will-change: border-color, box-shadow;
+}
+
+/* Reading Mode Active Styles */
+body.reading-mode-active #main-header,
+body.reading-mode-active footer,
+body.reading-mode-active nav[aria-label="breadcrumb"],
+body.reading-mode-active nav.app-layout,
+body.reading-mode-active .sidebar-toc,
+body.reading-mode-active #back-to-top,
+body.reading-mode-active .post-hero-bg,
+body.reading-mode-active .giscus-wrapper,
+body.reading-mode-active [data-pagefind-ignore],
+body.reading-mode-active .progress-container,
+body.reading-mode-active
+  div.relative.mt-12.mb-8.flex.items-center.justify-center.gap-4,
+body.reading-mode-active div.my-6.flex.items-center.gap-3,
+body.reading-mode-active .site-cursor-glow {
+  display: none !important;
+}
+
+/* Simplify the header card to look super clean */
+body.reading-mode-active .post-header > div:not(.post-hero-bg) {
+  border: none !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  padding-top: 2rem !important;
+  padding-bottom: 1rem !important;
+}
+
+/* Adjust grid container to not constrain the article */
+body.reading-mode-active #main-content .grid {
+  display: block !important;
+}
+
+/* Center and constrain main layout to 928px (880px content + 48px padding) */
+body.reading-mode-active #main-content {
+  max-width: 58rem !important; /* 928px */
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  padding-top: 1rem !important;
+  padding-bottom: 8rem !important; /* leave space for the pill */
+}
+
+body.reading-mode-active #article {
+  max-width: 55rem !important; /* 880px */
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Reading Mode Font Size Scale Configurations */
+body.reading-mode-active {
+  --reading-font-scale: 1;
+}
+body.reading-mode-active.font-scale-1 {
+  --reading-font-scale: 0.8;
+}
+body.reading-mode-active.font-scale-2 {
+  --reading-font-scale: 0.9;
+}
+body.reading-mode-active.font-scale-3 {
+  --reading-font-scale: 1;
+}
+body.reading-mode-active.font-scale-4 {
+  --reading-font-scale: 1.1;
+}
+body.reading-mode-active.font-scale-5 {
+  --reading-font-scale: 1.2;
+}
+body.reading-mode-active.font-scale-6 {
+  --reading-font-scale: 1.3;
+}
+body.reading-mode-active.font-scale-7 {
+  --reading-font-scale: 1.4;
+}
+body.reading-mode-active.font-scale-8 {
+  --reading-font-scale: 1.5;
+}
+
+/* Apply typography enhancements to article content in Reading Mode */
+body.reading-mode-active #article {
+  font-size: calc(var(--reading-font-scale, 1) * 1.125rem) !important;
+}
+
+body.reading-mode-active #article p,
+body.reading-mode-active #article li,
+body.reading-mode-active #article blockquote {
+  font-size: 1em !important;
+  line-height: 1.85 !important;
+}
+
+body.reading-mode-active #article h1 {
+  font-size: 2.25em !important;
+  line-height: 1.25 !important;
+}
+body.reading-mode-active #article h2 {
+  font-size: 1.75em !important;
+  line-height: 1.3 !important;
+}
+body.reading-mode-active #article h3 {
+  font-size: 1.5em !important;
+  line-height: 1.35 !important;
+}
+body.reading-mode-active #article h4 {
+  font-size: 1.25em !important;
+  line-height: 1.4 !important;
+}
+
+/* Serif typography toggled on */
+body.reading-mode-active.font-serif-active #article,
+body.reading-mode-active.font-serif-active #article h3,
+body.reading-mode-active.font-serif-active #article blockquote,
+body.reading-mode-active.font-serif-active #article em,
+body.reading-mode-active.font-serif-active #article i,
+body.reading-mode-active.font-serif-active .post-title {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif !important;
+}
+
+#reading-controls-pill {
+  animation: reading-border-pulse 3.5s ease-in-out infinite;
+  will-change: border-color, box-shadow;
+}
+
+.toast-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  font-size: 0.625rem;
+  font-family: var(--font-firacode, monospace);
+  font-weight: 700;
+  border-radius: 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 15%, transparent),
+    color-mix(in srgb, var(--accent) 5%, transparent)
+  );
+  color: var(--accent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--accent) 20%, transparent),
+    0 2px 4px color-mix(in srgb, var(--background) 30%, transparent);
+}

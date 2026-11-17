@@ -3,12 +3,16 @@ import type { MarkdownLayoutProps } from "astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Breadcrumb from "@/components/Breadcrumb.astro";
+import AuroraHero from "@/components/AuroraHero.astro";
 import Layout from "./Layout.astro";
 import { SITE } from "@/config";
+import { useTranslations } from "@/i18n/utils";
 
 type Props = MarkdownLayoutProps<{ title: string; description?: string }>;
 
 const { frontmatter } = Astro.props;
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
 ---
 
 <Layout
@@ -19,11 +23,7 @@ const { frontmatter } = Astro.props;
   <Breadcrumb />
   <main id="main-content" class="app-layout">
     <!-- Hero with interactive aurora -->
-    <div class="about-hero" data-about-hero>
-      <div class="aurora-orb aurora-orb-1"></div>
-      <div class="aurora-orb aurora-orb-2"></div>
-      <div class="aurora-orb aurora-orb-3"></div>
-      <div class="aurora-mouse" data-about-mouse></div>
+    <AuroraHero class="about-hero mb-12">
       <div class="hero-content">
         <div class="avatar-ring">
           <div class="avatar-glow"></div>
@@ -32,22 +32,22 @@ const { frontmatter } = Astro.props;
           </div>
         </div>
         <h1 class="hero-title">
-          <span class="greeting">Hi! I'm</span>
+          <span class="greeting">{t("about.greeting")}</span>
           <span class="name-glow">{SITE.author}</span>
         </h1>
         <div class="hero-badges">
           <span class="badge" data-badge>
-            🚀 Developer
+            {t("about.badge.dev")}
           </span>
           <span class="badge" data-badge>
-            📚 Student
+            {t("about.badge.student")}
           </span>
           <span class="badge" data-badge>
-            🎮 Gamer
+            {t("about.badge.gamer")}
           </span>
         </div>
       </div>
-    </div>
+    </AuroraHero>
 
     <section
       id="about"
@@ -67,36 +67,6 @@ const { frontmatter } = Astro.props;
     if (aboutCleanup) aboutCleanup.abort();
     aboutCleanup = new AbortController();
     const { signal } = aboutCleanup;
-
-    const hero = document.querySelector("[data-about-hero]") as HTMLElement;
-    const mouseOrb = document.querySelector(
-      "[data-about-mouse]"
-    ) as HTMLElement;
-
-    if (hero && mouseOrb) {
-      hero.addEventListener(
-        "mousemove",
-        e => {
-          requestAnimationFrame(() => {
-            const rect = hero.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            mouseOrb.style.setProperty("--mx", `${x}px`);
-            mouseOrb.style.setProperty("--my", `${y}px`);
-            mouseOrb.style.opacity = "1";
-          });
-        },
-        { signal }
-      );
-
-      hero.addEventListener(
-        "mouseleave",
-        () => {
-          mouseOrb.style.opacity = "0";
-        },
-        { signal }
-      );
-    }
 
     // Badge hover ripple
     const badges = document.querySelectorAll("[data-badge]");
@@ -119,117 +89,6 @@ const { frontmatter } = Astro.props;
 </script>
 
 <style>
-  .about-hero {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1.5rem;
-    padding: 3rem 2rem;
-    margin-bottom: 3rem;
-    background: color-mix(
-      in srgb,
-      var(--color-foreground) 3%,
-      var(--color-background)
-    );
-    border: 1px solid color-mix(in srgb, var(--color-accent) 12%, transparent);
-  }
-
-  /* Floating aurora orbs */
-  .aurora-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(60px);
-    pointer-events: none;
-    will-change: transform;
-  }
-
-  .aurora-orb-1 {
-    width: 350px;
-    height: 350px;
-    top: -40%;
-    left: -15%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-accent) 25%, transparent),
-      transparent 70%
-    );
-    animation: orb-1 7s ease-in-out infinite alternate;
-  }
-
-  .aurora-orb-2 {
-    width: 280px;
-    height: 280px;
-    top: 0%;
-    right: -10%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-border) 22%, transparent),
-      transparent 70%
-    );
-    animation: orb-2 9s ease-in-out infinite alternate;
-  }
-
-  .aurora-orb-3 {
-    width: 220px;
-    height: 220px;
-    bottom: -25%;
-    left: 35%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-accent) 15%, transparent),
-      transparent 70%
-    );
-    animation: orb-3 11s ease-in-out infinite alternate;
-  }
-
-  @keyframes orb-1 {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    100% {
-      transform: translate(50px, 30px) scale(1.25);
-    }
-  }
-  @keyframes orb-2 {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    100% {
-      transform: translate(-40px, 35px) scale(1.2);
-    }
-  }
-  @keyframes orb-3 {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    100% {
-      transform: translate(25px, -30px) scale(1.15);
-    }
-  }
-
-  /* Mouse-follow aurora */
-  .aurora-mouse {
-    position: absolute;
-    width: 400px;
-    height: 400px;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-accent) 20%, transparent),
-      color-mix(in srgb, var(--color-border) 10%, transparent) 35%,
-      transparent 70%
-    );
-    filter: blur(50px);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    transform: translate(
-      calc(var(--mx, 0px) - 200px),
-      calc(var(--my, 0px) - 200px)
-    );
-    will-change: transform;
-    z-index: 1;
-  }
-
   .hero-content {
     position: relative;
     z-index: 10;

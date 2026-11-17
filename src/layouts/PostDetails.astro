@@ -8,10 +8,14 @@ import ShareLinks from "@/components/ShareLinks.astro";
 import Breadcrumb from "@/components/Breadcrumb.astro";
 import BackToTopButton from "@/components/BackToTopButton.astro";
 import GalleryEmbed from "@/components/GalleryEmbed.astro";
+import TableOfContents from "@/components/TableOfContents.astro";
 import { getPath } from "@/utils/getPath";
 import { slugifyStr } from "@/utils/slugify";
 import { getReadingTime } from "@/utils/readingTime";
+import IconClock from "@/assets/icons/IconClock.svg";
 import { SITE } from "@/config";
+import { useTranslations } from "@/i18n/utils";
+import "@/styles/post-details.css";
 
 type Props = {
   post: CollectionEntry<"blog">;
@@ -19,6 +23,9 @@ type Props = {
 };
 
 const { post, posts } = Astro.props;
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
+const prefix = locale === "es" ? "/es" : "";
 
 const {
   title,
@@ -30,8 +37,9 @@ const {
   tags,
 } = post.data;
 
-const { Content } = await render(post);
-const readingTime = post.body ? getReadingTime(post.body) : null;
+const { Content, headings } = await render(post);
+const readingTime = post.body ? getReadingTime(post.body, locale) : null;
+const hasToc = headings.filter(h => h.depth > 1 && h.depth < 4).length > 0;
 
 let ogImageUrl: string | undefined;
 
@@ -44,7 +52,7 @@ if (typeof initOgImage === "string") {
 
 // Use dynamic OG image if enabled and no remote|local ogImage
 if (!ogImageUrl && SITE.dynamicOgImage) {
-  ogImageUrl = `${getPath(post.id, post.filePath)}/index.png`;
+  ogImageUrl = `${prefix}${getPath(post.id, post.filePath)}/index.png`;
 }
 
 // Resolve OG image URL (or fallback to SITE.ogImage / default `og.png`)
@@ -60,32 +68,84 @@ const layoutProps = {
   modDatetime,
   ogImage,
   scrollSmooth: true,
+  tags,
 };
 
-/* ========== Prev/Next Posts ========== */
+/* ========== Hybrid Navigation Logic ========== */
 
-const allPosts = posts.map(({ data: { title }, id, filePath }) => ({
-  id,
-  title,
-  filePath,
-}));
+const currentPostIndex = posts.findIndex(p => p.id === post.id);
 
-const currentPostIndex = allPosts.findIndex(a => a.id === post.id);
+// 1. Previous Post (chronological - Left Card)
+const rawPrevPost = currentPostIndex !== 0 ? posts[currentPostIndex - 1] : null;
+const prevPost = rawPrevPost
+  ? {
+      id: rawPrevPost.id,
+      title: rawPrevPost.data.title,
+      filePath: rawPrevPost.filePath,
+      pubDatetime: rawPrevPost.data.pubDatetime,
+      modDatetime: rawPrevPost.data.modDatetime,
+      readingTime: rawPrevPost.body
+        ? getReadingTime(rawPrevPost.body, locale)
+        : null,
+    }
+  : null;
 
-const prevPost = currentPostIndex !== 0 ? allPosts[currentPostIndex - 1] : null;
-const nextPost =
-  currentPostIndex < allPosts.length - 1
-    ? allPosts[currentPostIndex + 1]
-    : null;
+// 2. Next Post (chronological - for fallback)
+const rawNextPost =
+  currentPostIndex < posts.length - 1 ? posts[currentPostIndex + 1] : null;
+
+// 3. Find the most related post for the Right Card (Recommendation)
+// Filter out the current post AND the prevPost (if it exists) to avoid duplicate cards
+const candidatePosts = posts.filter(
+  p => p.id !== post.id && (!rawPrevPost || p.id !== rawPrevPost.id)
+);
+
+const scoredCandidates = candidatePosts.map(p => {
+  const matchingTags = p.data.tags.filter(t => tags.includes(t)).length;
+  return { p, score: matchingTags };
+});
+
+// Sort candidates: highest score first, then newest first
+const sortedCandidates = scoredCandidates
+  .filter(c => c.score > 0)
+  .sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return b.p.data.pubDatetime.getTime() - a.p.data.pubDatetime.getTime();
+  });
+
+const rawRecommendedPost =
+  sortedCandidates.length > 0 ? sortedCandidates[0].p : rawNextPost;
+const isRecommended = sortedCandidates.length > 0;
+
+const recommendedPost = rawRecommendedPost
+  ? {
+      id: rawRecommendedPost.id,
+      title: rawRecommendedPost.data.title,
+      filePath: rawRecommendedPost.filePath,
+      pubDatetime: rawRecommendedPost.data.pubDatetime,
+      modDatetime: rawRecommendedPost.data.modDatetime,
+      readingTime: rawRecommendedPost.body
+        ? getReadingTime(rawRecommendedPost.body, locale)
+        : null,
+    }
+  : null;
 ---
 
 <Layout {...layoutProps}>
+  <div class="progress-container">
+    <div class="progress-bar" id="reading-progress-bar"></div>
+  </div>
   <Header />
   {SITE.showBackButton && <Breadcrumb withBackButton />}
   <main
     id="main-content"
-    class:list={["relative app-layout pb-12", { "mt-8": !SITE.showBackButton }]}
+    class:list={[
+      "relative mx-auto w-full max-w-4xl px-4 pb-12 lg:max-w-5xl xl:max-w-6xl",
+      { "mt-8": !SITE.showBackButton },
+    ]}
     data-pagefind-body
+    data-resume-question={t("post.resumeQuestion")}
+    data-resume-btn={t("post.resumeBtn")}
   >
     <!-- Post header section -->
     <header class="post-header relative mb-10 text-center">
@@ -93,7 +153,7 @@ const nextPost =
       <div class="relative z-10 rounded-3xl border border-border/20 bg-muted/5 px-6 py-8 backdrop-blur-md sm:px-10 sm:py-12">
         <!-- Title -->
         <h1
-          transition:name={slugifyStr(title)}
+          transition:name={slugifyStr(title.replaceAll(".", "-"))}
           class="post-title text-3xl leading-tight font-bold tracking-tight sm:text-4xl lg:text-[2.75rem]"
         >
           {title}
@@ -103,7 +163,7 @@ const nextPost =
         <div class="mt-4 flex flex-wrap justify-center gap-2">
           {tags.map((tag: string) => (
             <a
-              href={`/tags/${slugifyStr(tag)}/`}
+              href={`${prefix}/tags/${slugifyStr(tag)}/`}
               class="post-tag-badge inline-flex items-center gap-1 rounded-full border border-accent/20 bg-accent/5 px-2.5 py-0.5 font-firacode text-xs text-accent transition-all duration-200 hover:border-accent/40 hover:bg-accent/10 hover:shadow-sm hover:shadow-accent/10"
             >
               <span class="opacity-50">#</span>
@@ -174,16 +234,60 @@ const nextPost =
               <span class="text-sm opacity-70">{readingTime}</span>
             </div>
           )}
+
+          <!-- Read Mode Button -->
+          <button
+            id="read-mode-btn"
+            class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border/25 bg-muted/10 px-2.5 py-1 opacity-70 backdrop-blur-sm transition-all duration-200 hover:border-accent/30 hover:opacity-100"
+            title={
+              locale === "es"
+                ? "Alternar Modo Lectura (Atajo: r)"
+                : "Toggle Reading Mode (Shortcut: r)"
+            }
+            aria-label={t("post.readMode")}
+          >
+            <svg
+              class="size-3.5 text-accent/70"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            <span class="text-sm">{t("post.readMode")}</span>
+          </button>
         </div>
       </div>
     </header>
 
-    <article
-      id="article"
-      class="app-prose mt-8 w-full max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
-    >
-      <Content components={{ GalleryEmbed }} />
-    </article>
+    {hasToc ? (
+      <div class="mt-8 grid w-full grid-cols-1 items-start lg:grid-cols-[1fr_250px] lg:gap-12">
+        <article
+          id="article"
+          class="app-prose w-full max-w-none lg:max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+        >
+          <Content components={{ GalleryEmbed }} />
+        </article>
+        <aside class="sidebar-toc sticky top-24 hidden max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 lg:block">
+          <TableOfContents headings={headings} />
+          <div class="mt-8 border-t border-border/15 pt-6">
+            <ShareLinks isSidebar={true} />
+          </div>
+        </aside>
+      </div>
+    ) : (
+      <article
+        id="article"
+        class="app-prose mt-8 w-full max-w-app prose-pre:bg-(--shiki-light-bg) dark:prose-pre:bg-(--shiki-dark-bg)"
+      >
+        <Content components={{ GalleryEmbed }} />
+      </article>
+    )}
 
     <!-- ═══════ Post footer section ═══════ -->
     <div
@@ -194,8 +298,8 @@ const nextPost =
         <div class="absolute inset-0 bg-linear-to-r from-transparent via-accent/40 to-accent/40 blur-[2px]"></div>
       </div>
 
-      <div class="relative z-10 flex items-center gap-2 font-firacode text-[10px] tracking-widest text-accent/40 uppercase select-none">
-        <span class="h-1.5 w-1.5 rounded-full bg-accent/50 shadow-[0_0_8px_var(--color-accent)]"></span>
+      <div class="relative z-10 flex items-center gap-2 font-firacode text-[10px] tracking-widest text-accent/80 uppercase select-none">
+        <span class="h-1.5 w-1.5 rounded-full bg-accent/70 shadow-[0_0_8px_var(--color-accent)]"></span>
         end
       </div>
 
@@ -204,40 +308,27 @@ const nextPost =
       </div>
     </div>
 
-    <!-- Tags & Share row -->
-    <div class="mt-6 mb-8 flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between">
-      <!-- Tags (duplicated from header — aria-hidden to avoid double indexing) -->
-      <div
-        class="flex flex-wrap justify-center gap-2 sm:justify-start"
-        aria-hidden="true"
-      >
-        {tags.map((tag: string) => (
-          <a
-            href={`/tags/${slugifyStr(tag)}/`}
-            tabindex="-1"
-            class="inline-flex items-center gap-1 rounded-full border border-border/25 bg-muted/10 px-2.5 py-1 font-firacode text-xs transition-all duration-200 hover:border-accent/40 hover:bg-accent/5 hover:text-accent"
-          >
-            <span class="opacity-40">#</span>
-            {tag}
-          </a>
-        ))}
-      </div>
-
-      <!-- Share links -->
+    <!-- Share links (visible on mobile, or on desktop when there is no TOC) -->
+    <div
+      class:list={["mt-6 mb-8 flex justify-center", { "lg:hidden": hasToc }]}
+    >
       <ShareLinks />
     </div>
 
     <!-- Decorative separator before prev/next -->
-    <div class="my-6 flex items-center gap-3" aria-hidden="true">
-      <div class="h-px flex-1 bg-linear-to-r from-transparent via-border/30 to-transparent"></div>
-    </div>
+    <!-- <div class="my-6 flex items-center gap-3" aria-hidden="true">
+      <div
+        class="h-px flex-1 bg-linear-to-r from-transparent via-border/30 to-transparent"
+      >
+      </div>
+    </div> -->
 
-    <!-- Previous/Next Post Navigation -->
-    <div data-pagefind-ignore class="grid grid-cols-2 gap-3">
+    <!-- Previous/Next/Recommended Post Navigation -->
+    <div data-pagefind-ignore class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {prevPost ? (
         <a
-          href={getPath(prevPost.id, prevPost.filePath)}
-          class="post-nav-link group relative flex flex-col gap-1 rounded-2xl border border-border/20 px-5 py-4 transition-all duration-300 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
+          href={prefix + getPath(prevPost.id, prevPost.filePath)}
+          class="post-nav-link group relative flex flex-col gap-1.5 rounded-2xl border border-border/20 px-5 py-4 transition-all duration-300 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
         >
           <div class="post-nav-bg" />
           <div class="flex items-center gap-1.5">
@@ -254,26 +345,57 @@ const nextPost =
               <polyline points="12 19 5 12 12 5" />
             </svg>
             <span class="font-firacode text-[10px] tracking-wider text-foreground/35 uppercase">
-              Previous
+              {t("post.prev")}
             </span>
           </div>
           <span class="line-clamp-2 text-sm leading-snug font-medium text-foreground/70 transition-colors duration-200 group-hover:text-accent">
             {prevPost.title}
           </span>
+          <div class="mt-2.5 flex items-center gap-2 text-xs text-foreground/45">
+            <Datetime
+              pubDatetime={prevPost.pubDatetime}
+              modDatetime={prevPost.modDatetime}
+              class="text-xs text-foreground/45 [&>svg]:size-3.5 [&>svg]:min-w-3.5 [&>svg]:text-accent/60 [&>time]:text-xs"
+            />
+            {prevPost.readingTime && (
+              <>
+                <span class="opacity-30 select-none">•</span>
+                <span class="flex items-center gap-1.5 whitespace-nowrap">
+                  <IconClock
+                    class="size-3.5 shrink-0 text-accent/60"
+                    aria-hidden="true"
+                  />
+                  <span>{prevPost.readingTime}</span>
+                </span>
+              </>
+            )}
+          </div>
         </a>
       ) : (
-        <div />
+        <div class="hidden sm:block" />
       )}
-      {nextPost && (
+      {recommendedPost && (
         <a
-          href={getPath(nextPost.id, nextPost.filePath)}
-          class="post-nav-link group relative col-start-2 flex flex-col items-end gap-1 rounded-2xl border border-border/20 px-5 py-4 text-end transition-all duration-300 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
+          href={prefix + getPath(recommendedPost.id, recommendedPost.filePath)}
+          class="post-nav-link group relative flex flex-col items-end gap-1.5 rounded-2xl border border-border/20 px-5 py-4 text-end transition-all duration-300 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
         >
           <div class="post-nav-bg" />
           <div class="flex items-center gap-1.5">
-            <span class="font-firacode text-[10px] tracking-wider text-foreground/35 uppercase">
-              Next
-            </span>
+            {isRecommended ? (
+              <span class="flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/8 px-2 py-0.5 font-firacode text-[9px] font-bold tracking-widest text-accent uppercase transition-colors duration-300 select-none group-hover:bg-accent/15">
+                <svg
+                  class="size-3 animate-pulse fill-accent text-accent"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+                {t("post.recommended")}
+              </span>
+            ) : (
+              <span class="font-firacode text-[10px] tracking-wider text-foreground/35 uppercase">
+                {t("post.next")}
+              </span>
+            )}
             <svg
               class="size-3.5 text-accent/50 transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180"
               viewBox="0 0 24 24"
@@ -288,240 +410,176 @@ const nextPost =
             </svg>
           </div>
           <span class="line-clamp-2 text-sm leading-snug font-medium text-foreground/70 transition-colors duration-200 group-hover:text-accent">
-            {nextPost.title}
+            {recommendedPost.title}
           </span>
+          <div class="mt-2.5 flex items-center justify-end gap-2 text-xs text-foreground/45">
+            <Datetime
+              pubDatetime={recommendedPost.pubDatetime}
+              modDatetime={recommendedPost.modDatetime}
+              class="text-xs text-foreground/45 [&>svg]:size-3.5 [&>svg]:min-w-3.5 [&>svg]:text-accent/60 [&>time]:text-xs"
+            />
+            {recommendedPost.readingTime && (
+              <>
+                <span class="opacity-30 select-none">•</span>
+                <span class="flex items-center gap-1.5 whitespace-nowrap">
+                  <IconClock
+                    class="size-3.5 shrink-0 text-accent/60"
+                    aria-hidden="true"
+                  />
+                  <span>{recommendedPost.readingTime}</span>
+                </span>
+              </>
+            )}
+          </div>
         </a>
       )}
     </div>
   </main>
+
+  <!-- Reading Mode Floating Controls -->
+  <div
+    id="reading-controls-pill"
+    class="pointer-events-none fixed bottom-6 left-1/2 z-100 flex -translate-x-1/2 translate-y-10 scale-95 items-center gap-4 rounded-full border border-accent/20 bg-background/85 px-6 py-3 opacity-0 shadow-2xl backdrop-blur-md transition-all duration-300 hover:border-accent/40"
+  >
+    <!-- Accent Halo / Glow behind the pill -->
+    <div class="animate-reading-halo pointer-events-none absolute -inset-1.5 -z-10 rounded-full bg-accent/20 blur-md"></div>
+
+    <!-- Font style toggle (Sans / Serif) -->
+    <div class="flex items-center gap-1.5">
+      <button
+        id="reading-font-sans"
+        class="cursor-pointer rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-background transition-colors hover:bg-accent/80"
+        title={locale === "es" ? "Tipografía Sans Serif" : "Sans Serif Font"}
+      >
+        Sans
+      </button>
+      <button
+        id="reading-font-serif"
+        class="cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium text-foreground/60 transition-colors hover:bg-foreground/5 hover:text-foreground"
+        title={locale === "es" ? "Tipografía Serif" : "Serif Font"}
+      >
+        Serif
+      </button>
+    </div>
+
+    <div class="h-4 w-px bg-border/40"></div>
+
+    <!-- Font size controls -->
+    <div class="flex items-center gap-2">
+      <button
+        id="reading-size-dec"
+        class="cursor-pointer rounded-full p-1 text-foreground/60 transition-colors hover:bg-foreground/5 hover:text-foreground"
+        title={
+          locale === "es" ? "Disminuir tamaño de fuente" : "Decrease Font Size"
+        }
+        aria-label={
+          locale === "es" ? "Disminuir tamaño de fuente" : "Decrease Font Size"
+        }
+      >
+        <svg
+          class="size-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+
+      <span
+        id="reading-size-display"
+        class="min-w-[3ch] text-center font-mono text-xs font-medium"
+      >
+        100%
+      </span>
+
+      <button
+        id="reading-size-inc"
+        class="cursor-pointer rounded-full p-1 text-foreground/60 transition-colors hover:bg-foreground/5 hover:text-foreground"
+        title={
+          locale === "es" ? "Aumentar tamaño de fuente" : "Increase Font Size"
+        }
+        aria-label={
+          locale === "es" ? "Aumentar tamaño de fuente" : "Increase Font Size"
+        }
+      >
+        <svg
+          class="size-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="h-4 w-px bg-border/40"></div>
+
+    <!-- Exit reading mode button -->
+    <button
+      id="reading-exit-btn"
+      class="flex cursor-pointer items-center gap-1.5 rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold text-foreground transition-colors hover:bg-foreground/15"
+      title={
+        locale === "es"
+          ? "Salir de Modo Lectura (Atajo: r)"
+          : "Exit Reading Mode (Shortcut: r)"
+      }
+    >
+      <span>{t("post.exit")}</span>
+      <kbd class="hidden rounded border border-foreground/20 bg-foreground/5 px-1.5 py-0.5 text-[9px] opacity-60 sm:inline-block">
+        R
+      </kbd>
+    </button>
+  </div>
+
   <BackToTopButton />
   <Footer />
 </Layout>
 
-<script is:inline data-astro-rerun>
-  /** Create a progress indicator
-   *  at the top */
-  function createProgressBar() {
-    // Guard: avoid duplicating the bar on View Transitions re-runs
-    if (document.querySelector(".progress-container")) return;
+<script>
+  import {
+    initReadingMode,
+    cleanupReadingMode,
+  } from "@/scripts/post-reading-mode";
+  import { addHeadingLinks, attachCopyButtons } from "@/scripts/code-copy";
+  import {
+    initProgressBarFallback,
+    initReadingPosition,
+    cleanupPostProgress,
+  } from "@/scripts/post-progress";
 
-    const progressContainer = document.createElement("div");
-    progressContainer.className =
-      "progress-container fixed top-0 z-50 h-1 w-full bg-background";
+  document.addEventListener("astro:page-load", () => {
+    const pathname = window.location.pathname;
+    const isPostPage = pathname.match(/^\/(es\/)?posts\/.+/);
 
-    const progressBar = document.createElement("div");
-    progressBar.className = "progress-bar h-1 w-0 bg-accent";
-    progressBar.id = "myBar";
-
-    progressContainer.appendChild(progressBar);
-    document.body.appendChild(progressContainer);
-  }
-  createProgressBar();
-
-  /** Update the progress bar
-   *  when user scrolls */
-  function updateScrollProgress() {
-    const myBar = document.getElementById("myBar"); // cache ref once
-    if (!myBar) return;
-
-    let ticking = false;
-    document.addEventListener(
-      "scroll",
-      () => {
-        if (!ticking) {
-          requestAnimationFrame(() => {
-            const winScroll = document.documentElement.scrollTop;
-            const height =
-              document.documentElement.scrollHeight -
-              document.documentElement.clientHeight;
-            myBar.style.width = (winScroll / height) * 100 + "%";
-            ticking = false;
-          });
-          ticking = true;
-        }
-      },
-      { passive: true } // lets the browser optimise scroll handling
-    );
-  }
-  updateScrollProgress();
-
-  /** Attaches links to headings in the document,
-   *  allowing sharing of sections easily */
-  function addHeadingLinks() {
-    const headings = Array.from(
-      document.querySelectorAll("h2, h3, h4, h5, h6")
-    );
-    for (const heading of headings) {
-      heading.classList.add("group");
-      const link = document.createElement("a");
-      link.className =
-        "heading-link ms-2 no-underline opacity-75 md:opacity-0 md:group-hover:opacity-100 md:focus:opacity-100";
-      link.href = "#" + heading.id;
-
-      const span = document.createElement("span");
-      span.ariaHidden = "true";
-      span.innerText = "#";
-      link.appendChild(span);
-      link.ariaLabel = "link to heading";
-      heading.appendChild(link);
+    if (!isPostPage) {
+      cleanupReadingMode();
+      cleanupPostProgress();
+      return;
     }
-  }
-  addHeadingLinks();
 
-  /** Attaches copy buttons to code blocks in the document,
-   * allowing users to copy code easily. */
-  function attachCopyButtons() {
-    const copyButtonLabel = "Copy";
-    const codeBlocks = Array.from(document.querySelectorAll("pre"));
-
-    // Pass 1: read all computed styles before touching the DOM
-    // (avoids a forced reflow on every iteration of the loop)
-    const topClasses = codeBlocks.map(cb =>
-      getComputedStyle(cb).getPropertyValue("--file-name-offset").trim() !== ""
-        ? "top-(--file-name-offset)"
-        : "-top-3"
-    );
-
-    // Pass 2: mutate DOM
-    codeBlocks.forEach((codeBlock, i) => {
-      const wrapper = document.createElement("div");
-      wrapper.style.position = "relative";
-
-      const copyButton = document.createElement("button");
-      copyButton.className = `copy-code absolute end-3 ${topClasses[i]} rounded bg-muted border border-muted px-2 py-1 text-xs leading-4 text-foreground font-medium`;
-      copyButton.innerHTML = copyButtonLabel;
-      codeBlock.setAttribute("tabindex", "0");
-      codeBlock.appendChild(copyButton);
-
-      // wrap codeblock with relative parent element
-      codeBlock?.parentNode?.insertBefore(wrapper, codeBlock);
-      wrapper.appendChild(codeBlock);
-
-      copyButton.addEventListener("click", async () => {
-        await copyCode(codeBlock, copyButton);
-      });
-    });
-
-    async function copyCode(block, button) {
-      const code = block.querySelector("code");
-      const text = code?.innerText;
-
-      await navigator.clipboard.writeText(text ?? "");
-
-      // visual feedback that task is completed
-      button.innerText = "Copied";
-
-      setTimeout(() => {
-        button.innerText = copyButtonLabel;
-      }, 700);
-    }
-  }
-  attachCopyButtons();
-
-  /* Go to page start after page swap */
-  document.addEventListener("astro:after-swap", () =>
-    window.scrollTo({ left: 0, top: 0, behavior: "instant" })
-  );
+    try {
+      initProgressBarFallback();
+    } catch {}
+    try {
+      addHeadingLinks();
+    } catch {}
+    try {
+      attachCopyButtons();
+    } catch {}
+    try {
+      initReadingPosition();
+    } catch {}
+    try {
+      initReadingMode();
+    } catch {}
+  });
 </script>
-
-<style>
-  .post-title {
-    background: linear-gradient(
-      135deg,
-      var(--accent) 0%,
-      color-mix(in oklab, var(--accent) 60%, var(--foreground)) 25%,
-      var(--foreground) 50%,
-      var(--foreground) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* .post-tag-badge: no backdrop-filter — parent container already has
-     backdrop-blur-md, individual badge layers add no visual benefit
-     but cost a compositing layer each */
-  .post-tag-badge {
-    /* intentionally empty — styles fully handled by Tailwind utilities */
-  }
-
-  /* Hero Aurora glow layer — gradient-only, no filter:blur (avoids repaint) */
-  .post-hero-bg {
-    position: absolute;
-    inset: -2px;
-    opacity: 0.6;
-    background:
-      radial-gradient(
-        circle at 20% 5%,
-        color-mix(in oklab, var(--accent) 12%, transparent) 0%,
-        transparent 45%
-      ),
-      radial-gradient(
-        ellipse 80% 60% at 80% 95%,
-        color-mix(in oklab, var(--accent) 8%, transparent) 0%,
-        transparent 55%
-      );
-    pointer-events: none;
-    z-index: 0;
-    border-radius: 1.5rem; /* matches rounded-3xl */
-  }
-
-  .post-nav-link {
-    /* No backdrop-filter here — .post-nav-bg already provides the
-     blur effect via filter:blur(16px), avoiding a second compositing layer */
-    background: color-mix(in srgb, var(--muted) 5%, transparent);
-    position: relative;
-    transition:
-      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.3s ease,
-      border-color 0.3s ease,
-      background-color 0.3s ease;
-  }
-
-  .post-nav-link:hover {
-    background: color-mix(in srgb, var(--accent) 4%, transparent);
-    transform: translateY(-2px);
-  }
-
-  .post-nav-link:active {
-    transform: translateY(0) scale(0.98);
-  }
-
-  /* Aurora glow layer — opacity-only transition, single blur value */
-  .post-nav-bg {
-    position: absolute;
-    inset: -1px;
-    opacity: 0.4;
-    transition: opacity 0.35s ease;
-    background:
-      radial-gradient(
-        ellipse 80% 60% at 20% 80%,
-        color-mix(in oklab, var(--accent) 12%, transparent) 0%,
-        transparent 70%
-      ),
-      radial-gradient(
-        ellipse 60% 70% at 80% 20%,
-        color-mix(in oklab, var(--accent) 8%, transparent) 0%,
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse 90% 40% at 50% 100%,
-        color-mix(in oklab, var(--accent) 6%, transparent) 0%,
-        transparent 50%
-      );
-    filter: blur(16px); /* single value — no change on hover → no repaint */
-    pointer-events: none;
-    z-index: -1;
-    border-radius: inherit;
-  }
-
-  .post-nav-link:hover .post-nav-bg {
-    opacity: 1; /* only opacity transitions — compositor-friendly */
-  }
-
-  @media (pointer: fine) {
-    .post-nav-bg {
-      will-change: opacity;
-    }
-  }
-</style>

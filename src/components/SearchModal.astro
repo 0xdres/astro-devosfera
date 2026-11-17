@@ -5,6 +5,10 @@
  * Includes visual elements like cursors glows, sparkles, and keyboard navigation.
  */
 import "@pagefind/default-ui/css/ui.css";
+import { useTranslations } from "@/i18n/utils";
+
+const locale = Astro.currentLocale || "en";
+const t = useTranslations(locale);
 ---
 
 <!-- Search Modal Overlay -->
@@ -13,7 +17,7 @@ import "@pagefind/default-ui/css/ui.css";
   class="search-modal-overlay"
   role="dialog"
   aria-modal="true"
-  aria-label="Search the site"
+  aria-label={t("search.title")}
 >
   <div class="search-modal-backdrop" data-search-close></div>
   <div class="search-modal-container" data-modal-card>
@@ -53,19 +57,19 @@ import "@pagefind/default-ui/css/ui.css";
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </span>
-        <span class="search-title-text">Search</span>
+        <span class="search-title-text">{t("search.title")}</span>
       </div>
       <div class="search-modal-shortcuts">
         <kbd class="kbd-key">⌘</kbd>
         <kbd class="kbd-key">K</kbd>
         <span class="shortcuts-sep">·</span>
         <kbd class="kbd-key">esc</kbd>
-        <span class="shortcuts-label">close</span>
+        <span class="shortcuts-label">{t("search.close")}</span>
       </div>
       <button
         class="search-modal-close"
         data-search-close
-        aria-label="Close search"
+        aria-label={t("search.closeLabel")}
       >
         <svg
           class="size-4"
@@ -88,6 +92,8 @@ import "@pagefind/default-ui/css/ui.css";
         id="modal-pagefind-search"
         class="premium-search"
         style="--pagefind-ui-scale: 0.9;"
+        data-placeholder={t("search.placeholder")}
+        data-clear={t("search.close")}
       ></div>
       <!-- Empty state illustration -->
       <div class="search-empty-state" data-search-empty>
@@ -105,19 +111,19 @@ import "@pagefind/default-ui/css/ui.css";
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </div>
-        <p class="empty-text">
-          Type to search for articles, tutorials, and ideas...
-        </p>
+        <p class="empty-text">{t("search.placeholder")}</p>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="search-modal-footer">
       <div class="footer-hint">
-        <span class="footer-icon">↵</span> open
+        <span class="footer-icon">↵</span>
+        {t("search.open")}
       </div>
       <div class="footer-hint">
-        <span class="footer-icon">↑↓</span> navigate
+        <span class="footer-icon">↑↓</span>
+        {t("search.navigate")}
       </div>
       <div class="footer-powered">
         powered by <strong>pagefind</strong>
@@ -258,10 +264,17 @@ import "@pagefind/default-ui/css/ui.css";
         // Navigation may have occurred while the module was loading (first load, uncached)
         if (signal.aborted || container.querySelector(".pagefind-ui")) return;
 
+        const placeholder = container.getAttribute("data-placeholder") || "";
+        const clear = container.getAttribute("data-clear") || "";
+
         new PagefindUI({
           element: "#modal-pagefind-search",
           showImages: false,
           showSubResults: true,
+          translations: {
+            placeholder,
+            clear_search: clear,
+          },
         });
 
         // Hide empty state when user types
@@ -415,8 +428,11 @@ import "@pagefind/default-ui/css/ui.css";
     position: absolute;
     border-radius: 50%;
     filter: blur(70px);
-    will-change: transform;
     opacity: 0.6;
+  }
+
+  .search-modal-overlay.active .modal-aurora-orb {
+    will-change: transform;
   }
 
   .modal-aurora-orb-1 {
@@ -503,8 +519,11 @@ import "@pagefind/default-ui/css/ui.css";
       calc(var(--gx, 0px) - 175px),
       calc(var(--gy, 0px) - 175px)
     );
-    will-change: transform;
     z-index: 0;
+  }
+
+  .search-modal-overlay.active .modal-cursor-glow {
+    will-change: transform;
   }
 
   /* ===== Sparkles ===== */

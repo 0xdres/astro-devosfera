@@ -4,6 +4,7 @@ import { ClientRouter } from "astro:transitions";
 import { PUBLIC_GOOGLE_SITE_VERIFICATION } from "astro:env/client";
 import { SITE } from "@/config";
 import SearchModal from "@/components/SearchModal.astro";
+import { useTranslations, getTargetLanguageUrl } from "@/i18n/utils";
 import "@/styles/global.css";
 
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
   prev?: string;
   next?: string;
   structuredData?: Record<string, unknown>;
+  tags?: string[];
 };
 
 const {
@@ -26,7 +28,7 @@ const {
   author = SITE.author,
   profile = SITE.profile,
   description = SITE.desc,
-  ogImage = SITE.ogImage ? `/${SITE.ogImage}` : "/og.png",
+  ogImage = SITE.ogImage ? `/${SITE.ogImage}` : "/devosfera-og.webp",
   canonicalURL: canonicalURLProp,
   pubDatetime,
   modDatetime,
@@ -34,7 +36,11 @@ const {
   prev,
   next,
   structuredData: structuredDataProp,
+  tags,
 } = Astro.props;
+
+const locale = Astro.currentLocale || SITE.lang || "en";
+const t = useTranslations(locale);
 
 // Always build canonical from SITE.website (production URL), never localhost.
 // Normalize trailing slash: always include it for consistency.
@@ -42,6 +48,15 @@ const rawPath = Astro.url.pathname.replace(/\/$/, "");
 const canonicalURL =
   canonicalURLProp ??
   new URL(rawPath === "" ? "/" : `${rawPath}/`, SITE.website);
+
+const enUrl = new URL(
+  getTargetLanguageUrl(Astro.url.pathname, "en"),
+  Astro.site ?? SITE.website
+);
+const esUrl = new URL(
+  getTargetLanguageUrl(Astro.url.pathname, "es"),
+  Astro.site ?? SITE.website
+);
 
 const socialImageURL = new URL(ogImage, Astro.url);
 
@@ -77,20 +92,15 @@ const finalStructuredData =
           ...(profile && { url: profile }),
         },
       }
-    : rawPath === ""
+    : rawPath === "" || rawPath === "/es"
       ? {
           "@context": "https://schema.org",
           "@type": "WebSite",
           name: SITE.title,
           url: SITE.website,
-          description: SITE.desc,
-          potentialAction: {
-            "@type": "SearchAction",
-            target: `${SITE.website}search/?q={search_term_string}`,
-            "query-input": "required name=search_term_string",
-          },
+          description: locale === "es" ? t("index.heroDesc") : SITE.desc,
         }
-      : rawPath === "/about"
+      : rawPath === "/about" || rawPath === "/es/about"
         ? {
             "@context": "https://schema.org",
             "@type": "ProfilePage",
@@ -98,7 +108,9 @@ const finalStructuredData =
               "@type": "Person",
               name: author,
               description:
-                "Developer, student, and gamer. Creator of Astro Devosfera.",
+                locale === "es"
+                  ? "Desarrollador, estudiante y videojugador. Creador de Astro Devosfera."
+                  : "Developer, student, and gamer. Creator of Astro Devosfera.",
               ...(profile && { url: profile }),
             },
           }
@@ -111,14 +123,29 @@ const showGrain = SITE.backdropEffects.grain;
 <!doctype html>
 <html
   dir={SITE.dir}
-  lang={`${SITE.lang ?? "en"}`}
+  lang={locale}
   class={`${scrollSmooth ? "scroll-smooth" : ""}`}
 >
   <head>
+    <script is:inline>
+      try {
+        if (window.location.pathname === "/") {
+          const preferredLang = localStorage.getItem("preferred-lang");
+          if (preferredLang === "es") {
+            window.location.replace("/es");
+          }
+        }
+      } catch {}
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    <meta name="theme-color" content="" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="canonical" href={canonicalURL} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="es" href={esUrl} />
+    <link rel="alternate" hreflang="x-default" href={enUrl} />
     <meta name="generator" content={Astro.generator} />
 
     <!-- Relational Pagination Links -->
@@ -143,6 +170,11 @@ const showGrain = SITE.backdropEffects.grain;
     <!-- Open Graph / Facebook -->
     <meta property="og:site_name" content={SITE.title} />
     <meta property="og:type" content={isArticle ? "article" : "website"} />
+    <meta property="og:locale" content={locale === "es" ? "es_ES" : "en_US"} />
+    <meta
+      property="og:locale:alternate"
+      content={locale === "es" ? "en_US" : "es_ES"}
+    />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
@@ -163,14 +195,17 @@ const showGrain = SITE.backdropEffects.grain;
         content={modDatetime.toISOString()}
       />
     )}
+    {isArticle &&
+      tags &&
+      tags.map(tag => <meta property="article:tag" content={tag} />)}
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content={canonicalURL} />
-    <meta property="twitter:title" content={title} />
-    <meta property="twitter:description" content={description} />
-    <meta property="twitter:image" content={socialImageURL} />
-    <meta property="twitter:creator" content={SITE.author} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImageURL} />
+    <meta name="twitter:creator" content={SITE.author} />
 
     <!-- Google JSON-LD Structured data -->
     {finalStructuredData && (
@@ -187,7 +222,7 @@ const showGrain = SITE.backdropEffects.grain;
       rel="alternate"
       type="application/rss+xml"
       title={SITE.title}
-      href={new URL("rss.xml", Astro.site)}
+      href={new URL(locale === "es" ? "es/rss.xml" : "rss.xml", Astro.site)}
     />
 
     {
@@ -233,6 +268,42 @@ const showGrain = SITE.backdropEffects.grain;
         };
       })();
     </script>
+
+    <!-- Self-healing deployment asset sync: auto-reloads if a stale chunk/stylesheet 404s after a new deploy -->
+    <script is:inline>
+      (function () {
+        window.addEventListener(
+          "error",
+          function (e) {
+            const target = e.target;
+            if (!target) return;
+            const isStylesheet =
+              target.tagName === "LINK" && target.rel === "stylesheet";
+            const isScript = target.tagName === "SCRIPT";
+            if (isStylesheet || isScript) {
+              const url = target.href || target.src || "";
+              if (url.includes("/_astro/")) {
+                const reloadKey =
+                  "astro_chunk_reload_" +
+                  encodeURIComponent(window.location.pathname);
+                if (!sessionStorage.getItem(reloadKey)) {
+                  sessionStorage.setItem(reloadKey, "1");
+                  window.location.reload();
+                }
+              }
+            }
+          },
+          true
+        );
+
+        document.addEventListener("astro:page-load", function () {
+          const reloadKey =
+            "astro_chunk_reload_" +
+            encodeURIComponent(window.location.pathname);
+          sessionStorage.removeItem(reloadKey);
+        });
+      })();
+    </script>
   </head>
   <body>
     <!-- Global decorative backdrop (grid, glow, cursor glow, noise) -->
@@ -252,6 +323,8 @@ const showGrain = SITE.backdropEffects.grain;
 
     <!-- Load full theme logic -->
     <script src="../scripts/theme.ts"></script>
+    <!-- Smart prefetch for slow connections -->
+    <script src="../scripts/smart-prefetch.ts"></script>
   </body>
 </html>
 
@@ -396,3 +469,53 @@ const showGrain = SITE.backdropEffects.grain;
     );
   });
 </script>}
+
+<script>
+  let langCleanup: AbortController | null = null;
+
+  document.addEventListener("astro:page-load", () => {
+    if (langCleanup) langCleanup.abort();
+    langCleanup = new AbortController();
+    const { signal } = langCleanup;
+
+    const pathname = window.location.pathname;
+
+    // 1. Track listing / home routes for contextual `cd ..` back navigation
+    const isDetailRoute =
+      /^(\/es)?\/posts\/(?!\d+\/?$)[^/]+/.test(pathname) ||
+      /^(\/es)?\/galleries\/[^/]+/.test(pathname);
+    if (
+      !isDetailRoute &&
+      pathname !== "/404" &&
+      pathname !== "/404.html" &&
+      !pathname.startsWith("/search") &&
+      !pathname.startsWith("/es/search")
+    ) {
+      sessionStorage.setItem("backUrl", pathname + window.location.search);
+    }
+
+    // 2. Auto-save preference based on path (except root /)
+    if (pathname !== "/") {
+      if (pathname.startsWith("/es/") || pathname === "/es") {
+        localStorage.setItem("preferred-lang", "es");
+      } else {
+        localStorage.setItem("preferred-lang", "en");
+      }
+    }
+
+    // 3. Track language switcher button clicks
+    document.addEventListener(
+      "click",
+      e => {
+        const toggle = (e.target as HTMLElement).closest("[data-lang-toggle]");
+        if (toggle) {
+          const targetLang = toggle.getAttribute("data-lang-toggle");
+          if (targetLang) {
+            localStorage.setItem("preferred-lang", targetLang);
+          }
+        }
+      },
+      { signal }
+    );
+  });
+</script>

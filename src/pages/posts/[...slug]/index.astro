@@ -15,7 +15,10 @@ const { post, sortedPosts: propsSortedPosts } = Astro.props;
 
 let sortedPosts = propsSortedPosts;
 if (!sortedPosts) {
-  const posts = await getCollection("blog");
+  const locale = Astro.currentLocale || "en";
+  const posts = await getCollection("blog", ({ id }) =>
+    id.startsWith(`${locale}/`)
+  );
   sortedPosts = getSortedPosts(posts) as CollectionEntry<"blog">[];
 }
 ---
