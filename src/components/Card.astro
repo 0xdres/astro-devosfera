@@ -76,6 +76,8 @@ if (SITE.showCoverImages) {
 ---
 
 <li
+  data-post-card
+  data-tags={tags.map((t: string) => slugifyStr(t)).join(",")}
   class:list={[
     "card-glow group/card relative my-3 rounded-2xl",
     // Use overflow-hidden when cover image is shown so the image respects border-radius

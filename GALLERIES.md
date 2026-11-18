@@ -1,6 +1,6 @@
 # Feature: Image Galleries
 
-> Technical documentation for the **Galleries** feature, implemented on 17/02/2026.  
+> Technical documentation for the **Galleries** feature.  
 > Reference: [astro-paper issue #553](https://github.com/satnaing/astro-paper/issues/553)
 
 ---
@@ -27,43 +27,48 @@
 
 ## Overview
 
-The Galleries feature allows publishing image collections accessible at `/galleries`. Each gallery is a **folder** inside `src/data/galleries/` containing:
+The Galleries feature allows publishing bilingual image collections accessible at `/galleries` (English) and `/es/galleries` (Spanish). Each gallery is a **folder** inside `src/data/galleries/{en,es}/<slug>/` containing:
 
 - An `index.md` (or `index.mdx`) file with the gallery metadata.
 - The image files directly in that folder.
 
-Images are processed by the **Astro Assets** pipeline (`astro:assets`) at build time, generating optimized versions with `srcset`, lazy loading, and automatic modern format conversion.
+Images are processed by the **Astro Assets** pipeline (`astro:assets`) at build time, generating optimized responsive versions with `srcset`, lazy loading, and modern `AVIF` output.
 
-In addition to `/galleries`, gallery entries can participate in the global mixed feed (`posts + galleries`) used by `/`, `/posts`, `/archives`, `/tags`, and `/rss.xml`.
+In addition to `/galleries` and `/es/galleries`, gallery entries can participate in the global mixed feed (`posts + galleries`) used by `/`, `/posts`, `/archives`, `/tags`, `/rss.xml`, and their `/es/*` counterparts.
 
 ---
 
 ## Files involved
 
 | File | Role |
-|---|---|
+| --- | --- |
 | `src/config.ts` | `showGalleries` + `showGalleriesInIndex` flags |
 | `src/content.config.ts` | `galleries` collection definition with Zod schema |
-| `src/components/GalleryCard.astro` | Card used in the listing page |
+| `src/components/AuroraHero.astro` | Reusable section hero banner on gallery index pages |
+| `src/components/GalleryCard.astro` | Card used in the gallery listing grid |
 | `src/components/GalleryEmbed.astro` | Component to embed galleries inside MDX posts |
+| `src/components/GalleryLightbox.astro` | Shared native `<dialog>` lightbox component with View Transitions cleanup |
 | `src/components/Card.astro` | Shared card for blog/gallery mixed feeds (adds gallery badge) |
-| `src/components/Header.astro` | Conditional nav link (desktop + mobile) |
+| `src/components/Header.astro` / `MobileMenu.astro` | Conditional nav links for `/galleries` and `/es/galleries` |
 | `src/assets/icons/IconGallery.svg` | Gallery icon used in header/cards/archive timeline |
-| `src/pages/galleries/index.astro` | Listing page `/galleries` |
-| `src/pages/galleries/[gallery].astro` | Detail page `/galleries/<slug>` |
-| `src/pages/index.astro` | Optional mixed feed on homepage |
-| `src/pages/posts/[...page].astro` | Optional mixed paginated listing |
+| `src/pages/galleries/index.astro` | English gallery listing `/galleries` |
+| `src/pages/galleries/[gallery].astro` | English gallery detail `/galleries/<slug>` |
+| `src/pages/es/galleries/index.astro` | Spanish gallery listing `/es/galleries` |
+| `src/pages/es/galleries/[gallery].astro` | Spanish gallery detail `/es/galleries/<slug>` |
+| `src/pages/index.astro` | Optional mixed feed on homepage (and `/es`) |
+| `src/pages/posts/index.astro` | Unified mixed post listing with inline Pagefind & tag filters |
 | `src/pages/archives/index.astro` | Optional mixed archive timeline |
-| `src/pages/tags/index.astro` | Optional mixed tag index |
-| `src/pages/tags/[tag]/[...page].astro` | Optional mixed tag detail pagination |
-| `src/pages/rss.xml.ts` | Optional mixed RSS feed aggregation |
+| `src/pages/tags/index.astro` & `src/pages/tags/[tag]/[...page].astro` | Optional mixed tag index & detail pagination |
+| `src/pages/rss.xml.ts` & `src/pages/es/rss.xml.ts` | Optional localized mixed RSS feeds |
 | `src/layouts/PostDetails.astro` | Registers `GalleryEmbed` as a global MDX component |
-| `src/utils/contentEntry.ts` | Shared typing + URL helpers for blog/gallery entries |
+| `src/utils/gallery.ts` | Centralized `allGalleryImages` glob, `getGalleryImages`, `getFirstGalleryImage`, and `filenameToAlt` |
+| `src/utils/staticPaths.ts` | Shared `buildGalleryStaticPaths(locale)` helper |
+| `src/utils/contentEntry.ts` | Shared typing, `getGallerySlug`, and URL helpers for blog/gallery entries |
 | `src/utils/getSortedPosts.ts` | Shared date sorting for mixed entries |
 | `src/utils/getUniqueTags.ts` | Shared tag extraction for mixed entries |
 | `src/utils/getPostsByTag.ts` | Shared tag filtering for mixed entries |
 | `src/utils/getPostsByGroupCondition.ts` | Shared archive grouping helper for mixed entries |
-| `src/data/galleries/` | Root directory for gallery content |
+| `src/data/galleries/{en,es}/` | Root directories for localized gallery content |
 
 ---
 
@@ -73,16 +78,24 @@ In addition to `/galleries`, gallery entries can participate in the global mixed
 
 ```
 src/data/galleries/
-└── gallery-name/
-    ├── index.md          ← required metadata
-    ├── 01-first.jpg
-    ├── 02-second.jpg
-    └── 03-third.png
+├── en/
+│   └── gallery-name/
+│       ├── index.md          ← required metadata (English)
+│       ├── 01-first.jpg
+│       ├── 02-second.jpg
+│       └── 03-third.png
+└── es/
+    └── gallery-name/
+        ├── index.md          ← required metadata (Spanish)
+        ├── 01-first.jpg
+        ├── 02-second.jpg
+        └── 03-third.png
 ```
 
 ### Naming rules
 
-- The **folder** name becomes the URL slug: `gallery-name` → `/galleries/gallery-name`
+- The **folder** name after the locale directory becomes the URL slug: `gallery-name` → `/galleries/gallery-name` (and `/es/galleries/gallery-name`).
+- `getGallerySlug(id)` in `src/utils/contentEntry.ts` strips the leading `en/` or `es/` locale prefix and trailing `/index` segment.
 - The metadata file must be named **exactly** `index.md` or `index.mdx`.
 - Images are displayed **sorted alphabetically** by filename. Using a numeric prefix (`01-`, `02-`, …) is the recommended way to control the order.
 
@@ -103,16 +116,16 @@ tags:                                # optional — array of tags (no #)
 ---
 ```
 
-> **Note:** unlike blog posts, galleries **have no document body**. All visual content comes from the images in the folder.
+> **Note:** unlike blog posts, galleries **have no document body**. All visual content comes from the images in the folder. Scheduled future dates and `draft: true` entries are filtered out across listing routes via `postFilter`.
 
 ---
 
 ## How images are processed
 
-`import.meta.glob` with `{ eager: true }` is used at build time:
+`allGalleryImages` in `src/utils/gallery.ts` uses `import.meta.glob` with `{ eager: true }` at build time:
 
 ```ts
-const allImages = import.meta.glob<{ default: ImageMetadata }>(
+export const allGalleryImages = import.meta.glob<{ default: ImageMetadata }>(
   "/src/data/galleries/**/*.{jpg,jpeg,png,webp,avif,gif,JPG,JPEG,PNG,WEBP}",
   { eager: true }
 );
@@ -124,17 +137,7 @@ Astro/Vite requires that globs for images processed by `<Image />` be static and
 
 ### How images are filtered per gallery
 
-In `[gallery].astro`, the global glob is filtered using the URL slug:
-
-```ts
-const images = Object.entries(allImages)
-  .filter(([path]) =>
-    path.startsWith(`/src/data/galleries/${slug}/`) &&
-    !path.includes("index")   // excludes index.md/mdx if it falls into the glob
-  )
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([path, mod]) => ({ src: mod.default, alt: filenameToAlt(filename), filename }));
-```
+`getGalleryImages(slug, locale, fallbackTitle)` in `src/utils/gallery.ts` filters the central `allGalleryImages` map by locale prefix and gallery folder slug, excludes `index.md`/`index.mdx`, sorts paths alphabetically, and maps each entry to `{ src, alt, filename }`. `getFirstGalleryImage(slug, locale)` returns `images[0]?.src` for fallback covers and card previews.
 
 ### Optimizations applied by Astro
 
@@ -146,15 +149,18 @@ The `<Image />` component with these props:
   alt={img.alt}
   widths={[400, 800]}
   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-  loading={idx < 6 ? "eager" : "lazy"}
+  loading={idx < 3 ? "eager" : "lazy"}
+  format="avif"
+  quality={72}
 />
 ```
 
 Automatically generates:
+
 - `srcset` with versions at 400 px and 800 px.
-- Conversion to a modern format (WebP/AVIF depending on browser support).
+- Conversion to modern `AVIF` format at quality `72`.
 - Explicit `width` and `height` to prevent layout shift (CLS).
-- Lazy loading for images beyond the 6th (the first ones load `eager` for above-the-fold).
+- Lazy loading for images beyond the first ones (the initial images load `eager` for above-the-fold).
 
 ---
 
@@ -168,16 +174,18 @@ When there is no explicit alt metadata, the alt text is derived from the **filen
 IMG_4532.JPG            →  "IMG 4532"  (falls back to gallery title if empty)
 ```
 
-Responsible function (`filenameToAlt` in `[gallery].astro`):
+Responsible function (`filenameToAlt` in `src/utils/gallery.ts`):
 
 ```ts
-function filenameToAlt(filename: string): string {
-  return filename
-    .replace(/\.[^.]+$/, "")           // remove extension
-    .replace(/^\d+[-_]?/, "")          // remove leading number
-    .replace(/[-_]/g, " ")             // hyphens/underscores → spaces
-    .replace(/\b\w/g, c => c.toUpperCase()) // capitalize each word
-    .trim() || title;                  // fallback to gallery title
+export function filenameToAlt(filename: string, fallback = ""): string {
+  return (
+    filename
+      .replace(/\.[^.]+$/, "") // remove extension
+      .replace(/^\d+[-_]?/, "") // remove initial ordering numbers
+      .replace(/[-_]/g, " ") // replace dashes/underscores with spaces
+      .replace(/\b\w/g, c => c.toUpperCase()) // capitalize words
+      .trim() || fallback
+  );
 }
 ```
 
@@ -217,9 +225,9 @@ export const SITE = {
 ```
 
 - `showGalleries = false`:
-  - `/galleries` index redirects to 404.
-  - `src/pages/galleries/[gallery].astro` returns `[]` from `getStaticPaths` (no gallery detail routes generated).
-  - Gallery nav links are hidden.
+  - `/galleries` and `/es/galleries` redirect to `/404`.
+  - `buildGalleryStaticPaths(locale)` returns `[]` (no gallery detail routes generated).
+  - Gallery nav links are hidden and `@astrojs/sitemap` excludes `/galleries` URLs.
   - Mixed feeds ignore galleries even if `showGalleriesInIndex` is `true`.
 - `showGalleries = true` and `showGalleriesInIndex = false`:
   - `/galleries` remains available.
@@ -231,55 +239,33 @@ export const SITE = {
 
 ## Mixed feed integration (posts + galleries)
 
-The integration introduced in commit `dbfeb4b` unifies blog posts and galleries for global listing surfaces.
+Blog posts and galleries are unified across global listing surfaces when both flags are active:
 
 ### Affected surfaces
 
-- `/` (home feed)
-- `/posts` (paginated listing)
-- `/archives`
-- `/tags` and `/tags/<tag>`
-- `/rss.xml`
+- `/` and `/es` (home feed)
+- `/posts` and `/es/posts` (unified mixed listing)
+- `/archives` and `/es/archives`
+- `/tags`, `/es/tags`, `/tags/<tag>`, and `/es/tags/<tag>`
+- `/rss.xml` and `/es/rss.xml`
 
 ### Implementation details
 
-- Entries are loaded in parallel with `Promise.all` and merged only when both flags are enabled.
-- Shared helpers (`contentEntry`, `getSortedPosts`, `getUniqueTags`, `getPostsByTag`) keep route/path generation and sorting logic consistent for both collections.
+- Entries are loaded in parallel per locale with `Promise.all` and merged only when both flags are enabled.
+- Shared helpers (`contentEntry`, `staticPaths`, `getSortedPosts`, `getUniqueTags`, `getPostsByTag`, `getPostsByGroupCondition`) keep route/path generation and sorting logic consistent for both collections.
 - Visual differentiation:
   - `Card.astro` adds a gallery icon badge when `collection === "galleries"`.
   - `archives/index.astro` adds an inline gallery badge in timeline items.
-
-Representative pattern used by listing routes:
-
-```ts
-const [blogPosts, galleryPosts] = await Promise.all([
-  getCollection("blog"),
-  SITE.showGalleries && SITE.showGalleriesInIndex
-    ? getCollection("galleries")
-    : Promise.resolve([]),
-]);
-```
 
 ---
 
 ## GalleryEmbed — gallery inside MDX posts
 
-`GalleryEmbed` is a self-contained Astro component that renders the image grid of any gallery **inside the body of an MDX post**, including its own lightbox.
+`GalleryEmbed` is a self-contained Astro component that renders the image grid of any gallery **inside the body of an MDX post**, reusing `<GalleryLightbox>`.
 
 ### Global registration
 
-The component is registered globally in `src/layouts/PostDetails.astro`:
-
-```ts
-// PostDetails.astro
-import GalleryEmbed from "@/components/GalleryEmbed.astro";
-// ...
-const { Content } = await render(post, {
-  components: { GalleryEmbed },
-});
-```
-
-Thanks to this, in **any `.mdx` file** you can use it without importing it:
+The component is registered globally in `src/layouts/PostDetails.astro` by passing `components={{ GalleryEmbed }}` to `<Content />`. Thanks to this, in **any `.mdx` file** you can use it without importing it:
 
 ```mdx
 <GalleryEmbed slug="gallery-name" />
@@ -288,8 +274,8 @@ Thanks to this, in **any `.mdx` file** you can use it without importing it:
 ### Props
 
 | Prop | Type | Default | Description |
-|---|---|---|---|
-| `slug` | `string` | — | **Required.** Folder name in `src/data/galleries/` |
+| --- | --- | --- | --- |
+| `slug` | `string` | — | **Required.** Folder name in `src/data/galleries/{locale}/` |
 | `limit` | `number` | `6` | Max images to show. `0` = all |
 | `showLink` | `boolean` | `true` | Show footer link to the full gallery |
 | `cols` | `2 \| 3 \| 4` | `3` | Number of grid columns |
@@ -309,17 +295,13 @@ Thanks to this, in **any `.mdx` file** you can use it without importing it:
 
 ### Behavior with an invalid slug
 
-If `slug` does not match any entry in the `galleries` collection, the component renders a warning message **instead of breaking the build**:
-
-```
-⚠️ Gallery my-gallery not found. Make sure src/data/galleries/my-gallery/index.md exists.
-```
+If `slug` does not match any entry in the `galleries` collection for the active locale, the component renders a localized warning message **instead of breaking the build** (e.g. `⚠️ Gallery my-gallery not found. Verify that src/data/galleries/my-gallery/index.md exists.` or `⚠️ Galería my-gallery no encontrada. Verifica que src/data/galleries/es/my-gallery/index.md exista.`).
 
 ### Technical details
 
-- Each `GalleryEmbed` creates its own `<dialog>` with ID `ge-lb-{slug}` for the lightbox. This allows **multiple embeds in the same post** without conflicts.
-- The initialization script uses `document.querySelectorAll("[data-gallery-embed]")` and re-runs on `astro:after-swap` for View Transitions compatibility.
-- Images use the same `widths` and `sizes` as `[gallery].astro`; Astro does not duplicate optimization — if the same photo appears in both the embed and the detail page, it is optimized **only once** during the build.
+- Each `GalleryEmbed` creates its own `<GalleryLightbox id={`ge-lb-${slug}`} />` instance. This allows **multiple embeds in the same post** without conflicts.
+- Trigger buttons use `data-lb={lbId}` and `data-index={idx}`, handled uniformly by `GalleryLightbox.astro` across `astro:page-load` and View Transitions.
+- Images use the same `widths`, `sizes`, and `format="avif"` config as `[gallery].astro`; Astro does not duplicate optimization — if the same photo appears in both the embed and the detail page, it is processed **only once** during the build.
 
 ---
 
@@ -328,46 +310,45 @@ If `slug` does not match any entry in the `galleries` collection, the component 
 ```
 Build time
 ──────────────────────────────────────────────────────────────────────
-src/data/galleries/
-  <slug>/
+src/data/galleries/{en,es}/<slug>/
     index.md          ──► "galleries" collection (Astro Content)
-    *.jpg / *.png     ──► import.meta.glob eagerly ──► ImageMetadata[]
+    *.jpg / *.png     ──► src/utils/gallery.ts (import.meta.glob eager) ──► ImageMetadata[]
                          │
               ┌─────────────────────────┴──────────────────────────┐
               │                                                    │
-          /galleries section                                 mixed feed (optional)
-       (index.astro + [gallery].astro)                    (enabled by both config flags)
-              │                                                    │
-      GalleryCard + detail lightbox                    shared helpers (contentEntry +
-        (<Image /> optimized)                       sort/tag/group utilities)
+      /galleries & /es/galleries                          mixed feed (optional)
+  (index.astro + staticPaths.ts +                      (enabled by both config flags)
+       GalleryLightbox.astro)                                      │
+              │                                      shared helpers (contentEntry +
+      GalleryCard + detail lightbox                    sort/tag/group utilities)
+        (<Image /> optimized)                                      │
               │                                                    │
               └─────────────────────────┬──────────────────────────┘
                          │
-                /, /posts, /archives, /tags, /rss.xml
+          /, /posts, /archives, /tags, /rss.xml (+ /es/*)
 ```
 
 ---
 
 ## Lightbox
 
-The detail page includes a **native lightbox using `<dialog>`** — no external dependencies.
+Both the gallery detail page (`[gallery].astro`) and `GalleryEmbed.astro` share `src/components/GalleryLightbox.astro`, built with a native HTML `<dialog>` — no external dependencies.
 
 ### Behavior
 
 | Action | Result |
-|---|---|
+| --- | --- |
 | Click on image | Opens the lightbox with that image |
 | `←` / `→` | Navigate between images |
 | `Esc` | Close the lightbox |
 | Click outside the image | Close the lightbox |
-| `‹` and `›` buttons | Touch/click navigation |
+| `‹` and `›` buttons | Edge-aware navigation (prev hidden at first image, next hidden at last) |
 
 ### Technical details
 
-- The lightbox is a standard `<dialog>` using `showModal()` / `close()`. This blocks background scroll and handles focus accessibly.
-- Images in the lightbox use the `src` of the Astro-processed version (the largest in the srcset).
-- The script registers on `astro:after-swap` to maintain compatibility with **View Transitions**.
-- `document.body.style.overflow = "hidden"` while the lightbox is open to prevent double scrolling in some browsers.
+- The lightbox is a standard `<dialog>` using `showModal()` / `close()`.
+- Images in the lightbox reuse the processed `<img src>` rendered inside the clicked trigger button.
+- Listeners are bound per `astro:page-load` with an `AbortController` and torn down on `astro:before-swap` to prevent duplicate bindings or locked `document.body.style.overflow` across View Transitions.
 
 ---
 
@@ -376,7 +357,7 @@ The detail page includes a **native lightbox using `<dialog>`** — no external 
 ### Listing grid (`/galleries`)
 
 | Viewport | Columns |
-|---|---|
+| --- | --- |
 | `< 640px` | 1 |
 | `640px – 1023px` | 2 |
 | `≥ 1024px` | 3 |
@@ -384,64 +365,29 @@ The detail page includes a **native lightbox using `<dialog>`** — no external 
 ### Detail grid (`/galleries/<slug>`)
 
 | Viewport | Columns |
-|---|---|
+| --- | --- |
 | `< 640px` | 2 |
 | `640px – 1023px` | 3 |
 | `≥ 1024px` | 4 |
 
-Grid and lightbox styles are **scoped** inside `<style>` in `[gallery].astro`. GalleryCard styles are scoped in `GalleryCard.astro`. Hero classes (`.archive-hero`, `.aurora-orb`, `.hero-badge`) come from the global stylesheet (`src/styles/global.css`) and are reused from the Archive page.
+Grid styles are scoped in `[gallery].astro`, card styles in `GalleryCard.astro`, lightbox styles in `GalleryLightbox.astro`, and index hero styles are shared via `AuroraHero.astro`.
 
 ---
 
 ## Known limitations
 
-1. **Static glob**: `import.meta.glob` requires a literal string at compile time. It is not possible to make the glob dynamic per gallery — that is why a global glob over all galleries is used and then filtered at build runtime.
-
-2. **Uppercase extensions**: the glob includes variants `.JPG`, `.JPEG`, `.PNG`, `.WEBP` to cover photos exported from cameras/phones. If a new format is added (e.g. converted `.HEIC`), it must be manually added to the glob in **both** pages (`index.astro` and `[gallery].astro`).
-
+1. **Static glob**: `import.meta.glob` requires a literal string at compile time. A single centralized glob lives in `src/utils/gallery.ts` (`allGalleryImages`) and filters per locale and slug at build runtime.
+2. **Uppercase extensions**: the glob in `src/utils/gallery.ts` includes `.JPG`, `.JPEG`, `.PNG`, `.WEBP` to cover photos exported from cameras/phones. Adding a new extension only requires updating `allGalleryImages` once in `src/utils/gallery.ts`.
 3. **No pagination on detail page**: if a gallery has many images (>100), all of them are rendered in the HTML. For very large galleries, pagination or infinite scroll would need to be implemented.
-
-4. **Alt text derived from filename**: it is automatic but not perfect. For images with non-descriptive names (e.g. `IMG_4532.jpg`), the resulting alt is generic. This can be improved in the future with an `images` field in the frontmatter.
-
-5. **Tag visibility is tied to mixed-feed flags**: gallery tags appear in `/tags` only when both `showGalleries` and `showGalleriesInIndex` are enabled. There is no independent toggle for "include galleries in tags but not in home/posts".
+4. **Alt text derived from filename**: automatic via `filenameToAlt`, so non-descriptive camera names (e.g. `IMG_4532.jpg`) produce generic alt text unless explicit per-image metadata is added.
+5. **Tag visibility is tied to mixed-feed flags**: gallery tags appear in `/tags` only when both `showGalleries` and `showGalleriesInIndex` are enabled.
 
 ---
 
 ## Future extensions
 
-### A. `images` field in frontmatter for explicit alt text
-
-If full control over alt text or order is needed, add to the schema:
-
-```ts
-// in content.config.ts
-images: z.array(z.object({
-  filename: z.string(),
-  alt: z.string(),
-  caption: z.string().optional(),
-})).optional(),
-```
-
-In `[gallery].astro`, merge the frontmatter array with the folder images by `filename`.
-
-### B. Pagination on detail page
-
-Add a `?page=N` parameter and paginate `images.slice(offset, offset + PAGE_SIZE)`. For SEO, use `<link rel="next">` / `<link rel="prev">`.
-
-### C. Independent toggle for tags/RSS integration
-
-Gallery integration in `/tags` and `/rss.xml` currently follows the same gate as the rest of the mixed feed (`showGalleries && showGalleriesInIndex`).
-
-If finer control is needed, add dedicated flags (for example `showGalleriesInTags` and `showGalleriesInRss`) and apply them in the corresponding routes.
-
-### D. Lightbox with zoom
-
-Replace the lightbox `<img>` with a library like [PhotoSwipe](https://photoswipe.com/) for pinch-to-zoom support on mobile. PhotoSwipe accepts `ImageMetadata` and does not require bundling extra images.
-
-### E. Cover with video
-
-Add a `coverVideo: z.string().url().optional()` field in the schema for galleries that want an animated cover (URL to a short video). In `GalleryCard.astro`, render a `<video autoplay muted loop>` instead of `<Image>`.
-
-### F. Gallery embedded in a post ✅ **Implemented**
-
-> See the [GalleryEmbed](#galleryembed--gallery-inside-mdx-posts) section for full documentation.
+- `images` array field in `src/content.config.ts` frontmatter schema for explicit alt text and captions per filename.
+- Query-param or static pagination on large gallery detail pages.
+- Independent flags (e.g. `showGalleriesInTags`, `showGalleriesInRss`) for finer feed control.
+- Pinch-to-zoom lightbox support (e.g. PhotoSwipe).
+- Optional `coverVideo` URL field in `GalleryCard.astro`.

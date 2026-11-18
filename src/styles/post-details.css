@@ -165,13 +165,6 @@
   }
 }
 
-@media (min-width: 1024px) {
-  #article #table-of-contents,
-  #article details {
-    display: none !important;
-  }
-}
-
 /* Reading Resume Modal breathing pulse animations */
 @keyframes reading-halo-pulse {
   0%,
@@ -217,6 +210,7 @@ body.reading-mode-active footer,
 body.reading-mode-active nav[aria-label="breadcrumb"],
 body.reading-mode-active nav.app-layout,
 body.reading-mode-active .sidebar-toc,
+body.reading-mode-active .mobile-toc,
 body.reading-mode-active #back-to-top,
 body.reading-mode-active .post-hero-bg,
 body.reading-mode-active .giscus-wrapper,

@@ -90,6 +90,10 @@ export const ui = {
     "posts.emptyTitle": "No posts yet",
     "posts.emptyDesc": "Come back later to read our upcoming articles.",
     "posts.count": "posts",
+    "posts.allTags": "All",
+    "posts.loadMore": "Load more",
+    "posts.showing": "Showing",
+    "posts.of": "of",
     "tags.title": "Tags",
     "tags.desc": "Explore all blog topics. Each tag is a universe of content.",
     "tags.count": "tags",
@@ -259,6 +263,10 @@ export const ui = {
     "posts.emptyDesc":
       "Vuelve más tarde para leer nuestros próximos artículos.",
     "posts.count": "publicaciones",
+    "posts.allTags": "Todos",
+    "posts.loadMore": "Mostrar más",
+    "posts.showing": "Mostrando",
+    "posts.of": "de",
     "tags.title": "Etiquetas",
     "tags.desc":
       "Explora todos los temas del blog. Cada etiqueta es un universo de contenido.",

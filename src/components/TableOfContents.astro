@@ -4,9 +4,10 @@ import { useTranslations } from "@/i18n/utils";
 
 type Props = {
   headings: MarkdownHeading[];
+  isMobile?: boolean;
 };
 
-const { headings } = Astro.props;
+const { headings, isMobile = false } = Astro.props;
 const locale = Astro.currentLocale || "en";
 const t = useTranslations(locale);
 
@@ -19,10 +20,14 @@ if (tocHeadings.length === 0) {
 ---
 
 <nav class="toc-navigation" aria-label={t("toc.aria")}>
-  <h2 class="toc-heading font-firacode text-[10px] tracking-widest text-foreground/45 uppercase select-none">
-    {t("toc.title")}
-  </h2>
-  <ul class="toc-list mt-4 flex flex-col gap-1.5">
+  {!isMobile && (
+    <h2 class="toc-heading font-firacode text-[10px] tracking-widest text-foreground/45 uppercase select-none">
+      {t("toc.title")}
+    </h2>
+  )}
+  <ul
+    class:list={["toc-list flex flex-col gap-1.5", isMobile ? "mt-0" : "mt-4"]}
+  >
     {tocHeadings.map(heading => (
       <li class={`toc-item depth-${heading.depth}`}>
         <a
@@ -94,16 +99,32 @@ if (tocHeadings.length === 0) {
 
     headingElements.forEach(el => observer.observe(el));
 
+    const clickController = new AbortController();
+    document
+      .querySelectorAll<HTMLAnchorElement>(".mobile-toc [data-toc-link]")
+      .forEach(link => {
+        link.addEventListener(
+          "click",
+          () => {
+            const details = link.closest<HTMLDetailsElement>(".mobile-toc");
+            if (details) details.open = false;
+          },
+          { signal: clickController.signal }
+        );
+      });
+
     // Return cleanup function
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      clickController.abort();
+    };
   }
 
   let cleanup: (() => void) | null = null;
 
   document.addEventListener("astro:page-load", () => {
     if (cleanup) cleanup();
-    const result = setupTocHighlight();
-    if (result) cleanup = result;
+    cleanup = setupTocHighlight();
   });
 </script>
 

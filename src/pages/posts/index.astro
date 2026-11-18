@@ -10,26 +10,54 @@ import "@pagefind/default-ui/css/ui.css";
 import type { ContentEntry } from "@/utils/contentEntry";
 import getSortedPosts from "@/utils/getSortedPosts";
 import postFilter from "@/utils/postFilter";
+import { slugifyStr } from "@/utils/slugify";
 import { SITE } from "@/config";
 import { useTranslations } from "@/i18n/utils";
 
 const locale = Astro.currentLocale || "en";
 const t = useTranslations(locale);
 
+const isMatchingLocale = (id: string) =>
+  id.startsWith(`${locale}/`) || (locale === "en" && !id.startsWith("es/"));
+
 const [blogPosts, galleryPosts] = await Promise.all([
   getCollection(
     "blog",
-    entry => postFilter(entry) && entry.id.startsWith(`${locale}/`)
+    entry => postFilter(entry) && isMatchingLocale(entry.id)
   ),
   SITE.showGalleries && SITE.showGalleriesInIndex
     ? getCollection(
         "galleries",
-        entry => postFilter(entry) && entry.id.startsWith(`${locale}/`)
+        entry => postFilter(entry) && isMatchingLocale(entry.id)
       )
     : Promise.resolve([]),
 ]);
 const posts = getSortedPosts([...blogPosts, ...galleryPosts]);
 const totalPosts = posts.length;
+
+const tagMap = new Map<string, { label: string; count: number }>();
+for (const post of posts) {
+  if (!("tags" in post.data) || !post.data.tags) continue;
+  const seenSlugs = new Set<string>();
+  for (const rawTag of post.data.tags) {
+    const slug = slugifyStr(rawTag);
+    if (seenSlugs.has(slug)) continue;
+    seenSlugs.add(slug);
+    const existing = tagMap.get(slug);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      tagMap.set(slug, { label: rawTag, count: 1 });
+    }
+  }
+}
+
+const filterTags = Array.from(tagMap.entries())
+  .map(([slug, info]) => ({ slug, ...info }))
+  .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+  .slice(0, 10);
+
+const pageSize = SITE.postPerPage || 12;
 
 const metaTitle = `${t("posts.title")} | ${SITE.title}`;
 const metaDesc = t("posts.desc");
@@ -58,10 +86,44 @@ const metaDesc = t("posts.desc");
           data-clear={t("search.close")}
         ></div>
       </div>
+
+      {filterTags.length > 0 && (
+        <div
+          data-tag-filter-bar
+          class="flex flex-wrap items-center gap-2"
+          role="group"
+          aria-label={t("tags.title")}
+        >
+          <button
+            type="button"
+            class="tag-filter-chip active"
+            data-tag-filter="all"
+            aria-pressed="true"
+          >
+            {t("posts.allTags")}
+          </button>
+          {filterTags.map(tag => (
+            <button
+              type="button"
+              class="tag-filter-chip"
+              data-tag-filter={tag.slug}
+              aria-pressed="false"
+            >
+              #{tag.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
 
     <!-- Posts Grid -->
-    <div data-default-posts-container class="w-full">
+    <div
+      data-default-posts-container
+      class="w-full"
+      data-page-size={pageSize}
+      data-showing-label={t("posts.showing")}
+      data-of-label={t("posts.of")}
+    >
       {posts.length === 0 ? (
         <div class="empty-state">
           <div class="empty-icon-wrapper">
@@ -83,15 +145,40 @@ const metaDesc = t("posts.desc");
           <p class="empty-desc">{t("posts.emptyDesc")}</p>
         </div>
       ) : (
-        <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((data: ContentEntry, index) => (
-            <Card
-              {...data}
-              loading={index < 3 ? "eager" : "lazy"}
-              fetchpriority={index < 3 ? "high" : "auto"}
-            />
-          ))}
-        </ul>
+        <>
+          <ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((data: ContentEntry, index) => (
+              <Card
+                {...data}
+                loading={index < 3 ? "eager" : "lazy"}
+                fetchpriority={index < 3 ? "high" : "auto"}
+              />
+            ))}
+          </ul>
+
+          <div
+            data-load-more-wrap
+            class:list={[
+              "mt-10 flex flex-col items-center gap-3",
+              { hidden: posts.length <= pageSize },
+            ]}
+          >
+            <p
+              data-visible-count
+              class="font-firacode text-xs text-foreground/55 select-none"
+            >
+              {t("posts.showing")} {Math.min(pageSize, posts.length)}{" "}
+              {t("posts.of")} {posts.length}
+            </p>
+            <button
+              type="button"
+              data-load-more-btn
+              class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-accent/25 bg-accent/10 px-6 py-2.5 font-firacode text-xs font-semibold tracking-wider text-accent uppercase transition-all duration-200 hover:border-accent/50 hover:bg-accent/20"
+            >
+              {t("posts.loadMore")}
+            </button>
+          </div>
+        </>
       )}
     </div>
   </main>
@@ -106,6 +193,95 @@ const metaDesc = t("posts.desc");
     if (cleanupController) cleanupController.abort();
     cleanupController = new AbortController();
     const { signal } = cleanupController;
+
+    const defaultContainer = document.querySelector<HTMLElement>(
+      "[data-default-posts-container]"
+    );
+    const filterBar = document.querySelector<HTMLElement>(
+      "[data-tag-filter-bar]"
+    );
+    const loadMoreWrap = document.querySelector<HTMLElement>(
+      "[data-load-more-wrap]"
+    );
+    const visibleCountEl = document.querySelector<HTMLElement>(
+      "[data-visible-count]"
+    );
+    const loadMoreBtn = document.querySelector<HTMLButtonElement>(
+      "[data-load-more-btn]"
+    );
+    const cards = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-post-card]")
+    );
+
+    const pageSize = Math.max(
+      1,
+      Number(defaultContainer?.dataset.pageSize) || 12
+    );
+    const showingLabel = defaultContainer?.dataset.showingLabel || "Showing";
+    const ofLabel = defaultContainer?.dataset.ofLabel || "of";
+
+    let activeTag = "all";
+    let visibleLimit = pageSize;
+
+    function updateCards() {
+      if (cards.length === 0) return;
+
+      const matchingCards = cards.filter(card => {
+        if (activeTag === "all") return true;
+        const cardTags = (card.dataset.tags || "").split(",").filter(Boolean);
+        return cardTags.includes(activeTag);
+      });
+
+      const visibleSet = new Set(matchingCards.slice(0, visibleLimit));
+      cards.forEach(card => {
+        card.style.display = visibleSet.has(card) ? "" : "none";
+      });
+
+      const shown = Math.min(visibleLimit, matchingCards.length);
+      const total = matchingCards.length;
+
+      if (visibleCountEl) {
+        visibleCountEl.textContent = `${showingLabel} ${shown} ${ofLabel} ${total}`;
+      }
+      if (loadMoreWrap) {
+        loadMoreWrap.classList.toggle("hidden", total === 0 || shown >= total);
+      }
+    }
+
+    if (filterBar) {
+      const filterBtns = Array.from(
+        filterBar.querySelectorAll<HTMLButtonElement>("[data-tag-filter]")
+      );
+      filterBtns.forEach(btn => {
+        btn.addEventListener(
+          "click",
+          () => {
+            activeTag = btn.dataset.tagFilter || "all";
+            visibleLimit = pageSize;
+            filterBtns.forEach(b => {
+              const isSelected = b === btn;
+              b.classList.toggle("active", isSelected);
+              b.setAttribute("aria-pressed", String(isSelected));
+            });
+            updateCards();
+          },
+          { signal }
+        );
+      });
+    }
+
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener(
+        "click",
+        () => {
+          visibleLimit += pageSize;
+          updateCards();
+        },
+        { signal }
+      );
+    }
+
+    updateCards();
 
     // Initialize Pagefind local search
     const container = document.querySelector("#posts-pagefind");
@@ -128,7 +304,6 @@ const metaDesc = t("posts.desc");
             <p><strong>Dev Mode:</strong> The search will attempt to use the latest built index. If you don't see results, run <code>pnpm run build</code> first.</p>
           </div>
         `;
-        // Removed the early return to allow pagefind to attempt loading the local index
       }
 
       const placeholder = container.getAttribute("data-placeholder") || "";
@@ -144,37 +319,31 @@ const metaDesc = t("posts.desc");
         },
       });
 
-      // Toggle default posts grid visibility when typing
-      const input = container.querySelector(
+      // Toggle default posts grid & tag filter bar visibility when typing
+      const input = container.querySelector<HTMLInputElement>(
         ".pagefind-ui__search-input"
-      ) as HTMLInputElement;
-      const defaultContainer = document.querySelector(
-        "[data-default-posts-container]"
-      ) as HTMLElement;
+      );
 
       if (input && defaultContainer) {
         const toggleVisibility = () => {
           const hasValue = input.value.trim().length > 0;
-          if (hasValue) {
-            defaultContainer.style.display = "none";
-          } else {
-            defaultContainer.style.display = "";
-          }
+          defaultContainer.style.display = hasValue ? "none" : "";
+          if (filterBar) filterBar.style.display = hasValue ? "none" : "";
         };
 
         input.addEventListener("input", toggleVisibility, { signal });
 
-        // Handle clear button
-        const clearBtn = container.querySelector(".pagefind-ui__search-clear");
-        if (clearBtn) {
-          clearBtn.addEventListener(
-            "click",
-            () => {
+        container.addEventListener(
+          "click",
+          e => {
+            if (
+              (e.target as HTMLElement).closest(".pagefind-ui__search-clear")
+            ) {
               requestAnimationFrame(() => toggleVisibility());
-            },
-            { signal }
-          );
-        }
+            }
+          },
+          { signal }
+        );
       }
 
       // Intercept Global Cmd+K / Ctrl+K to focus inline search instead of Modal
@@ -184,7 +353,6 @@ const metaDesc = t("posts.desc");
           e.stopPropagation();
           if (input) {
             input.focus();
-            // Scroll to the search box if it's not visible
             input.scrollIntoView({ behavior: "smooth", block: "center" });
           }
         }
@@ -209,6 +377,38 @@ const metaDesc = t("posts.desc");
     display: flex;
     flex-direction: column;
     gap: 1rem;
+  }
+
+  /* Tag Filter Chips */
+  .tag-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    font-family: var(--font-firacode, monospace);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--foreground) 70%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
+    background: color-mix(in srgb, var(--muted) 15%, transparent);
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .tag-filter-chip:hover {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
+  .tag-filter-chip.active {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    font-weight: 600;
   }
 
   /* Empty State */
